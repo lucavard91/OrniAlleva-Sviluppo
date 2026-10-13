@@ -15,7 +15,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-<title>OrniBreed Manager — Smart Aviculture Management</title><meta name="ornibreed-version" content="V34.15.1"><meta name="ornibreed-release-channel" content="development">
+<title>OrniBreed Manager — Smart Aviculture Management</title><meta name="ornibreed-version" content="V34.16.0"><meta name="ornibreed-release-channel" content="development">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
@@ -609,17 +609,29 @@ html:has(body.ob-catalog-locked){overflow:hidden!important}body.ob-catalog-locke
 .ob-catalog-list{contain:layout style;overflow-anchor:none}
 @media(max-width:700px){.ob-catalog-dialog{padding:0;background:#fff;top:var(--ob-view-top,0px)!important;bottom:auto!important;height:var(--ob-view-height,100dvh)!important;max-height:var(--ob-view-height,100dvh)!important}.ob-catalog-sheet{width:100%;height:100%!important;max-height:100%!important;border-radius:0;box-shadow:none}.ob-catalog-list{padding-bottom:calc(24px + env(safe-area-inset-bottom))}.ob-catalog-head{padding-top:env(safe-area-inset-top);height:calc(58px + env(safe-area-inset-top));flex-basis:calc(58px + env(safe-area-inset-top))}}
 
-/* V34.15: avviso aggiornamenti non invasivo; nessun elemento del catalogo e modificato. */
-#obReleaseNotice{position:fixed;z-index:8200;left:16px;right:16px;bottom:max(16px,env(safe-area-inset-bottom));width:min(440px,calc(100% - 32px));margin-left:auto;padding:18px;background:#fff;color:#183a2b;border:1px solid #a6c4b2;border-radius:16px;box-shadow:0 10px 36px rgba(0,0,0,.25);box-sizing:border-box;font-family:Arial,sans-serif;max-height:min(75vh,560px);overflow-y:auto;overscroll-behavior:contain}
+/* V34.16: aggiornamenti in stile OrniBreed Natural, compatibili con i cataloghi esistenti. */
+#obReleaseNotice{position:fixed;z-index:8200;left:16px;right:16px;bottom:max(16px,env(safe-area-inset-bottom));width:min(440px,calc(100% - 32px));margin-left:auto;padding:19px;background:linear-gradient(145deg,#fffdf5 0%,#f0f8f0 70%,#e8f3ea 100%);color:#183a2b;border:2px solid #c29e4c;border-radius:18px;box-shadow:0 14px 38px rgba(7,41,25,.25);box-sizing:border-box;font-family:inherit;max-height:min(75vh,560px);overflow-y:auto;overscroll-behavior:contain}
 #obReleaseNotice.hidden{display:none!important}
-#obReleaseNotice h3{margin:0 0 7px;font-size:19px;color:#174c31}
-#obReleaseNotice p{margin:5px 0 10px;line-height:1.45;font-size:14px}
-#obReleaseNotice ul{margin:7px 0 12px;padding-left:22px;max-height:110px;overflow:auto;font-size:13px}
-#obReleaseNotice .ob-release-actions{display:flex;gap:8px;flex-wrap:wrap}
-#obReleaseNotice .ob-release-actions button{flex:1;min-width:120px;margin:0;font-weight:bold;min-height:44px}
-#obReleaseNotice #obReleaseLater{background:#f1f5f2;color:#245b3c;border:1px solid #a6c4b2}
-#obReleaseStatus{font-size:12px;color:#9a4300;min-height:0;margin-top:8px}
-@media(max-width:520px){#obReleaseNotice{left:10px;right:10px;width:calc(100% - 20px);bottom:max(10px,env(safe-area-inset-bottom));padding:14px}#obReleaseNotice .ob-release-actions{flex-wrap:nowrap}#obReleaseNotice .ob-release-actions button{font-size:13px;min-width:0}}
+#obReleaseNotice .ob-release-head{display:flex;align-items:center;gap:11px;margin-bottom:9px}
+#obReleaseNotice .ob-release-mark{width:45px;height:45px;flex:0 0 45px;object-fit:cover;border:2px solid #d3b369;border-radius:12px}
+#obReleaseNotice h3{margin:0;font-size:19px;color:#16472f;line-height:1.25}
+#obReleaseNotice p{margin:5px 0 11px;line-height:1.45;font-size:14px}
+#obReleaseNotice ul{margin:7px 0 13px;padding-left:22px;max-height:110px;overflow:auto;font-size:13px}
+#obReleaseNotice .ob-release-actions{display:flex;gap:9px;flex-wrap:wrap}
+#obReleaseNotice .ob-release-actions button{flex:1;min-width:120px;margin:0;font-weight:700;min-height:44px;border-radius:11px}
+#obReleaseNotice #obReleaseNow{background:#16633f;color:#fff;border:1px solid #105032}
+#obReleaseNotice #obReleaseLater{background:#fffaf0;color:#24543b;border:1px solid #c7aa69}
+#obReleaseStatus{font-size:12px!important;color:#9a4300!important;min-height:0;margin-top:9px!important}
+#impostazioni_info .ob-update-settings-card{border:1px solid rgba(177,137,55,.52);background:linear-gradient(135deg,rgba(255,253,246,.96),rgba(234,246,234,.94))!important}
+#impostazioni_info .ob-update-settings-card h3{color:#17482f;margin-bottom:8px}
+#impostazioni_info .ob-update-settings-card .ob-settings-actions{margin:10px 0;gap:8px}
+#obSettingsReleaseCheck{background:#fffaf0;color:#225438;border:1px solid #c7a95e}
+#obSettingsReleaseInstall{background:#16633f;color:#fff;border:1px solid #105032}
+#impostazioni_info .ob-update-settings-card button{min-height:44px;border-radius:10px;font-weight:700}
+#obSettingsReleaseStatus{font-weight:600;color:#2f5e43;min-height:24px}
+#obSettingsReleaseStatus[data-state="available"]{color:#135c3a}
+#obSettingsReleaseStatus[data-state="error"]{color:#943b23}
+@media(max-width:520px){#obReleaseNotice{left:10px;right:10px;width:calc(100% - 20px);bottom:max(10px,env(safe-area-inset-bottom));padding:14px}#obReleaseNotice .ob-release-actions{flex-wrap:nowrap}#obReleaseNotice .ob-release-actions button{font-size:13px;min-width:0}#impostazioni_info .ob-update-settings-card .ob-settings-actions{flex-direction:column;align-items:stretch}#impostazioni_info .ob-update-settings-card button{width:100%;margin:0}}
 </style>
 <style>
 .soggetto-foto-box{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-width:320px;min-height:180px;border-radius:12px;border:1px dashed #9ca3af;background:#f3f4f6;color:#6b7280;text-align:center;margin:8px 0;padding:18px;box-sizing:border-box}
@@ -2579,7 +2591,17 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
 <section id="impostazioni_info" class="hidden ob-setting-page">
   <div class="page-title"><h2 class="ob-icon-title"><img class="ob-section-icon" src="assets_embedded/assets_embedded/ob_asset_071_e2b7fbdddb.jpg" alt=""><span>Informazioni app</span></h2></div>
   <button class="secondary back" data-page="impostazioni">← Impostazioni</button>
-  <div class="card"><h3>OrniBreed Manager</h3><p>Smart Aviculture Management</p><p class="small">Versione interfaccia: V34.15.0 · Tema: OrniBreed Natural</p></div>
+  <div class="card"><h3>OrniBreed Manager</h3><p>Smart Aviculture Management</p><p class="small">Versione interfaccia: <strong id="obSettingsAppVersion">V34.16.0</strong> · Tema: OrniBreed Natural</p></div>
+  <div class="card ob-update-settings-card">
+    <h3>Aggiornamenti OrniBreed</h3>
+    <p class="small">Controlla quando vuoi se è disponibile una nuova versione dell'applicazione.</p>
+    <p id="obSettingsReleaseStatus" role="status" aria-live="polite">Premi «Controlla aggiornamenti» per verificare.</p>
+    <div class="ob-settings-actions">
+      <button type="button" id="obSettingsReleaseCheck" class="secondary">Controlla aggiornamenti</button>
+      <button type="button" id="obSettingsReleaseInstall" class="success hidden">Aggiorna ora</button>
+    </div>
+    <p class="small">Se prima hai scelto «Più tardi», puoi installare l'aggiornamento da qui senza aspettare un nuovo avviso.</p>
+  </div>
 </section>
 <section id="scopri_ornibreed" class="hidden">
   <div class="page-title"><h2>Scopri OrniBreed</h2></div>
@@ -2627,10 +2649,10 @@ const SUPABASE_URL="https://mddsmqwfufzebahemxcn.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kZHNtcXdmdWZ6ZWJhaGVteGNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzOTMyMTksImV4cCI6MjEwMTk2OTIxOX0.UXzR227VZ1EBwq4fuGapZQen3ekGvGIzezfvJZbXojY";
 const FOTO_BUCKET="myagari-fot";
 /* V34.15 — rilasci controllati via Supabase. Non cambia i dati degli allevatori. */
-const OB_APP_VERSION="34.15.1";
+const OB_APP_VERSION="34.16.0";
 const OB_RELEASE_CHANNEL=document.querySelector('meta[name="ornibreed-release-channel"]')?.content==="production"?"production":"development";
 const OB_RELEASE_POLL_MS=120000; // Realtime se disponibile, controllo di riserva ogni 2 minuti.
-let obReleaseTimer=null,obReleaseRealtime=null,obReleaseBusy=false,obReleaseSnoozedVersion="",obReleasePending=null;
+let obReleaseTimer=null,obReleaseRealtime=null,obReleaseBusy=false,obReleaseSnoozedVersion="",obReleasePending=null,obReleaseLastCheckOk=false;
 function obV3415VersionParts(v){
  const t=String(v||"").trim().replace(/^v/i,"");
  if(!/^\d+\.\d+\.\d+$/.test(t))return null;
@@ -2662,22 +2684,53 @@ function obV3415MostraRelease(row){
  $("obReleaseStatus").textContent="";
  box.classList.remove("hidden");
 }
-async function obV3415ControllaRelease(){
- if(obReleaseBusy||!sb||!sessionUser?.id||document.visibilityState==="hidden")return;
+/* Stato aggiornamento nelle Impostazioni: resta disponibile dopo «Più tardi». */
+function obV3416AggiornaImpostazioniRelease(){
+ const versione=$("obSettingsAppVersion");if(versione)versione.textContent="V"+OB_APP_VERSION;
+ const stato=$("obSettingsReleaseStatus"),installa=$("obSettingsReleaseInstall");
+ if(!stato||!installa)return;
+ const disponibile=!!(obReleasePending&&obV3415VersioneNuova(obReleasePending.version)&&obV3415DestinazioneSicura(obReleasePending.update_url));
+ installa.classList.toggle("hidden",!disponibile);
+ if(disponibile){
+  stato.textContent="Aggiornamento disponibile: versione "+obReleasePending.version+".";
+  stato.dataset.state="available";
+ }else if(obReleaseLastCheckOk){
+  stato.textContent="La tua app è aggiornata (V"+OB_APP_VERSION+").";
+  stato.dataset.state="current";
+ }else{
+  stato.textContent="Premi «Controlla aggiornamenti» per verificare.";
+  stato.dataset.state="idle";
+ }
+}
+async function obV3415ControllaRelease(manuale=false){
+ const stato=$("obSettingsReleaseStatus");
+ if(obReleaseBusy){if(manuale&&stato)stato.textContent="Controllo già in corso, attendi un momento.";return;}
+ if(!sb||!sessionUser?.id||(!manuale&&document.visibilityState==="hidden"))return;
  if($("app")?.classList.contains("hidden"))return;
  obReleaseBusy=true;
+ if(manuale&&stato){stato.textContent="Controllo aggiornamenti in corso…";stato.dataset.state="checking";}
  try{
   const {data,error}=await sb.from("ob_app_releases")
    .select("version,title,notes,update_url,active")
    .eq("channel",OB_RELEASE_CHANNEL).eq("active",true).maybeSingle();
-  if(error){console.warn("Controllo aggiornamenti OrniBreed:",error.message);return;}
+  if(error){
+   console.warn("Controllo aggiornamenti OrniBreed:",error.message);
+   if(manuale&&stato){stato.textContent="Impossibile controllare ora. Verifica la connessione e riprova.";stato.dataset.state="error";}
+   return;
+  }
+  obReleaseLastCheckOk=true;
   if(!data||!obV3415VersioneNuova(data.version)||!obV3415DestinazioneSicura(data.update_url)){
-   obReleasePending=null;$("obReleaseNotice")?.classList.add("hidden");return;
+   obReleasePending=null;$("obReleaseNotice")?.classList.add("hidden");
+   obV3416AggiornaImpostazioniRelease();return;
   }
   obReleasePending=data;
-  if(data.version!==obReleaseSnoozedVersion)obV3415MostraRelease(data);
- }catch(e){console.warn("Controllo versione non disponibile:",e);}
- finally{obReleaseBusy=false;}
+  obV3416AggiornaImpostazioniRelease();
+  // Il controllo manuale aggiorna la scheda Impostazioni, senza riaprire il popup rinviato.
+  if(!manuale&&data.version!==obReleaseSnoozedVersion)obV3415MostraRelease(data);
+ }catch(e){
+  console.warn("Controllo versione non disponibile:",e);
+  if(manuale&&stato){stato.textContent="Controllo non riuscito. Riprova quando sei online.";stato.dataset.state="error";}
+ }finally{obReleaseBusy=false;}
 }
 function obV3415AvviaAggiornamenti(){
  if(!sb||!sessionUser?.id)return;
@@ -2704,9 +2757,9 @@ function obV3415SchedaAperta(){
   return st.display!=="none"&&st.visibility!=="hidden"&&el.getClientRects().length>0;
  });
 }
-async function obV3415AggiornaOra(){
- const r=obReleasePending;if(!r)return;
- const status=$("obReleaseStatus");
+async function obV3415AggiornaOra(origine="avviso"){
+ const status=origine==="impostazioni"?$("obSettingsReleaseStatus"):$("obReleaseStatus");
+ const r=obReleasePending;if(!r){if(status)status.textContent="Nessun aggiornamento disponibile.";return;}
  if(obV3415SchedaAperta()){
   if(status)status.textContent="Prima salva e chiudi le schede aperte, poi scegli Aggiorna ora.";
   return;
@@ -2722,10 +2775,14 @@ async function obV3415AggiornaOra(){
 function obV3415PiuTardi(){
  obReleaseSnoozedVersion=obReleasePending?.version||"";
  $("obReleaseNotice")?.classList.add("hidden");
+ obV3416AggiornaImpostazioniRelease();
 }
 function obV3415CollegaPulsanti(){
  $("obReleaseNow")?.addEventListener("click",()=>{void obV3415AggiornaOra();});
  $("obReleaseLater")?.addEventListener("click",obV3415PiuTardi);
+ $("obSettingsReleaseCheck")?.addEventListener("click",()=>{void obV3415ControllaRelease(true);});
+ $("obSettingsReleaseInstall")?.addEventListener("click",()=>{void obV3415AggiornaOra("impostazioni");});
+ obV3416AggiornaImpostazioniRelease();
 }
 
 const sezioni=["home","profilo","soggetti","coppie","riproduzione","genealogia","gabbie","alimentazione","calendario","salute","statistiche","registro","report","materiale_allevamento","guida","consigli_mostre","notifiche","contabilita","admin","standardFOI","aiValutazione"];
@@ -13642,7 +13699,7 @@ const obV3078ApriPagina=window.apriPagina;window.apriPagina=async function(id,..
 </div>
 
 <aside id="obReleaseNotice" class="hidden" aria-live="polite" aria-label="Aggiornamento OrniBreed disponibile">
-  <h3 id="obReleaseTitle">Aggiornamento disponibile</h3>
+  <div class="ob-release-head"><img class="ob-release-mark" src="assets_embedded/assets_embedded/ob_asset_071_e2b7fbdddb.jpg" alt=""><h3 id="obReleaseTitle">Aggiornamento disponibile</h3></div>
   <p id="obReleaseVersion"></p>
   <ul id="obReleaseNotes"></ul>
   <div class="ob-release-actions">
