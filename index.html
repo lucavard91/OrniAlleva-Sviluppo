@@ -15,7 +15,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-<title>OrniBreed Manager — Smart Aviculture Management</title><meta name="ornibreed-version" content="V30.99-CODICE-PULITO-CATALOGO-FOI">
+<title>OrniBreed Manager — Smart Aviculture Management</title><meta name="ornibreed-version" content="V34.15.0"><meta name="ornibreed-release-channel" content="development">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
@@ -608,6 +608,18 @@ html:has(body.ob-catalog-locked){overflow:hidden!important}body.ob-catalog-locke
 .ob-catalog-search-wrap{z-index:3!important}
 .ob-catalog-list{contain:layout style;overflow-anchor:none}
 @media(max-width:700px){.ob-catalog-dialog{padding:0;background:#fff;top:var(--ob-view-top,0px)!important;bottom:auto!important;height:var(--ob-view-height,100dvh)!important;max-height:var(--ob-view-height,100dvh)!important}.ob-catalog-sheet{width:100%;height:100%!important;max-height:100%!important;border-radius:0;box-shadow:none}.ob-catalog-list{padding-bottom:calc(24px + env(safe-area-inset-bottom))}.ob-catalog-head{padding-top:env(safe-area-inset-top);height:calc(58px + env(safe-area-inset-top));flex-basis:calc(58px + env(safe-area-inset-top))}}
+
+/* V34.15: avviso aggiornamenti non invasivo; nessun elemento del catalogo e modificato. */
+#obReleaseNotice{position:fixed;z-index:8200;left:16px;right:16px;bottom:max(16px,env(safe-area-inset-bottom));width:min(440px,calc(100% - 32px));margin-left:auto;padding:18px;background:#fff;color:#183a2b;border:1px solid #a6c4b2;border-radius:16px;box-shadow:0 10px 36px rgba(0,0,0,.25);box-sizing:border-box;font-family:Arial,sans-serif;max-height:min(75vh,560px);overflow-y:auto;overscroll-behavior:contain}
+#obReleaseNotice.hidden{display:none!important}
+#obReleaseNotice h3{margin:0 0 7px;font-size:19px;color:#174c31}
+#obReleaseNotice p{margin:5px 0 10px;line-height:1.45;font-size:14px}
+#obReleaseNotice ul{margin:7px 0 12px;padding-left:22px;max-height:110px;overflow:auto;font-size:13px}
+#obReleaseNotice .ob-release-actions{display:flex;gap:8px;flex-wrap:wrap}
+#obReleaseNotice .ob-release-actions button{flex:1;min-width:120px;margin:0;font-weight:bold;min-height:44px}
+#obReleaseNotice #obReleaseLater{background:#f1f5f2;color:#245b3c;border:1px solid #a6c4b2}
+#obReleaseStatus{font-size:12px;color:#9a4300;min-height:0;margin-top:8px}
+@media(max-width:520px){#obReleaseNotice{left:10px;right:10px;width:calc(100% - 20px);bottom:max(10px,env(safe-area-inset-bottom));padding:14px}#obReleaseNotice .ob-release-actions{flex-wrap:nowrap}#obReleaseNotice .ob-release-actions button{font-size:13px;min-width:0}}
 </style>
 <style>
 .soggetto-foto-box{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-width:320px;min-height:180px;border-radius:12px;border:1px dashed #9ca3af;background:#f3f4f6;color:#6b7280;text-align:center;margin:8px 0;padding:18px;box-sizing:border-box}
@@ -2567,7 +2579,7 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
 <section id="impostazioni_info" class="hidden ob-setting-page">
   <div class="page-title"><h2 class="ob-icon-title"><img class="ob-section-icon" src="assets_embedded/assets_embedded/ob_asset_071_e2b7fbdddb.jpg" alt=""><span>Informazioni app</span></h2></div>
   <button class="secondary back" data-page="impostazioni">← Impostazioni</button>
-  <div class="card"><h3>OrniBreed Manager</h3><p>Smart Aviculture Management</p><p class="small">Versione interfaccia: V30.91.37 · Tema: OrniBreed Natural</p></div>
+  <div class="card"><h3>OrniBreed Manager</h3><p>Smart Aviculture Management</p><p class="small">Versione interfaccia: V34.15.0 · Tema: OrniBreed Natural</p></div>
 </section>
 <section id="scopri_ornibreed" class="hidden">
   <div class="page-title"><h2>Scopri OrniBreed</h2></div>
@@ -2614,6 +2626,108 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
 const SUPABASE_URL="https://mddsmqwfufzebahemxcn.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kZHNtcXdmdWZ6ZWJhaGVteGNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzOTMyMTksImV4cCI6MjEwMTk2OTIxOX0.UXzR227VZ1EBwq4fuGapZQen3ekGvGIzezfvJZbXojY";
 const FOTO_BUCKET="myagari-fot";
+/* V34.15 — rilasci controllati via Supabase. Non cambia i dati degli allevatori. */
+const OB_APP_VERSION="34.15.0";
+const OB_RELEASE_CHANNEL=document.querySelector('meta[name="ornibreed-release-channel"]')?.content==="production"?"production":"development";
+const OB_RELEASE_POLL_MS=120000; // Realtime se disponibile, controllo di riserva ogni 2 minuti.
+let obReleaseTimer=null,obReleaseRealtime=null,obReleaseBusy=false,obReleaseSnoozedVersion="",obReleasePending=null;
+function obV3415VersionParts(v){
+ const t=String(v||"").trim().replace(/^v/i,"");
+ if(!/^\d+\.\d+\.\d+$/.test(t))return null;
+ return t.split(".").map(Number);
+}
+function obV3415VersioneNuova(remote,installed=OB_APP_VERSION){
+ const a=obV3415VersionParts(remote),b=obV3415VersionParts(installed);
+ if(!a||!b)return false;
+ for(let i=0;i<3;i++){if(a[i]!==b[i])return a[i]>b[i];}
+ return false;
+}
+function obV3415DestinazioneSicura(rel){
+ try{
+  const base=new URL(location.pathname.endsWith("/")?location.pathname:location.pathname.slice(0,location.pathname.lastIndexOf("/")+1),location.origin);
+  const url=new URL(String(rel||"./"),base);
+  if(url.origin!==location.origin||!url.pathname.startsWith(base.pathname))return null;
+  if(url.protocol!=="https:"&&url.hostname!=="localhost"&&url.hostname!=="127.0.0.1")return null;
+  return url;
+ }catch(_){return null;}
+}
+function obV3415MostraRelease(row){
+ const box=$("obReleaseNotice");if(!box)return;
+ $("obReleaseTitle").textContent=String(row.title||"Aggiornamento disponibile");
+ $("obReleaseVersion").textContent="Versione "+row.version+" disponibile";
+ const note=$("obReleaseNotes");note.replaceChildren();
+ const righe=Array.isArray(row.notes)?row.notes.filter(x=>typeof x==="string").slice(0,5):[];
+ righe.forEach(n=>{const li=document.createElement("li");li.textContent=n;note.appendChild(li);});
+ note.style.display=righe.length?"":"none";
+ $("obReleaseStatus").textContent="";
+ box.classList.remove("hidden");
+}
+async function obV3415ControllaRelease(){
+ if(obReleaseBusy||!sb||!sessionUser?.id||document.visibilityState==="hidden")return;
+ if($("app")?.classList.contains("hidden"))return;
+ obReleaseBusy=true;
+ try{
+  const {data,error}=await sb.from("ob_app_releases")
+   .select("version,title,notes,update_url,active")
+   .eq("channel",OB_RELEASE_CHANNEL).eq("active",true).maybeSingle();
+  if(error){console.warn("Controllo aggiornamenti OrniBreed:",error.message);return;}
+  if(!data||!obV3415VersioneNuova(data.version)||!obV3415DestinazioneSicura(data.update_url)){
+   obReleasePending=null;$("obReleaseNotice")?.classList.add("hidden");return;
+  }
+  obReleasePending=data;
+  if(data.version!==obReleaseSnoozedVersion)obV3415MostraRelease(data);
+ }catch(e){console.warn("Controllo versione non disponibile:",e);}
+ finally{obReleaseBusy=false;}
+}
+function obV3415AvviaAggiornamenti(){
+ if(!sb||!sessionUser?.id)return;
+ if(!obReleaseTimer){
+  obReleaseTimer=window.setInterval(()=>{void obV3415ControllaRelease();},OB_RELEASE_POLL_MS);
+  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")void obV3415ControllaRelease();});
+  window.addEventListener("focus",()=>{void obV3415ControllaRelease();});
+ }
+ if(!obReleaseRealtime&&typeof sb.channel==="function"){
+  try{
+   obReleaseRealtime=sb.channel("ornibreed-release-"+OB_RELEASE_CHANNEL)
+    .on("postgres_changes",{event:"*",schema:"public",table:"ob_app_releases",filter:"channel=eq."+OB_RELEASE_CHANNEL},()=>{void obV3415ControllaRelease();})
+    .subscribe();
+  }catch(e){console.warn("Realtime aggiornamenti non disponibile; resta il controllo periodico.",e);}
+ }
+ void obV3415ControllaRelease();
+}
+function obV3415SchedaAperta(){
+ const q="#formSoggetto,#formCoppia,#formRiproduzione,#formGabbia,#formAlimentazione,#formCalendario,#formSalute,#v18FormMovimento,#obAgendaForm,#obCatalogDialog,.ob-pair-modal,[role='dialog'][aria-modal='true']:not(#obReleaseNotice)";
+ return Array.from(document.querySelectorAll(q)).some(el=>{
+  if(el.closest("#obReleaseNotice"))return false;
+  if(el.classList.contains("hidden"))return false;
+  const st=getComputedStyle(el);
+  return st.display!=="none"&&st.visibility!=="hidden"&&el.getClientRects().length>0;
+ });
+}
+async function obV3415AggiornaOra(){
+ const r=obReleasePending;if(!r)return;
+ const status=$("obReleaseStatus");
+ if(obV3415SchedaAperta()){
+  if(status)status.textContent="Prima salva e chiudi le schede aperte, poi scegli Aggiorna ora.";
+  return;
+ }
+ if(!window.confirm("Hai salvato tutte le modifiche? L'app verrà ricaricata per installare la nuova versione."))return;
+ const url=obV3415DestinazioneSicura(r.update_url);if(!url)return;
+ if(status)status.textContent="Preparazione aggiornamento…";
+ try{const reg=await navigator.serviceWorker?.getRegistration?.();if(reg)await reg.update();}catch(e){console.warn("Service worker:",e);}
+ url.searchParams.set("ob_release",String(r.version));
+ url.searchParams.set("ob_refresh",String(Date.now()));
+ location.assign(url.href);
+}
+function obV3415PiuTardi(){
+ obReleaseSnoozedVersion=obReleasePending?.version||"";
+ $("obReleaseNotice")?.classList.add("hidden");
+}
+function obV3415CollegaPulsanti(){
+ $("obReleaseNow")?.addEventListener("click",()=>{void obV3415AggiornaOra();});
+ $("obReleaseLater")?.addEventListener("click",obV3415PiuTardi);
+}
+
 const sezioni=["home","profilo","soggetti","coppie","riproduzione","genealogia","gabbie","alimentazione","calendario","salute","statistiche","registro","report","materiale_allevamento","guida","consigli_mostre","notifiche","contabilita","admin","standardFOI","aiValutazione"];
 let sb=null;
 let profilo=null;
@@ -3491,6 +3605,7 @@ async function mostraApp(){
     }else{
       await ripristinaUltimaSchermata();
     }
+    obV3415AvviaAggiornamenti();
   }catch(e){
     msg("Profilo non disponibile: "+(e?.message||e));
   }
@@ -7261,6 +7376,7 @@ async function init(){
   if(!window.supabase||typeof window.supabase.createClient!=="function")throw new Error("Libreria Supabase non caricata.");
   sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
   bindUI();
+  obV3415CollegaPulsanti();
   if(mostraResetDaHash())return;
   if(await obV2630RichiediLoginSuNuovaApertura())return;
   sb.auth.onAuthStateChange((event,session)=>{
@@ -13524,5 +13640,16 @@ const obV3078ApriPagina=window.apriPagina;window.apriPagina=async function(id,..
     <div id="obCatalogEmpty" class="ob-catalog-empty hidden">Nessun risultato.</div>
   </div>
 </div>
+
+<aside id="obReleaseNotice" class="hidden" aria-live="polite" aria-label="Aggiornamento OrniBreed disponibile">
+  <h3 id="obReleaseTitle">Aggiornamento disponibile</h3>
+  <p id="obReleaseVersion"></p>
+  <ul id="obReleaseNotes"></ul>
+  <div class="ob-release-actions">
+    <button type="button" id="obReleaseNow" class="primary">Aggiorna ora</button>
+    <button type="button" id="obReleaseLater" class="secondary">Più tardi</button>
+  </div>
+  <p id="obReleaseStatus" role="status"></p>
+</aside>
 </body>
 </html>
