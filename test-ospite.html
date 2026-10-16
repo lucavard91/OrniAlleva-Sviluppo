@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OrniBreed · Test ospite</title>
+<style>:root{font-family:system-ui,Arial,sans-serif;color:#173629;background:#edf4ef}body{margin:0;padding:22px 12px}main{max-width:640px;margin:auto;background:white;padding:24px;border-radius:16px;box-shadow:0 4px 25px #10352212}h1{font-size:23px}p{line-height:1.5}label{display:block;font-weight:700;margin-top:16px}input{display:block;box-sizing:border-box;width:100%;margin-top:7px;padding:13px;border:1px solid #aac0b4;border-radius:9px;font-size:16px}button{display:block;width:100%;padding:14px;border:0;border-radius:9px;background:#146746;color:#fff;font-size:16px;margin-top:15px}button.secondary{background:#375c7c}button:disabled{opacity:.55}pre{background:#eff5f0;padding:15px;border-radius:9px;white-space:pre-wrap;overflow-wrap:anywhere;min-height:60px}.warn{background:#fff5da;padding:12px;border-radius:8px}small{color:#597064}</style></head><body><main>
+<h1>OrniBreed · Test ospite</h1>
+<p>Pagina indipendente per il progetto <b>OrniBreed-Test-Ospiti</b>. Crea esclusivamente dati fittizi nel progetto di test.</p>
+<p class="warn">Inserisci soltanto la <b>Publishable Key</b> (sb_publishable_…) del progetto TEST. Non inserire mai Secret o Service Role Key.</p>
+<label>Project URL<input id="url" readonly value="https://pystaqeovjgbfmraaxnl.supabase.co"></label>
+<label>Publishable Key<input id="key" type="text" autocomplete="off" spellcheck="false" placeholder="sb_publishable_..."></label>
+<button id="ping" class="secondary">1. Verifica collegamento</button>
+<button id="run" disabled>2. Crea ospite e canarino di prova</button>
+<h2>Risultato</h2><pre id="out">In attesa del collegamento.</pre>
+<small>La chiave e il token restano soltanto nella memoria della pagina aperta: non vengono salvati né inviati a GitHub o a ChatGPT. Non inviare screenshot contenenti chiavi o token.</small>
+</main><script>
+(()=>{
+'use strict';
+const BASE='https://pystaqeovjgbfmraaxnl.supabase.co';
+const $=id=>document.getElementById(id);
+const out=s=>{$('out').textContent=s};
+let session=null,connected=false;
+const credentials=()=>{
+ const key=$('key').value.trim();
+ if(!key)throw Error('Inserisci la Publishable Key del progetto di TEST.');
+ if(key.startsWith('sb_secret_')||key.toLowerCase().includes('service_role')||key.length>1500)throw Error('Chiave non ammessa.');
+ return key;
+};
+async function req(path,{method='GET',body,token}={}){
+ const key=credentials();
+ const headers={'apikey':key,'Accept':'application/json'};
+ if(body!==undefined)headers['Content-Type']='application/json';
+ if(token)headers['Authorization']='Bearer '+token;
+ let r;
+ try{r=await fetch(BASE+path,{method,headers,body:body===undefined?undefined:JSON.stringify(body),cache:'no-store'});}
+ catch(e){throw Error('Connessione di rete non riuscita: '+e.message)};
+ const txt=await r.text();let d;try{d=JSON.parse(txt)}catch{d={message:txt.slice(0,300)}}
+ if(!r.ok)throw Error('HTTP '+r.status+': '+(d.message||d.msg||d.error_description||d.error||JSON.stringify(d)).slice(0,400));
+ return d;
+}
+function lock(b){$('ping').disabled=b;$('run').disabled=b||!connected}
+$('ping').onclick=async()=>{
+ connected=false;lock(true);out('Verifico Supabase TEST…');
+ try{await req('/auth/v1/settings');connected=true;out('COLLEGAMENTO RIUSCITO ✅\nOra premi «2. Crea ospite e canarino di prova».')}
+ catch(e){out('COLLEGAMENTO NON RIUSCITO ⚠️\n'+e.message)}
+ finally{lock(false)}
+};
+$('run').onclick=async()=>{
+ lock(true);
+ try{
+  if(!session){
+   out('1/3 Creo account ospite anonimo…');
+   const d=await req('/auth/v1/signup',{method:'POST',body:{data:{},gotrue_meta_security:{}}});
+   if(!d.user?.id||d.user.is_anonymous!==true||!d.access_token)throw Error('Supabase non ha restituito una sessione anonima valida.');
+   session={id:d.user.id,token:d.access_token};
+  }
+  out('2/3 Creo sessione di 12 ore per '+session.id+' …');
+  const found=await req('/rest/v1/ob_guest_sessions?select=user_id,expires_at&user_id=eq.'+encodeURIComponent(session.id),{token:session.token});
+  if(!Array.isArray(found))throw Error('Risposta sessione non valida.');
+  if(found.length===0){
+   await req('/rest/v1/ob_guest_sessions',{method:'POST',token:session.token,body:{user_id:session.id,expires_at:new Date(Date.now()+43200000).toISOString()}});
+  }
+  const sessions=await req('/rest/v1/ob_guest_sessions?select=user_id,expires_at&user_id=eq.'+encodeURIComponent(session.id),{token:session.token});
+  if(sessions.length!==1)throw Error('Sessione non visibile: controllare Data API / RLS.');
+  out('3/3 Creo un canarino fittizio…');
+  const birds=await req('/rest/v1/ob_guest_test_data?select=id,nome_soggetto&user_id=eq.'+encodeURIComponent(session.id),{token:session.token});
+  if(!Array.isArray(birds))throw Error('Risposta soggetti non valida.');
+  if(!birds.some(x=>x.nome_soggetto==='Canarino giallo - TEST OSPITE')){
+   await req('/rest/v1/ob_guest_test_data',{method:'POST',token:session.token,body:{user_id:session.id,nome_soggetto:'Canarino giallo - TEST OSPITE'}});
+  }
+  const check=await req('/rest/v1/ob_guest_test_data?select=id,nome_soggetto&user_id=eq.'+encodeURIComponent(session.id),{token:session.token});
+  if(!check.length)throw Error('Canarino non visibile dopo inserimento.');
+  out('TEST RIUSCITO ✅\nAccount ospite: '+session.id+'\nScadenza: '+sessions[0].expires_at+'\nCanarino: '+check[0].nome_soggetto+'\n\nPuoi tornare in chat e scrivere TEST RIUSCITO.');
+ }catch(e){out('TEST INTERROTTO ⚠️\n'+e.message+(session?'\nAccount di test già creato: '+session.id+'\nNon ricaricare la pagina, puoi riprovare.':''))}
+ finally{lock(false)}
+};
+})();
+</script></body></html>
