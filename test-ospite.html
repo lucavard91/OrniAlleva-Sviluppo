@@ -8,6 +8,7 @@
 <label>Publishable Key<input id="key" type="text" autocomplete="off" spellcheck="false" placeholder="sb_publishable_..."></label>
 <button id="ping" class="secondary">1. Verifica collegamento</button>
 <button id="run" disabled>2. Crea ospite e canarino di prova</button>
+<button id="photo" class="secondary" disabled>3. Carica fotografia fittizia (test Storage)</button>
 <h2>Risultato</h2><pre id="out">In attesa del collegamento.</pre>
 <small>La chiave e il token restano soltanto nella memoria della pagina aperta: non vengono salvati né inviati a GitHub o a ChatGPT. Non inviare screenshot contenenti chiavi o token.</small>
 </main><script>
@@ -35,11 +36,36 @@ async function req(path,{method='GET',body,token}={}){
  if(!r.ok)throw Error('HTTP '+r.status+': '+(d.message||d.msg||d.error_description||d.error||JSON.stringify(d)).slice(0,400));
  return d;
 }
-function lock(b){$('ping').disabled=b;$('run').disabled=b||!connected}
+function lock(b){$('ping').disabled=b;$('run').disabled=b||!connected;$('photo').disabled=b||!session}
 $('ping').onclick=async()=>{
  connected=false;lock(true);out('Verifico Supabase TEST…');
  try{await req('/auth/v1/settings');connected=true;out('COLLEGAMENTO RIUSCITO ✅\nOra premi «2. Crea ospite e canarino di prova».')}
  catch(e){out('COLLEGAMENTO NON RIUSCITO ⚠️\n'+e.message)}
+ finally{lock(false)}
+};
+$('photo').onclick=async()=>{
+ lock(true);
+ try{
+  if(!session)throw Error('Prima crea un ospite con il pulsante 2.');
+  out('Caricamento fotografia fittizia nel bucket privato…');
+  const key=credentials();
+  const canvas=document.createElement('canvas');
+  canvas.width=8;canvas.height=8;
+  const ctx=canvas.getContext('2d');if(!ctx)throw Error('Canvas non disponibile');
+  ctx.fillStyle='#f3d949';ctx.fillRect(0,0,8,8);
+  ctx.fillStyle='#4c7b37';ctx.fillRect(2,2,4,4);
+  const blob=await new Promise((ok,fail)=>canvas.toBlob(x=>x?ok(x):fail(Error('Immagine non generata')),'image/png'));
+  const filePath=session.id+'/foto-test.png';
+  let response;
+  try{response=await fetch(BASE+'/storage/v1/object/ornibreed-guest-test/'+encodeURIComponent(session.id)+'/foto-test.png',{
+   method:'POST',
+   headers:{'apikey':key,'Authorization':'Bearer '+session.token,'Content-Type':'image/png','x-upsert':'false'},
+   body:blob
+  })}catch(e){throw Error('Errore rete Storage: '+e.message)}
+  const content=await response.text();let data={};try{data=JSON.parse(content)}catch{data={message:content.slice(0,300)}}
+  if(!response.ok)throw Error('Storage HTTP '+response.status+': '+(data.message||data.error||JSON.stringify(data)).slice(0,300));
+  out('FOTOGRAFIA CARICATA ✅\nAccount ospite: '+session.id+'\nBucket: ornibreed-guest-test\nPercorso: '+filePath+'\n\nOra torna in chat: FOTO CARICATA + ID ospite.');
+ }catch(e){out('FOTO NON CARICATA ⚠️\n'+e.message+(session?'\nAccount ospite: '+session.id:''))}
  finally{lock(false)}
 };
 $('run').onclick=async()=>{
