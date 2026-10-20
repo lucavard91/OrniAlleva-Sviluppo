@@ -1990,9 +1990,9 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
   <input id="s_razza" type="text" placeholder="Scrivi o seleziona razza" autocomplete="off"><div class="ob-inline-suggestions hidden" data-ob-hints="razza"></div>
   <button type="button" class="ob-catalog-open" data-ob-catalog="razza" aria-label="Apri catalogo razze">›</button>
 </div>
-<label>Mutazione</label>
+<label>Colore / Mutazione</label>
 <div class="ob-catalog-field">
-  <input id="s_mutazione" type="text" placeholder="Scrivi o seleziona mutazione" autocomplete="off"><div class="ob-inline-suggestions hidden" data-ob-hints="mutazione"></div>
+  <input id="s_mutazione" type="text" placeholder="Es. Giallo intenso, Agata rosso mosaico (anche libero)" autocomplete="off"><div class="ob-inline-suggestions hidden" data-ob-hints="mutazione"></div>
   <button type="button" class="ob-catalog-open" data-ob-catalog="mutazione" aria-label="Apri catalogo mutazioni">›</button>
 </div>
     <div class="ob-v34-color-fields" id="obV34ColorFields">
@@ -7623,10 +7623,15 @@ box.innerHTML = `
     const ids=taxIds();
     const raw=C.mutations.filter(m=>!m.taxon_id||ids.has(String(m.taxon_id))).map(mutLabel);
     raw.push(...C.globalCatalog.filter(g=>g.mutation_id&&ids.has(String(g.taxon_id))).map(g=>mutLabel({name:g.mutazione})));
-    // Non duplicare colore, categoria o denominazioni composte nel campo genetico.
-    const excluded=new Set(["giallo","rosso","intenso","brinato","mosaico","giallo intenso","rosso intenso","giallo brinato","rosso brinato","giallo mosaico","rosso mosaico"]);
-    // Le denominazioni composte restano nei componenti/varianti, non sono geni distinti.
-    const options=raw.filter(x=>!excluded.has(norm(x)));
+    // Nomi di uso comune: suggerimenti per la registrazione, non nuovi geni.
+    // L'ID genetico viene assegnato soltanto quando il nome corrisponde
+    // a una mutazione effettivamente documentata per questa specie.
+    const common=["Giallo intenso","Giallo brinato","Giallo mosaico",
+      "Rosso intenso","Rosso brinato","Rosso mosaico",
+      "Bianco recessivo","Bianco dominante","Agata rosso mosaico",
+      "Agata rosso intenso","Agata rosso brinato",
+      "Agata giallo intenso","Agata giallo brinato","Agata giallo mosaico"];
+    const options=[...raw,...common];
     // Fattori documentati nel catalogo Supabase: selezionabili senza inserirli come colori.
     options.push(...C.phenotypes.filter(p=>ids.has(String(p.taxon_id))&&
       ["COLOR_FACTOR","WING_EXPRESSION","LIPOCHROME_MODIFIER"].includes(String(p.component_type||"").toUpperCase()))
