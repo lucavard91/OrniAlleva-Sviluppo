@@ -1601,7 +1601,7 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
         aria-label="Mostra password" title="Mostra password" onclick="return v252ToggleLoginPassword(event)">👁️</button>
     </div>
     <button id="btnLogin">Accedi</button>
-    <button id="obGuestLogin" type="button" class="secondary">Entra come ospite · 12 ore</button>
+    <button id="obGuestLogin" type="button" class="secondary">Entra come ospite</button>
     <button id="btnPhoneLogin" class="secondary" type="button">📱 Accedi con telefono</button>
     <button id="btnRegister" class="secondary">Registrati</button>
     <button id="btnRecovery" class="secondary">Password dimenticata?</button>
@@ -3566,24 +3566,25 @@ async function obGuestResume(session){
   }catch(e){window.__obGuestMode=false;await sb.auth.signOut();msg(e.message||String(e));toggle("loginScreen",true);}
   finally{window.__obGuestBooting=false;}
 }
+/* Accesso ospite di sviluppo: evitare richieste anonime al database ufficiale.
+ * Il collaudo separato e verificato rimane raggiungibile finché lo schema
+ * del gestionale non è stato replicato e protetto nel progetto dedicato.
+ */
 async function obGuestLogin(){
-  const b=document.getElementById("obGuestLogin");if(b)b.disabled=true;
-  window.__obGuestBooting=true;
+  const b=document.getElementById("obGuestLogin");
+  if(b)b.disabled=true;
   try{
-    const current=await sb.auth.getSession();
-    if(current.data?.session && !current.data.session.user?.is_anonymous)throw new Error("Esci prima dall'account registrato");
-    let session=current.data?.session;
-    if(!session){const r=await sb.auth.signInAnonymously();if(r.error)throw r.error;session=r.data.session;}
-    if(!session?.user?.is_anonymous)throw new Error("Accesso anonimo non riuscito");
-    let r=await sb.from("ob_guest_sessions").select("expires_at").eq("user_id",session.user.id).maybeSingle();
-    if(r.error)throw r.error;
-    if(!r.data){const inserted=await sb.from("ob_guest_sessions").insert({user_id:session.user.id}).select("expires_at").single();if(inserted.error)throw inserted.error;r=inserted;}
-    const expiry=new Date(r.data.expires_at).getTime();
-    if(!Number.isFinite(expiry)||expiry<=Date.now())throw new Error("La prova ospite è scaduta");
-    window.__obGuestMode=true;window.__obGuestExpiry=expiry;sessionUser=session.user;
-    await avviaMostraApp(session);
-  }catch(e){msg("Accesso ospite: "+(e.message||String(e)));}
-  finally{window.__obGuestBooting=false;if(b)b.disabled=false;}
+    const testo="L'accesso ospite nell'app completa è ancora in preparazione. "+
+      "Il database ufficiale è protetto e non viene utilizzato per creare ospiti.\n\n"+
+      "Vuoi aprire la pagina di collaudo ospite, collegata esclusivamente al progetto Supabase di test?";
+    if(window.confirm(testo)){
+      window.location.assign(new URL("test-ospite.html",window.location.href).href);
+    }else{
+      msg("Modalità ospite in preparazione: gli account registrati non vengono coinvolti.");
+    }
+  }finally{
+    if(b)b.disabled=false;
+  }
 }
 function obGuestStartClock(){
   obGuestStopClock();
