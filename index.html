@@ -1601,7 +1601,7 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
         aria-label="Mostra password" title="Mostra password" onclick="return v252ToggleLoginPassword(event)">👁️</button>
     </div>
     <button id="btnLogin">Accedi</button>
-    <a id="obGuestLogin" href="./test-ospite.html" class="secondary" style="display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:100%;min-height:43px;margin:6px 0;padding:10px 14px;border-radius:12px;font-weight:800;text-decoration:none;cursor:pointer;">Entra come ospite</a>
+    <button id="obGuestLogin" type="button" class="secondary">Entra come ospite</button>
     <button id="btnPhoneLogin" class="secondary" type="button">📱 Accedi con telefono</button>
     <button id="btnRegister" class="secondary">Registrati</button>
     <button id="btnRecovery" class="secondary">Password dimenticata?</button>
@@ -2679,6 +2679,7 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
 
 </div>
 </div>
+<script src="./guest-local.js?v=20261020"></script>
 <script>
 "use strict";
 // OrniBreed Manager — struttura consolidata v1.0
@@ -3570,8 +3571,38 @@ async function obGuestResume(session){
  * Il collaudo separato e verificato rimane raggiungibile finché lo schema
  * del gestionale non è stato replicato e protetto nel progetto dedicato.
  */
-// Modalità ospite: il link nel login conduce al collaudo isolato.
-// Non creare utenti anonimi sul Supabase ufficiale in fase di sviluppo.
+/* Collaudo OSPITE LOCALE: tutte le query app passano all'archivio
+ * temporaneo nel browser, nessun accesso anonimo al Supabase ufficiale.
+ */
+async function obGuestLogin(){
+  if(window.__obGuestBooting)return;
+  window.__obGuestBooting=true;
+  const previousClient=sb;
+  try{
+    if(!window.obGuestLocal)throw new Error("Modulo ospite non caricato: aggiorna la pagina.");
+    const real=await previousClient.auth.getSession();
+    if(real.data?.session?.user && !real.data.session.user.is_anonymous){
+      throw new Error("Per entrare come ospite devi prima uscire dal tuo account.");
+    }
+    const demo=window.obGuestLocal.enter();
+    sb=demo.client;
+    window.__obGuestMode=true;
+    window.__obGuestExpiry=demo.expiresAt;
+    sessionUser=demo.session.user;
+    window.__MYAGARI_FRESH_LOGIN=true;
+    obGuestDisableExports();
+    await avviaMostraApp(demo.session);
+  }catch(e){
+    if(!window.__obGuestMode)sb=previousClient;
+    msg("Accesso ospite: "+(e?.message||String(e)));
+    console.error("[OrniBreed ospite locale]",e);
+  }finally{window.__obGuestBooting=false;}
+}
+function obGuestDisableExports(){
+  if(!window.__obGuestMode)return;
+  window.print=function(){alert("Stampa non disponibile nella prova ospite.");};
+  window.open=function(){alert("Stampa ed esportazione non disponibili nella prova ospite.");return null;};
+}
 function obGuestStartClock(){
   obGuestStopClock();
   let box=document.getElementById("obGuestCountdown");
@@ -3580,7 +3611,7 @@ function obGuestStartClock(){
     if(!window.__obGuestMode){obGuestStopClock();box.remove();return;}
     const ms=Math.max(0,window.__obGuestExpiry-Date.now());
     const h=Math.floor(ms/3600000),m=Math.floor(ms%3600000/60000),s=Math.floor(ms%60000/1000);
-    box.textContent="Modalità ospite · Tempo rimasto: "+[h,m,s].map(v=>String(v).padStart(2,"0")).join(":")+" · Stampa e PDF disabilitati";
+    box.textContent="Modalità ospite (prova locale) · Tempo rimasto: "+[h,m,s].map(v=>String(v).padStart(2,"0")).join(":")+" · Stampa e PDF disabilitati";
     if(ms===0){obGuestStopClock();window.__obGuestMode=false;await sb.auth.signOut();alert("La sessione ospite è terminata.");location.reload();}
   };
   void tick();obGuestTimer=setInterval(tick,1000);
@@ -3913,9 +3944,11 @@ async function mostraApp(){
     }else{
       await ripristinaUltimaSchermata();
     }
-    obV3415AvviaAggiornamenti();
-    void obV34181CaricaCronologiaRemota();
-    obV34181MostraSuccessoPostAggiornamento();
+    if(!window.__obGuestMode){
+      obV3415AvviaAggiornamenti();
+      void obV34181CaricaCronologiaRemota();
+      obV34181MostraSuccessoPostAggiornamento();
+    }
   }catch(e){
     msg("Profilo non disponibile: "+(e?.message||e));
   }
@@ -4202,6 +4235,7 @@ async function recuperaValutazioneCoerenteSalvata(id,impronta){
   return null;
 }
 async function eseguiValutazioneAI(id){
+  if(window.__obGuestMode){obAvviso("La valutazione AI online non è disponibile nella prova ospite locale.");return;}
   const endpoint=(window.MYAGARI_AI_ENDPOINT||"https://mddsmqwfufzebahemxcn.supabase.co/functions/v1/smooth-endpoint").trim();
   if(!endpoint){
     obAvviso("La schermata AI è pronta, ma il motore AI non è ancora collegato.");
@@ -7575,7 +7609,7 @@ box.innerHTML = `
 function bindUI(){
  // V24.1: bind authentication first; unrelated UI errors must never disable access.
  if($("btnLogin"))$("btnLogin").onclick=loginSupabase;
- // Il collegamento nativo a test-ospite.html funziona senza JavaScript.
+ if($("obGuestLogin"))$("obGuestLogin").onclick=obGuestLogin;
  if($("btnPhoneLogin"))$("btnPhoneLogin").onclick=mostraAccessoTelefono;
  if($("btnPhoneSendOtp"))$("btnPhoneSendOtp").onclick=inviaOtpTelefono;
  if($("btnPhoneVerifyOtp"))$("btnPhoneVerifyOtp").onclick=verificaOtpTelefono;
@@ -7697,6 +7731,22 @@ async function init(){
   bindUI();
   obV3415CollegaPulsanti();
   if(mostraResetDaHash())return;
+  // Se è presente una prova locale ancora valida e non esiste una sessione
+  // reale, riprende le 12 ore senza creare un account Supabase.
+  if(window.obGuestLocal?.hasActive()){
+    const realSession=await sb.auth.getSession();
+    if(!realSession.data?.session?.user){
+      const demo=window.obGuestLocal.enter();
+      sb=demo.client;
+      window.__obGuestMode=true;
+      window.__obGuestExpiry=demo.expiresAt;
+      sessionUser=demo.session.user;
+      window.__MYAGARI_FRESH_LOGIN=true;
+      obGuestDisableExports();
+      await avviaMostraApp(demo.session);
+      return;
+    }
+  }
   if(await obV2630RichiediLoginSuNuovaApertura())return;
   sb.auth.onAuthStateChange((event,session)=>{
    sessionUser=session?.user||null;
