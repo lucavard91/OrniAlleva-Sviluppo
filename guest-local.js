@@ -130,21 +130,41 @@ function query(table){
  };
  return q;
 }
-function fileDataUrl(file){
- return new Promise((resolve,reject)=>{
-  const fr=new FileReader();
-  fr.onload=()=>resolve(fr.result);
-  fr.onerror=()=>reject(Error("Errore lettura foto"));
-  fr.readAsDataURL(file);
- });
+async function fileDataUrl(file){
+ // In modalità ospite il browser salva una versione ottimizzata della foto.
+ // Nessun limite sul file originale di iPhone, ma archivio locale contenuto.
+ if(!file||!String(file.type||"").startsWith("image/"))throw Error("Seleziona una fotografia.");
+ const url=URL.createObjectURL(file);
+ try{
+  const img=await new Promise((resolve,reject)=>{
+   const picture=new Image();
+   picture.onload=()=>resolve(picture);
+   picture.onerror=()=>reject(Error("Formato immagine non supportato. Prova JPG."));
+   picture.src=url;
+  });
+  const maximum=1000;
+  const ratio=Math.min(1,maximum/Math.max(img.naturalWidth,img.naturalHeight));
+  const canvas=document.createElement("canvas");
+  canvas.width=Math.max(1,Math.round(img.naturalWidth*ratio));
+  canvas.height=Math.max(1,Math.round(img.naturalHeight*ratio));
+  const ctx=canvas.getContext("2d");
+  if(!ctx)throw Error("Impossibile ottimizzare l'immagine.");
+  ctx.drawImage(img,0,0,canvas.width,canvas.height);
+  return canvas.toDataURL("image/jpeg",0.70);
+ }finally{URL.revokeObjectURL(url);}
 }
 function bucket(){
  return {
   upload:async(path,file)=>{
    try{
-    if(!file||file.size>900000)throw Error("Fotografia di prova massimo 900 KB.");
-    state.photos[String(path)]=await fileDataUrl(file);
-    save();
+    const optimized=await fileDataUrl(file);
+    const previous=state.photos[String(path)];
+    state.photos[String(path)]=optimized;
+    try{save();}catch(e){
+     if(previous===undefined)delete state.photos[String(path)];
+     else state.photos[String(path)]=previous;
+     throw e;
+    }
     return {data:{path},error:null};
    }catch(e){return {data:null,error:{message:e.message||String(e)}};}
   },
