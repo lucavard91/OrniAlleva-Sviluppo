@@ -4127,6 +4127,34 @@ async function caricaFotoSoggetto(soggettoId,file){
   return await creaUrlFoto(path);
 }
 
+/* Rimozione sicura dell'associazione fotografica: non altera il soggetto. */
+async function obRimuoviFotoSoggetto(id){
+  if(!allevamentoAttivo?.id)throw new Error("Nessun allevamento attivo.");
+  const soggetto=(await leggi("soggetti")).find(s=>String(s.id)===String(id));
+  if(!soggetto)throw new Error("Soggetto non trovato.");
+  if(!soggetto.foto_url)return false;
+  if(!window.confirm("Vuoi davvero rimuovere la fotografia di questo soggetto?"))return false;
+  if(window.v248OpShow)window.v248OpShow("Rimozione fotografia…");
+  try{
+    const {error}=await sb.from("soggetti").update({foto_url:null})
+      .eq("id",id).eq("allevamento_id",allevamentoAttivo.id);
+    if(error)throw error;
+    // Le foto collegate da tabelle storiche non devono ripresentarsi nella valutazione AI.
+    const {error:fotoError}=await sb.from("soggetti_foto").delete()
+      .eq("soggetto_id",id).eq("allevamento_id",allevamentoAttivo.id);
+    if(fotoError && !/does not exist|relation/i.test(fotoError.message||""))console.warn("Pulizia foto collegate:",fotoError);
+    await aggiornaSoggetti();
+    if(window.v248OpHide)window.v248OpHide();
+    if(window.v248OpDone)window.v248OpDone("Fotografia rimossa");
+    else obAvviso("Fotografia rimossa.");
+    return true;
+  }catch(e){
+    if(window.v248OpHide)window.v248OpHide();
+    errore(e);
+    return false;
+  }
+}
+
 /* Il pulsante foto apre un pannello stabile, salvando solo alla conferma. */
 async function caricaFotoDaScheda(id){
   let modal=document.getElementById("obFotoSchedaDialog");
@@ -4560,6 +4588,7 @@ async function obV436AggiornaSoggettiCompleto(){
       <div class="actions">
         <button class="ob-action ob-act-modifica" data-edit-soggetto="${esc(s.id)}">Modifica</button>
         <button type="button" class="secondary ob-action ob-act-foto" data-photo-soggetto="${esc(s.id)}">${s.foto_url?"Cambia foto":"Carica foto"}</button>
+        ${s.foto_url?`<button type="button" class="danger ob-action ob-act-rimuovi-foto" data-remove-photo-soggetto="${esc(s.id)}">Rimuovi foto</button>`:""}
         <button type="button" class="success ob-action ob-act-ai" data-ai-soggetto="${esc(s.id)}">Valuta con AI</button>
         ${soggettiConValutazione.has(String(s.id))?`<button type="button" class="secondary ob-action ob-act-valutazione" data-osserva-ai-soggetto="${esc(s.id)}">Osserva valutazione</button>`:""}
         <button type="button" class="secondary ob-action ob-act-foi" data-foi-soggetto="${esc(s.id)}">${esc(v19J("sheet"))}</button>
@@ -4583,6 +4612,7 @@ async function obV436AggiornaSoggettiCompleto(){
  function bindEditSoggetti(){
   document.querySelectorAll("[data-edit-soggetto]").forEach(b=>{b.onclick=()=>modificaSoggetto(b.dataset.editSoggetto);});
   document.querySelectorAll("[data-photo-soggetto]").forEach(b=>{b.onclick=()=>caricaFotoDaScheda(b.dataset.photoSoggetto);});
+  document.querySelectorAll("[data-remove-photo-soggetto]").forEach(b=>{b.onclick=()=>obRimuoviFotoSoggetto(b.dataset.removePhotoSoggetto);});
   document.querySelectorAll("[data-ai-soggetto]").forEach(b=>{b.onclick=()=>apriValutazioneAI(b.dataset.aiSoggetto);});
   document.querySelectorAll("[data-osserva-ai-soggetto]").forEach(b=>{b.onclick=()=>mostraValutazioneSalvata(b.dataset.osservaAiSoggetto);});
 }
@@ -4618,9 +4648,15 @@ async function modificaSoggetto(id){
 
     const fotoInput=$("s_foto_file");
     const photoBox=obFotoEditorInit();
+    document.getElementById("obFotoEditorRemove")?.remove();
     if(fotoInput&&photoBox){
       fotoInput.value="";
       if(s.foto_url){
+        const removeBtn=document.createElement("button");
+        removeBtn.type="button";removeBtn.id="obFotoEditorRemove";
+        removeBtn.className="danger";removeBtn.textContent="🗑 Rimuovi foto";
+        removeBtn.onclick=async()=>{if(await obRimuoviFotoSoggetto(id))await modificaSoggetto(id);};
+        photoBox.insertAdjacentElement("afterend",removeBtn);
         const url=await recuperaFotoAssociataSoggetto(id,s);
         if(url){
           photoBox.replaceChildren();
@@ -4688,6 +4724,7 @@ function obV436MostraRisultatiSoggettiCompleti(dati,opzioni={}){
     <div class="actions">
       <button class="ob-action ob-act-modifica" data-edit-soggetto="${esc(s.id)}">Modifica</button>
       <button type="button" class="secondary ob-action ob-act-foto" data-photo-soggetto="${esc(s.id)}">Carica / cambia foto</button>
+      ${s.foto_url?`<button type="button" class="danger ob-action ob-act-rimuovi-foto" data-remove-photo-soggetto="${esc(s.id)}">Rimuovi foto</button>`:""}
       <button type="button" class="success ob-action ob-act-ai" data-ai-soggetto="${esc(s.id)}">Valuta con AI</button>
       <button type="button" class="secondary ob-action ob-act-foi" data-foi-soggetto="${esc(s.id)}">${esc(v19J("sheet"))}</button>
       ${obV435SoggettoPresente(s)?``:""}
