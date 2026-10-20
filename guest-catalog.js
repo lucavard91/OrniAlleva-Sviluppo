@@ -88,12 +88,17 @@ function addMutation(name,tid,aliases=[]){
  "Onice","Cobalto","Jaspe","Topazio","Phaeo",
  "Cinnamon","Fawn","Mosaico"
 ].forEach(name=>addMutation(name,canary));
+/* Nei cataloghi ospite non attribuire mutazioni generiche a tutte le specie.
+   Sono soltanto esempi per testare i suggerimenti; l'archivio completo
+   e le regole genetiche restano nel database applicativo ufficiale. */
 [
- "Ancestrale","Bruno","Agata","Isabella","Pastello",
- "Opale","Lutino","Albino","Diluizione"
-].forEach(name=>["EFI","PSITTACIFORMI"].forEach(group=>{
- taxa.filter(t=>t.group_code===group).forEach(t=>addMutation(name,t.id));
-}));
+ ["Cardellino",["Bruno","Agata","Isabella","Pastello","Opale","Lutino"]],
+ ["Cocorita",["Blu","Lutino","Albino","Opale","Cannella"]],
+ ["Inseparabile roseicollis",["Aqua","Turquoise","Pallid","Lutino","Opale","Cannella"]]
+].forEach(([specie,voci])=>{
+ const taxon=taxa.find(t=>t.name===specie);
+ if(taxon)voci.forEach(name=>addMutation(name,taxon.id));
+});
 const phenotypes=[
  ["Giallo","BASE_COLOR"],["Rosso","BASE_COLOR"],["Bianco","BASE_COLOR"],
  ["Verde","BASE_COLOR"],["Nero","BASE_COLOR"],["Bruno","BASE_COLOR"],
