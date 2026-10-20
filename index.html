@@ -3314,7 +3314,7 @@ function obAggiornaProfiloAllevamento(){
   if(!nome)return;
   const riepilogo=document.getElementById("profiloRiepilogoHomeV18");
   if(riepilogo){
-    let riga=[...riepilogo.querySelectorAll("div")].find(el=>/^\\s*Allevamento\\s*:/i.test(el.textContent||""));
+    let riga=[...riepilogo.querySelectorAll("div")].find(el=>/^\s*Allevamento\s*:/i.test(el.textContent||""));
     if(!riga){riga=document.createElement("div");riepilogo.appendChild(riga);}
     riga.replaceChildren();
     const b=document.createElement("b");b.textContent="Allevamento:";riga.append(b,document.createTextNode(" "+nome));
@@ -3327,7 +3327,7 @@ async function cambiaAllevamento(id,lista){
   const inizio=Date.now();
   mostraCaricamentoAllevamento(scelto.nome||"allevamento");
   const timer=setTimeout(()=>{nascondiCaricamentoAllevamento();obAvviso("⚠️ Il cambio allevamento sta impiegando troppo tempo. Riprova.");},10000);
-  try{const u=await utenteCorrente(); allevamentoAttivo=scelto; localStorage.setItem("myagari_active_allevamento_"+u.id,allevamentoAttivo.id); aggiornaSelettoreAllevamento(lista); inizializzaNotifichePersonali(); await apriPagina("home"); await v18CaricaProfiloUI(); obAggiornaProfiloAllevamento(); const trascorso=Date.now()-inizio; const durataMinima=700; if(trascorso<durataMinima)await new Promise(r=>setTimeout(r,durataMinima-trascorso));}catch(e){errore(e);}finally{clearTimeout(timer);nascondiCaricamentoAllevamento();}
+  try{const u=await utenteCorrente(); allevamentoAttivo=scelto; localStorage.setItem("myagari_active_allevamento_"+u.id,allevamentoAttivo.id); aggiornaSelettoreAllevamento(lista); obAggiornaProfiloAllevamento(); inizializzaNotifichePersonali(); await apriPagina("home"); await v18CaricaProfiloUI(); obAggiornaProfiloAllevamento(); requestAnimationFrame(()=>obAggiornaProfiloAllevamento()); const trascorso=Date.now()-inizio; const durataMinima=700; if(trascorso<durataMinima)await new Promise(r=>setTimeout(r,durataMinima-trascorso));}catch(e){errore(e);}finally{clearTimeout(timer);nascondiCaricamentoAllevamento();}
 }
 async function eliminaAllevamentoSecondario(lista){
   if(!allevamentoAttivo)return; const indice=(lista||[]).findIndex(a=>String(a.id)===String(allevamentoAttivo.id)); if(indice===0){obAvviso("L'allevamento principale non può essere eliminato da questa funzione.");return;}
@@ -4609,7 +4609,7 @@ async function obV436AggiornaSoggettiCompleto(){
       <p><b>Stato:</b> ${esc(obV435StatoSoggetto(s.stato))}</p><p><b>Note:</b> ${esc(s.note||"-")}</p>
       <div class="ob-soggetto-photo-row"><div class="soggetto-foto-box ob-foto-big" data-foto-box="${esc(s.id)}"><img class="ob-record-icon" src="assets_embedded/assets_embedded/ob_asset_004_9a860456d5.jpg" alt=""> Caricamento foto...</div><div class="ob-soggetto-photo-tools"><button type="button" class="secondary ob-photo-change" data-photo-soggetto="${esc(s.id)}">${s.foto_url?"Cambia foto":"Carica foto"}</button><button type="button" class="danger ob-photo-delete" data-remove-photo-soggetto="${esc(s.id)}" ${s.foto_url?"":"hidden"}>Elimina foto</button></div></div>
       ${(()=>{const av=JSON.parse(localStorage.getItem('myagari_ai_scores')||'{}')[String(s.id)];return av&&Number.isFinite(Number(av.score))?'<p class="ai-punteggio"><img class="ob-action-icon" src="assets_embedded/assets_embedded/ob_asset_005_cc38f88be0.jpg" alt=""> Valutazione AI: '+Number(av.score).toFixed(1)+' / 100</p>':'';})()}
-      <div class="actions">
+      <div class="actions ob-subject-four-actions" style="display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important">
         <button class="ob-action ob-act-modifica" data-edit-soggetto="${esc(s.id)}">Modifica</button>
         
         <button type="button" class="success ob-action ob-act-ai" data-ai-soggetto="${esc(s.id)}">Valuta con AI</button>
@@ -4617,7 +4617,7 @@ async function obV436AggiornaSoggettiCompleto(){
         <button type="button" class="secondary ob-action ob-act-foi" data-foi-soggetto="${esc(s.id)}">${esc(v19J("sheet"))}</button>
         
         
-        <button class="danger ob-action ob-act-elimina" type="button" onclick="obV437EliminaSoggettoDaScheda(\'${esc(s.id)}\')" title="Rimuovi soggetto">Rimuovi</button>
+        <button class="danger ob-action ob-act-elimina" type="button" onclick="obV437EliminaSoggettoDaScheda(\'${esc(s.id)}\')" title="Rimuovi soggetto" style="width:100%!important;grid-column:auto!important;min-width:0!important">Rimuovi</button>
       </div>
     </div>`).join("");
     await Promise.all(dati.map(async s=>{
@@ -9128,7 +9128,16 @@ function v185StampaDocumentoCorrente(){
   if(d.approvedType){v263Print(d.titolo,d.approvedType);return;}
   const w=window.open("","_blank");
   if(!w){obAvviso("Il browser non ha aperto la finestra di stampa. Riprova premendo di nuovo “Stampa”.");return;}
-  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(d.titolo)}</title><style>${v185PrintCss(d.orientamento)}</style></head><body>${v185DocumentoHtml(d.titolo,d.html)}<script>window.addEventListener('load',()=>setTimeout(()=>window.print(),120));<\/script></body></html>`);
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(d.titolo)}</title><style>${v185PrintCss(d.orientamento)}</style></head><body>${v185DocumentoHtml(d.titolo,d.html)}<script>window.addEventListener('load',()=>setTimeout(()=>window.print(),120));<\/script><style id="ob2026FotoPortrait">
+.ob-soggetto-photo-row{display:flex!important;align-items:center!important;gap:8px!important;width:min(100%,470px)!important;margin:12px auto!important}
+.ob-soggetto-photo-row .ob-foto-big{width:70%!important;max-width:290px!important;min-width:0!important;min-height:320px!important;aspect-ratio:3/4!important;flex:1 1 auto!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:6px!important;overflow:hidden!important}
+.ob-soggetto-photo-row .ob-foto-big .soggetto-thumb{height:100%!important;width:100%!important;max-height:350px!important;max-width:100%!important;object-fit:contain!important}
+.ob-soggetto-photo-row .ob-soggetto-photo-tools{flex:0 0 29%!important;gap:8px!important;justify-content:center!important}
+.ob-soggetto-photo-row .ob-soggetto-photo-tools button{min-height:48px!important;height:48px!important;max-height:48px!important;padding:4px!important;font-size:12px!important;line-height:1.1!important}
+.ob-subject-four-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+.ob-subject-four-actions>button{width:100%!important;min-width:0!important;max-width:none!important;grid-column:auto!important}
+.ob-subject-four-actions>.ob-act-elimina{grid-column:2!important;width:100%!important;max-width:none!important}
+</style></body></html>`);
   w.document.close();
 }
 async function v185ScaricaPdf(titolo,html,orientamento="portrait"){
