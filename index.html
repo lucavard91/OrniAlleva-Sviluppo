@@ -1601,7 +1601,7 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
         aria-label="Mostra password" title="Mostra password" onclick="return v252ToggleLoginPassword(event)">👁️</button>
     </div>
     <button id="btnLogin">Accedi</button>
-    <button id="obGuestLogin" type="button" class="secondary">Entra come ospite</button>
+    <a id="obGuestLogin" href="./test-ospite.html" class="secondary" style="display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:100%;min-height:43px;margin:6px 0;padding:10px 14px;border-radius:12px;font-weight:800;text-decoration:none;cursor:pointer;">Entra come ospite</a>
     <button id="btnPhoneLogin" class="secondary" type="button">📱 Accedi con telefono</button>
     <button id="btnRegister" class="secondary">Registrati</button>
     <button id="btnRecovery" class="secondary">Password dimenticata?</button>
@@ -3570,22 +3570,8 @@ async function obGuestResume(session){
  * Il collaudo separato e verificato rimane raggiungibile finché lo schema
  * del gestionale non è stato replicato e protetto nel progetto dedicato.
  */
-async function obGuestLogin(){
-  const b=document.getElementById("obGuestLogin");
-  if(b)b.disabled=true;
-  try{
-    const testo="L'accesso ospite nell'app completa è ancora in preparazione. "+
-      "Il database ufficiale è protetto e non viene utilizzato per creare ospiti.\n\n"+
-      "Vuoi aprire la pagina di collaudo ospite, collegata esclusivamente al progetto Supabase di test?";
-    if(window.confirm(testo)){
-      window.location.assign(new URL("test-ospite.html",window.location.href).href);
-    }else{
-      msg("Modalità ospite in preparazione: gli account registrati non vengono coinvolti.");
-    }
-  }finally{
-    if(b)b.disabled=false;
-  }
-}
+// Modalità ospite: il link nel login conduce al collaudo isolato.
+// Non creare utenti anonimi sul Supabase ufficiale in fase di sviluppo.
 function obGuestStartClock(){
   obGuestStopClock();
   let box=document.getElementById("obGuestCountdown");
@@ -7589,7 +7575,7 @@ box.innerHTML = `
 function bindUI(){
  // V24.1: bind authentication first; unrelated UI errors must never disable access.
  if($("btnLogin"))$("btnLogin").onclick=loginSupabase;
- if($("obGuestLogin"))$("obGuestLogin").onclick=obGuestLogin;
+ // Il collegamento nativo a test-ospite.html funziona senza JavaScript.
  if($("btnPhoneLogin"))$("btnPhoneLogin").onclick=mostraAccessoTelefono;
  if($("btnPhoneSendOtp"))$("btnPhoneSendOtp").onclick=inviaOtpTelefono;
  if($("btnPhoneVerifyOtp"))$("btnPhoneVerifyOtp").onclick=verificaOtpTelefono;
