@@ -1588,7 +1588,7 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
   .ob-v439-home-toolbar .ob-v263727-actions-wrap{transform:translateX(-8px)!important}
 }
 </style>
-</head>
+<style>.ob-foto-scheda-interattiva{position:relative;cursor:pointer;touch-action:manipulation}.ob-foto-scheda-interattiva .small{display:block;text-align:center;font-weight:600;margin-top:5px}.ob-foto-cestino{position:absolute;top:4px;right:4px;display:flex;align-items:center;justify-content:center;width:37px;height:37px;padding:0;border:0;border-radius:9px;background:#d62828;color:#fff;font-size:20px;z-index:2;cursor:pointer}</style></head>
 <body>
 <div id="obAdminReturnTransition" aria-live="polite" aria-label="OrniBreed Manager — Caricamento"><div class="ob-return-card"><div class="ob-return-mark" aria-hidden="true"></div><b>OrniBreed Manager</b><span>Caricamento…</span></div></div>
 <div id="v255BrandIntro" aria-label="OrniBreed Manager — Smart Aviculture Management"><div class="v261-intro-bg" aria-hidden="true"></div><img class="v256-intro-image" alt="OrniBreed Manager — La tua passione. Il tuo allevamento." src="assets_embedded/assets_embedded/ob_asset_051_3aefa10cbb.jpg"></div></div>
@@ -3303,7 +3303,7 @@ async function cambiaAllevamento(id,lista){
   const inizio=Date.now();
   mostraCaricamentoAllevamento(scelto.nome||"allevamento");
   const timer=setTimeout(()=>{nascondiCaricamentoAllevamento();obAvviso("⚠️ Il cambio allevamento sta impiegando troppo tempo. Riprova.");},10000);
-  try{const u=await utenteCorrente(); allevamentoAttivo=scelto; localStorage.setItem("myagari_active_allevamento_"+u.id,allevamentoAttivo.id); aggiornaSelettoreAllevamento(lista); inizializzaNotifichePersonali(); await apriPagina("home"); const trascorso=Date.now()-inizio; const durataMinima=700; if(trascorso<durataMinima)await new Promise(r=>setTimeout(r,durataMinima-trascorso));}catch(e){errore(e);}finally{clearTimeout(timer);nascondiCaricamentoAllevamento();}
+  try{const u=await utenteCorrente(); allevamentoAttivo=scelto; localStorage.setItem("myagari_active_allevamento_"+u.id,allevamentoAttivo.id); aggiornaSelettoreAllevamento(lista); inizializzaNotifichePersonali(); await apriPagina("home"); await v18CaricaProfiloUI(); const trascorso=Date.now()-inizio; const durataMinima=700; if(trascorso<durataMinima)await new Promise(r=>setTimeout(r,durataMinima-trascorso));}catch(e){errore(e);}finally{clearTimeout(timer);nascondiCaricamentoAllevamento();}
 }
 async function eliminaAllevamentoSecondario(lista){
   if(!allevamentoAttivo)return; const indice=(lista||[]).findIndex(a=>String(a.id)===String(allevamentoAttivo.id)); if(indice===0){obAvviso("L'allevamento principale non può essere eliminato da questa funzione.");return;}
@@ -4583,12 +4583,11 @@ async function obV436AggiornaSoggettiCompleto(){
       ${s.portatore_di?`<p><b><img class="ob-record-icon" src="assets_embedded/assets_embedded/ob_asset_075_5f50b38bf6.jpg" alt=""> Portatore di:</b> ${esc(s.portatore_di)} <span class="small">(${esc(s.portatore_origine||"DICHIARATO")})</span></p>`:""}
       <p><b>Gabbia:</b> ${esc(obGabbiaDisplay(s.gabbia||"-"))}</p><p><b>Padre:</b> ${esc(s.padre||"-")} &nbsp; <b>Madre:</b> ${esc(s.madre||"-")}</p>
       <p><b>Stato:</b> ${esc(obV435StatoSoggetto(s.stato))}</p><p><b>Note:</b> ${esc(s.note||"-")}</p>
-      <div class="soggetto-foto-box" data-foto-box="${esc(s.id)}"><img class="ob-record-icon" src="assets_embedded/assets_embedded/ob_asset_004_9a860456d5.jpg" alt=""> Caricamento foto...</div>
+      <div class="soggetto-foto-box ob-foto-scheda-interattiva" data-foto-box="${esc(s.id)}" data-photo-soggetto="${esc(s.id)}" role="button" tabindex="0"><img class="ob-record-icon" src="assets_embedded/assets_embedded/ob_asset_004_9a860456d5.jpg" alt=""> Caricamento foto...</div>
       ${(()=>{const av=JSON.parse(localStorage.getItem('myagari_ai_scores')||'{}')[String(s.id)];return av&&Number.isFinite(Number(av.score))?'<p class="ai-punteggio"><img class="ob-action-icon" src="assets_embedded/assets_embedded/ob_asset_005_cc38f88be0.jpg" alt=""> Valutazione AI: '+Number(av.score).toFixed(1)+' / 100</p>':'';})()}
       <div class="actions">
         <button class="ob-action ob-act-modifica" data-edit-soggetto="${esc(s.id)}">Modifica</button>
-        <button type="button" class="secondary ob-action ob-act-foto" data-photo-soggetto="${esc(s.id)}">${s.foto_url?"Cambia foto":"Carica foto"}</button>
-        ${s.foto_url?`<button type="button" class="danger ob-action ob-act-rimuovi-foto" data-remove-photo-soggetto="${esc(s.id)}">Rimuovi foto</button>`:""}
+        
         <button type="button" class="success ob-action ob-act-ai" data-ai-soggetto="${esc(s.id)}">Valuta con AI</button>
         ${soggettiConValutazione.has(String(s.id))?`<button type="button" class="secondary ob-action ob-act-valutazione" data-osserva-ai-soggetto="${esc(s.id)}">Osserva valutazione</button>`:""}
         <button type="button" class="secondary ob-action ob-act-foi" data-foi-soggetto="${esc(s.id)}">${esc(v19J("sheet"))}</button>
@@ -4602,17 +4601,17 @@ async function obV436AggiornaSoggettiCompleto(){
       if(!box)return;
       const url=await recuperaFotoAssociataSoggetto(s.id,s);
       if(url){
-        box.innerHTML='<img src="'+esc(url)+'" alt="Foto soggetto" class="soggetto-thumb" loading="eager">';
+        box.innerHTML='<img src="'+esc(url)+'" alt="Foto soggetto" class="soggetto-thumb" loading="eager"><span class="small">Cambia o elimina la foto</span><button type="button" class="ob-foto-cestino" data-remove-photo-soggetto="'+esc(s.id)+'" aria-label="Elimina fotografia">🗑️</button>';
         box.querySelector('img')?.addEventListener('error',()=>{box.innerHTML='<img class="ob-record-icon" src="assets_embedded/assets_embedded/ob_asset_004_9a860456d5.jpg" alt=""> Foto non disponibile<br><span class="small">La foto risulta associata ma non è leggibile dal bucket.</span>';});
-      }else box.innerHTML='<img class="ob-record-icon" src="assets_embedded/assets_embedded/ob_asset_004_9a860456d5.jpg" alt=""> Nessuna foto caricata<br><span class="small">Usa “Carica foto” per associare una foto.</span>';
+      }else box.innerHTML='<img class="ob-record-icon" src="assets_embedded/assets_embedded/ob_asset_004_9a860456d5.jpg" alt=""> Nessuna foto caricata<br><span class="small">Tocca qui per caricare una foto.</span>';
     }));
     bindDeleteButtons();bindEditSoggetti();obV435BindArchiveSoggetti();
   }catch(e){errore(e);}
 }
  function bindEditSoggetti(){
   document.querySelectorAll("[data-edit-soggetto]").forEach(b=>{b.onclick=()=>modificaSoggetto(b.dataset.editSoggetto);});
-  document.querySelectorAll("[data-photo-soggetto]").forEach(b=>{b.onclick=()=>caricaFotoDaScheda(b.dataset.photoSoggetto);});
-  document.querySelectorAll("[data-remove-photo-soggetto]").forEach(b=>{b.onclick=()=>obRimuoviFotoSoggetto(b.dataset.removePhotoSoggetto);});
+  document.querySelectorAll("[data-photo-soggetto]").forEach(b=>{b.onclick=()=>caricaFotoDaScheda(b.dataset.photoSoggetto);b.onkeydown=e=>{if(e.target===b&&(e.key==="Enter"||e.key===" ")){e.preventDefault();caricaFotoDaScheda(b.dataset.photoSoggetto);}};});
+  document.querySelectorAll("[data-remove-photo-soggetto]").forEach(b=>{b.onclick=e=>{e.stopPropagation();obRimuoviFotoSoggetto(b.dataset.removePhotoSoggetto);};});
   document.querySelectorAll("[data-ai-soggetto]").forEach(b=>{b.onclick=()=>apriValutazioneAI(b.dataset.aiSoggetto);});
   document.querySelectorAll("[data-osserva-ai-soggetto]").forEach(b=>{b.onclick=()=>mostraValutazioneSalvata(b.dataset.osservaAiSoggetto);});
 }
@@ -4723,8 +4722,7 @@ function obV436MostraRisultatiSoggettiCompleti(dati,opzioni={}){
     <p><b>Stato:</b> ${esc(obV435StatoSoggetto(s.stato||"-"))}</p>${s.data_uscita?`<p><b>Data uscita:</b> ${esc(obFormatDate(s.data_uscita))}</p>`:""}<p><b>Note:</b> ${esc(s.note||"-")}</p>
     <div class="actions">
       <button class="ob-action ob-act-modifica" data-edit-soggetto="${esc(s.id)}">Modifica</button>
-      <button type="button" class="secondary ob-action ob-act-foto" data-photo-soggetto="${esc(s.id)}">Carica / cambia foto</button>
-      ${s.foto_url?`<button type="button" class="danger ob-action ob-act-rimuovi-foto" data-remove-photo-soggetto="${esc(s.id)}">Rimuovi foto</button>`:""}
+      
       <button type="button" class="success ob-action ob-act-ai" data-ai-soggetto="${esc(s.id)}">Valuta con AI</button>
       <button type="button" class="secondary ob-action ob-act-foi" data-foi-soggetto="${esc(s.id)}">${esc(v19J("sheet"))}</button>
       ${obV435SoggettoPresente(s)?``:""}
