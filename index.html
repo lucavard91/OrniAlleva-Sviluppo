@@ -1588,17 +1588,19 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
   .ob-v439-home-toolbar .ob-v263727-actions-wrap{transform:translateX(-8px)!important}
 }
 </style>
-<style>.ob-foto-scheda-interattiva{position:relative;cursor:pointer;touch-action:manipulation}.ob-foto-scheda-interattiva .small{display:block;text-align:center;font-weight:600;margin-top:5px}.ob-foto-cestino{position:absolute;top:4px;right:4px;display:flex;align-items:center;justify-content:center;width:37px;height:37px;padding:0;border:0;border-radius:9px;background:#d62828;color:#fff;font-size:20px;z-index:2;cursor:pointer}</style><style>
-/* Sviluppo: fotografia ampia con pulsanti laterali, quattro azioni uguali */
-.ob-soggetto-photo-row{display:flex;align-items:stretch;justify-content:center;gap:10px;width:min(100%,540px);margin:12px auto}
-.ob-soggetto-photo-row .ob-foto-big{flex:1 1 65%;max-width:none;min-width:0;min-height:200px;margin:0!important;padding:7px!important}
-.ob-soggetto-photo-row .ob-foto-big .soggetto-thumb{width:100%!important;max-width:none!important;max-height:340px!important;object-fit:contain;margin:0!important}
-.ob-soggetto-photo-tools{flex:0 0 32%;display:flex;flex-direction:column;gap:10px;justify-content:center}
-.ob-soggetto-photo-tools button{width:100%;min-height:64px;white-space:normal;font-size:14px;padding:9px 5px}
+<style>
+/* Scheda soggetto: foto verticale e comandi fotografici compatti */
+.ob-soggetto-photo-row{display:grid;grid-template-columns:minmax(0,1fr) 86px;align-items:center;justify-content:center;gap:7px;width:min(100%,385px);margin:12px auto}
+.ob-soggetto-photo-row .ob-foto-big{box-sizing:border-box;width:100%;height:330px;min-height:330px;max-width:none;max-height:none;aspect-ratio:3/4;margin:0;padding:5px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.ob-soggetto-photo-row .ob-foto-big .soggetto-thumb{width:100%;height:100%;min-width:0;max-width:100%;max-height:100%;object-fit:contain;margin:0}
+.ob-soggetto-photo-tools{display:flex;flex-direction:column;gap:7px;justify-content:center;min-width:0}
+.ob-soggetto-photo-tools button{box-sizing:border-box;width:100%;min-height:40px;height:40px;max-height:40px;white-space:normal;font-size:11px;line-height:1.1;padding:4px}
 .ob-soggetto-photo-tools button[hidden]{display:none!important}
-#listaSoggetti .actions:has(> .ob-act-elimina){display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
-#listaSoggetti .actions:has(> .ob-act-elimina)>button{width:100%!important;min-width:0!important;margin:0!important}
-#listaSoggetti .actions:has(> .ob-act-elimina)>.ob-act-elimina{grid-column:auto!important}
+#listaSoggetti .item .ob-foto-big.ob-v4395-photo-compact{width:100%!important;height:330px!important;min-height:330px!important;max-width:none!important;max-height:330px!important;margin:0!important}
+#listaSoggetti .item .ob-foto-big.ob-v4395-photo-compact img{object-fit:contain!important}
+#listaSoggetti .item .actions.ob-subject-four-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+#listaSoggetti .item .actions.ob-subject-four-actions>button{box-sizing:border-box;width:100%!important;min-width:0!important;max-width:none!important;grid-column:auto!important;margin:0!important}
+#listaSoggetti .item .actions.ob-subject-four-actions>.ob-act-elimina{grid-column:2!important}
 </style></head>
 <body>
 <div id="obAdminReturnTransition" aria-live="polite" aria-label="OrniBreed Manager — Caricamento"><div class="ob-return-card"><div class="ob-return-mark" aria-hidden="true"></div><b>OrniBreed Manager</b><span>Caricamento…</span></div></div>
@@ -3273,6 +3275,7 @@ function aggiornaSelettoreAllevamento(lista){
     select.innerHTML=elenco.map(a=>`<option value="${esc(a.id)}" ${String(a.id)===String(allevamentoAttivo.id)?"selected":""}>${esc(a.nome)}</option>`).join("");
     select.onchange=()=>cambiaAllevamento(select.value,elenco);
   }
+  obAggiornaProfiloAllevamento();
   const btnAdd=$("btnAggiungiAllevamento");
   if(btnAdd)btnAdd.onclick=aggiungiAllevamento;
   const btnRename=$("btnRinominaAllevamento");
@@ -8775,6 +8778,7 @@ async function v18CaricaProfiloUI(){
     const av=$("profiloAvatarV18");if(av)av.innerHTML=avatarHtml;
     const avHome=$("profiloAvatarHomeV18");if(avHome)avHome.innerHTML=avatarHtml;
     await v194AggiornaProfiloDrawer();
+    obAggiornaProfiloAllevamento();
   }catch(e){console.warn("Profilo V18",e);}
 }
 async function v247SalvaFotoProfilo(file){
@@ -9128,16 +9132,7 @@ function v185StampaDocumentoCorrente(){
   if(d.approvedType){v263Print(d.titolo,d.approvedType);return;}
   const w=window.open("","_blank");
   if(!w){obAvviso("Il browser non ha aperto la finestra di stampa. Riprova premendo di nuovo “Stampa”.");return;}
-  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(d.titolo)}</title><style>${v185PrintCss(d.orientamento)}</style></head><body>${v185DocumentoHtml(d.titolo,d.html)}<script>window.addEventListener('load',()=>setTimeout(()=>window.print(),120));<\/script><style id="ob2026FotoPortrait">
-.ob-soggetto-photo-row{display:flex!important;align-items:center!important;gap:8px!important;width:min(100%,470px)!important;margin:12px auto!important}
-.ob-soggetto-photo-row .ob-foto-big{width:70%!important;max-width:290px!important;min-width:0!important;min-height:320px!important;aspect-ratio:3/4!important;flex:1 1 auto!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:6px!important;overflow:hidden!important}
-.ob-soggetto-photo-row .ob-foto-big .soggetto-thumb{height:100%!important;width:100%!important;max-height:350px!important;max-width:100%!important;object-fit:contain!important}
-.ob-soggetto-photo-row .ob-soggetto-photo-tools{flex:0 0 29%!important;gap:8px!important;justify-content:center!important}
-.ob-soggetto-photo-row .ob-soggetto-photo-tools button{min-height:48px!important;height:48px!important;max-height:48px!important;padding:4px!important;font-size:12px!important;line-height:1.1!important}
-.ob-subject-four-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
-.ob-subject-four-actions>button{width:100%!important;min-width:0!important;max-width:none!important;grid-column:auto!important}
-.ob-subject-four-actions>.ob-act-elimina{grid-column:2!important;width:100%!important;max-width:none!important}
-</style></body></html>`);
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(d.titolo)}</title><style>${v185PrintCss(d.orientamento)}</style></head><body>${v185DocumentoHtml(d.titolo,d.html)}<script>window.addEventListener('load',()=>setTimeout(()=>window.print(),120));<\/script></body></html>`);
   w.document.close();
 }
 async function v185ScaricaPdf(titolo,html,orientamento="portrait"){
