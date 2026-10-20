@@ -1588,7 +1588,18 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
   .ob-v439-home-toolbar .ob-v263727-actions-wrap{transform:translateX(-8px)!important}
 }
 </style>
-<style>.ob-foto-scheda-interattiva{position:relative;cursor:pointer;touch-action:manipulation}.ob-foto-scheda-interattiva .small{display:block;text-align:center;font-weight:600;margin-top:5px}.ob-foto-cestino{position:absolute;top:4px;right:4px;display:flex;align-items:center;justify-content:center;width:37px;height:37px;padding:0;border:0;border-radius:9px;background:#d62828;color:#fff;font-size:20px;z-index:2;cursor:pointer}</style></head>
+<style>.ob-foto-scheda-interattiva{position:relative;cursor:pointer;touch-action:manipulation}.ob-foto-scheda-interattiva .small{display:block;text-align:center;font-weight:600;margin-top:5px}.ob-foto-cestino{position:absolute;top:4px;right:4px;display:flex;align-items:center;justify-content:center;width:37px;height:37px;padding:0;border:0;border-radius:9px;background:#d62828;color:#fff;font-size:20px;z-index:2;cursor:pointer}</style><style>
+/* Sviluppo: fotografia ampia con pulsanti laterali, quattro azioni uguali */
+.ob-soggetto-photo-row{display:flex;align-items:stretch;justify-content:center;gap:10px;width:min(100%,540px);margin:12px auto}
+.ob-soggetto-photo-row .ob-foto-big{flex:1 1 65%;max-width:none;min-width:0;min-height:200px;margin:0!important;padding:7px!important}
+.ob-soggetto-photo-row .ob-foto-big .soggetto-thumb{width:100%!important;max-width:none!important;max-height:340px!important;object-fit:contain;margin:0!important}
+.ob-soggetto-photo-tools{flex:0 0 32%;display:flex;flex-direction:column;gap:10px;justify-content:center}
+.ob-soggetto-photo-tools button{width:100%;min-height:64px;white-space:normal;font-size:14px;padding:9px 5px}
+.ob-soggetto-photo-tools button[hidden]{display:none!important}
+#listaSoggetti .actions:has(> .ob-act-elimina){display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+#listaSoggetti .actions:has(> .ob-act-elimina)>button{width:100%!important;min-width:0!important;margin:0!important}
+#listaSoggetti .actions:has(> .ob-act-elimina)>.ob-act-elimina{grid-column:auto!important}
+</style></head>
 <body>
 <div id="obAdminReturnTransition" aria-live="polite" aria-label="OrniBreed Manager — Caricamento"><div class="ob-return-card"><div class="ob-return-mark" aria-hidden="true"></div><b>OrniBreed Manager</b><span>Caricamento…</span></div></div>
 <div id="v255BrandIntro" aria-label="OrniBreed Manager — Smart Aviculture Management"><div class="v261-intro-bg" aria-hidden="true"></div><img class="v256-intro-image" alt="OrniBreed Manager — La tua passione. Il tuo allevamento." src="assets_embedded/assets_embedded/ob_asset_051_3aefa10cbb.jpg"></div></div>
@@ -3298,12 +3309,25 @@ function mostraCaricamentoAllevamento(nome){
   overlay?.classList.add("visible");
 }
 function nascondiCaricamentoAllevamento(){$("allevamentoLoading")?.classList.remove("visible");}
+function obAggiornaProfiloAllevamento(){
+  const nome=String(allevamentoAttivo?.nome||"").trim();
+  if(!nome)return;
+  const riepilogo=document.getElementById("profiloRiepilogoHomeV18");
+  if(riepilogo){
+    let riga=[...riepilogo.querySelectorAll("div")].find(el=>/^\\s*Allevamento\\s*:/i.test(el.textContent||""));
+    if(!riga){riga=document.createElement("div");riepilogo.appendChild(riga);}
+    riga.replaceChildren();
+    const b=document.createElement("b");b.textContent="Allevamento:";riga.append(b,document.createTextNode(" "+nome));
+  }
+  const field=document.getElementById("profiloAllevamento");
+  if(field)field.value=nome;
+}
 async function cambiaAllevamento(id,lista){
   const scelto=(lista||[]).find(a=>String(a.id)===String(id)); if(!scelto||String(scelto.id)===String(allevamentoAttivo?.id||""))return;
   const inizio=Date.now();
   mostraCaricamentoAllevamento(scelto.nome||"allevamento");
   const timer=setTimeout(()=>{nascondiCaricamentoAllevamento();obAvviso("⚠️ Il cambio allevamento sta impiegando troppo tempo. Riprova.");},10000);
-  try{const u=await utenteCorrente(); allevamentoAttivo=scelto; localStorage.setItem("myagari_active_allevamento_"+u.id,allevamentoAttivo.id); aggiornaSelettoreAllevamento(lista); inizializzaNotifichePersonali(); await apriPagina("home"); await v18CaricaProfiloUI(); const trascorso=Date.now()-inizio; const durataMinima=700; if(trascorso<durataMinima)await new Promise(r=>setTimeout(r,durataMinima-trascorso));}catch(e){errore(e);}finally{clearTimeout(timer);nascondiCaricamentoAllevamento();}
+  try{const u=await utenteCorrente(); allevamentoAttivo=scelto; localStorage.setItem("myagari_active_allevamento_"+u.id,allevamentoAttivo.id); aggiornaSelettoreAllevamento(lista); inizializzaNotifichePersonali(); await apriPagina("home"); await v18CaricaProfiloUI(); obAggiornaProfiloAllevamento(); const trascorso=Date.now()-inizio; const durataMinima=700; if(trascorso<durataMinima)await new Promise(r=>setTimeout(r,durataMinima-trascorso));}catch(e){errore(e);}finally{clearTimeout(timer);nascondiCaricamentoAllevamento();}
 }
 async function eliminaAllevamentoSecondario(lista){
   if(!allevamentoAttivo)return; const indice=(lista||[]).findIndex(a=>String(a.id)===String(allevamentoAttivo.id)); if(indice===0){obAvviso("L'allevamento principale non può essere eliminato da questa funzione.");return;}
@@ -4583,7 +4607,7 @@ async function obV436AggiornaSoggettiCompleto(){
       ${s.portatore_di?`<p><b><img class="ob-record-icon" src="assets_embedded/assets_embedded/ob_asset_075_5f50b38bf6.jpg" alt=""> Portatore di:</b> ${esc(s.portatore_di)} <span class="small">(${esc(s.portatore_origine||"DICHIARATO")})</span></p>`:""}
       <p><b>Gabbia:</b> ${esc(obGabbiaDisplay(s.gabbia||"-"))}</p><p><b>Padre:</b> ${esc(s.padre||"-")} &nbsp; <b>Madre:</b> ${esc(s.madre||"-")}</p>
       <p><b>Stato:</b> ${esc(obV435StatoSoggetto(s.stato))}</p><p><b>Note:</b> ${esc(s.note||"-")}</p>
-      <div class="soggetto-foto-box ob-foto-scheda-interattiva" data-foto-box="${esc(s.id)}" data-photo-soggetto="${esc(s.id)}" role="button" tabindex="0"><img class="ob-record-icon" src="assets_embedded/assets_embedded/ob_asset_004_9a860456d5.jpg" alt=""> Caricamento foto...</div>
+      <div class="ob-soggetto-photo-row"><div class="soggetto-foto-box ob-foto-big" data-foto-box="${esc(s.id)}"><img class="ob-record-icon" src="assets_embedded/assets_embedded/ob_asset_004_9a860456d5.jpg" alt=""> Caricamento foto...</div><div class="ob-soggetto-photo-tools"><button type="button" class="secondary ob-photo-change" data-photo-soggetto="${esc(s.id)}">${s.foto_url?"Cambia foto":"Carica foto"}</button><button type="button" class="danger ob-photo-delete" data-remove-photo-soggetto="${esc(s.id)}" ${s.foto_url?"":"hidden"}>Elimina foto</button></div></div>
       ${(()=>{const av=JSON.parse(localStorage.getItem('myagari_ai_scores')||'{}')[String(s.id)];return av&&Number.isFinite(Number(av.score))?'<p class="ai-punteggio"><img class="ob-action-icon" src="assets_embedded/assets_embedded/ob_asset_005_cc38f88be0.jpg" alt=""> Valutazione AI: '+Number(av.score).toFixed(1)+' / 100</p>':'';})()}
       <div class="actions">
         <button class="ob-action ob-act-modifica" data-edit-soggetto="${esc(s.id)}">Modifica</button>
@@ -4601,9 +4625,9 @@ async function obV436AggiornaSoggettiCompleto(){
       if(!box)return;
       const url=await recuperaFotoAssociataSoggetto(s.id,s);
       if(url){
-        box.innerHTML='<img src="'+esc(url)+'" alt="Foto soggetto" class="soggetto-thumb" loading="eager"><span class="small">Cambia o elimina la foto</span><button type="button" class="ob-foto-cestino" data-remove-photo-soggetto="'+esc(s.id)+'" aria-label="Elimina fotografia">🗑️</button>';
+        box.innerHTML='<img src="'+esc(url)+'" alt="Foto soggetto" class="soggetto-thumb" loading="eager">';
         box.querySelector('img')?.addEventListener('error',()=>{box.innerHTML='<img class="ob-record-icon" src="assets_embedded/assets_embedded/ob_asset_004_9a860456d5.jpg" alt=""> Foto non disponibile<br><span class="small">La foto risulta associata ma non è leggibile dal bucket.</span>';});
-      }else box.innerHTML='<img class="ob-record-icon" src="assets_embedded/assets_embedded/ob_asset_004_9a860456d5.jpg" alt=""> Nessuna foto caricata<br><span class="small">Tocca qui per caricare una foto.</span>';
+      }else box.innerHTML='<img class="ob-record-icon" src="assets_embedded/assets_embedded/ob_asset_004_9a860456d5.jpg" alt=""> Nessuna foto caricata<br><span class="small">Usa il pulsante Carica foto.</span>';
     }));
     bindDeleteButtons();bindEditSoggetti();obV435BindArchiveSoggetti();
   }catch(e){errore(e);}
