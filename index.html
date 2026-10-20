@@ -657,6 +657,9 @@ html:has(body.ob-catalog-locked){overflow:hidden!important}body.ob-catalog-locke
 @media(max-width:520px){#obReleaseNotice{left:10px;right:10px;width:calc(100% - 20px);bottom:max(10px,env(safe-area-inset-bottom));padding:14px}#obReleaseNotice .ob-release-actions{flex-wrap:nowrap}#obReleaseNotice .ob-release-actions button{font-size:13px;min-width:0}#impostazioni_info .ob-update-settings-card .ob-settings-actions{flex-direction:column;align-items:stretch}#impostazioni_info .ob-update-settings-card button{width:100%;margin:0}}
 </style>
 <style>
+.ob-foto-file-hidden{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;overflow:hidden!important;pointer-events:none!important}
+.ob-foto-cliccabile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:148px;width:100%;box-sizing:border-box;padding:15px;border-radius:14px;border:2px dashed #8eaa9b;background:rgba(230,243,232,.9);color:#124c37;text-align:center;cursor:pointer;font-weight:700}
+.ob-foto-cliccabile .soggetto-thumb{max-width:260px;max-height:230px;object-fit:contain;margin:0 auto}
 .soggetto-foto-box{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-width:320px;min-height:180px;border-radius:12px;border:1px dashed #9ca3af;background:#f3f4f6;color:#6b7280;text-align:center;margin:8px 0;padding:18px;box-sizing:border-box}
 .soggetto-thumb{display:block;width:100%;max-width:320px;max-height:320px;border-radius:12px;object-fit:contain;border:1px solid #e5e7eb;background:#f3f4f6;margin:8px 0}
 .ai-foto{display:block;max-width:100%;max-height:420px;margin:12px auto;border-radius:14px;object-fit:contain;background:#f3f4f6}
@@ -4123,31 +4126,92 @@ async function caricaFotoSoggetto(soggettoId,file){
   if(error)throw error;
   return await creaUrlFoto(path);
 }
+
+/* Il pulsante foto apre un pannello stabile, salvando solo alla conferma. */
 async function caricaFotoDaScheda(id){
-  const input=document.createElement("input");
-  input.type="file";input.accept="image/*";
-  input.onchange=async()=>{
+  let modal=document.getElementById("obFotoSchedaDialog");
+  if(!modal){
+    modal=document.createElement("div");
+    modal.id="obFotoSchedaDialog";
+    modal.className="ob-pair-modal";
+    modal.innerHTML='<div class="ob-pair-dialog" role="dialog" aria-modal="true" aria-label="Fotografia soggetto" style="max-width:440px">'+
+      '<div class="ob-pair-picker-head"><h3>Fotografia del soggetto</h3><button type="button" class="secondary" id="obFotoSchedaClose">✕</button></div>'+
+      '<label for="obFotoSchedaFile" class="ob-foto-cliccabile"><span id="obFotoSchedaPreview">📷 Tocca qui per scegliere una foto</span></label>'+
+      '<input id="obFotoSchedaFile" type="file" accept="image/*" class="ob-foto-file-hidden">'+
+      '<p class="small">La foto verrà salvata direttamente su questo soggetto, senza aprire Modifica.</p>'+
+      '<div class="actions"><button type="button" class="success" id="obFotoSchedaSave" disabled>Salva foto</button>'+
+      '<button type="button" class="secondary" id="obFotoSchedaCancel">Annulla</button></div></div>';
+    document.body.appendChild(modal);
+    const cancel=()=>modal.remove();
+    modal.querySelector("#obFotoSchedaClose").onclick=cancel;
+    modal.querySelector("#obFotoSchedaCancel").onclick=cancel;
+    modal.addEventListener("click",e=>{if(e.target===modal)cancel()});
+  }
+  modal.dataset.soggettoId=String(id);
+  const input=modal.querySelector("#obFotoSchedaFile");
+  const preview=modal.querySelector("#obFotoSchedaPreview");
+  const save=modal.querySelector("#obFotoSchedaSave");
+  input.value="";save.disabled=true;
+  preview.textContent="📷 Tocca qui per scegliere una foto";
+  input.onchange=()=>{
     const file=input.files?.[0];
-    if(!file)return;
-    const btn=Array.from(document.querySelectorAll("[data-photo-soggetto]"))
-      .find(b=>String(b.dataset.photoSoggetto)===String(id));
-    const oldLabel=btn?.textContent||"Carica foto";
-    if(btn){btn.disabled=true;btn.textContent="Salvataggio foto…";}
-    if(window.v248OpShow)window.v248OpShow("Caricamento e salvataggio foto…");
+    save.disabled=!file;
+    if(file)preview.textContent="📷 "+file.name+" — pronta da salvare";
+  };
+  save.onclick=async()=>{
+    const file=input.files?.[0];if(!file){obAvviso("Scegli prima una foto.");return;}
+    save.disabled=true;save.textContent="Salvataggio…";
+    if(window.v248OpShow)window.v248OpShow("Salvataggio fotografia…");
     try{
-      // Il pulsante sulla scheda salva immediatamente: non richiede Modifica.
       await caricaFotoSoggetto(id,file);
+      const row=(await leggi("soggetti")).find(x=>String(x.id)===String(id));
+      if(!row?.foto_url)throw new Error("La foto non risulta salvata nel soggetto.");
+      modal.remove();
+      if(window.v248OpHide)window.v248OpHide();
       await aggiornaSoggetti();
-      if(window.v248OpDone)window.v248OpDone("Foto salvata correttamente");
-      else obAvviso("Foto salvata correttamente.");
+      if(window.v248OpDone)window.v248OpDone("Foto salvata sul soggetto");
+      else obAvviso("Foto salvata sul soggetto.");
     }catch(e){
       if(window.v248OpHide)window.v248OpHide();
       errore(e);
-    }finally{
-      if(btn){btn.disabled=false;btn.textContent=oldLabel;}
-    }
+    }finally{save.disabled=false;save.textContent="Salva foto";}
   };
-  input.click();
+}
+function obFotoEditorInit(){
+  const input=document.getElementById("s_foto_file");
+  if(!input)return;
+  input.classList.add("ob-foto-file-hidden");
+  let box=document.getElementById("obFotoEditorPick");
+  if(!box){
+    box=document.createElement("label");
+    box.id="obFotoEditorPick";
+    box.htmlFor="s_foto_file";
+    box.className="ob-foto-cliccabile";
+    input.parentElement.insertBefore(box,input);
+  }
+  document.getElementById("soggettoFotoModifica")?.remove();
+  box.replaceChildren();
+  const caption=document.createElement("span");
+  caption.textContent="📷 Tocca qui per caricare una foto";
+  box.appendChild(caption);
+  if(!input.dataset.obFotoPreviewBound){
+    input.dataset.obFotoPreviewBound="1";
+    input.addEventListener("change",()=>{
+      const file=input.files?.[0];if(!file)return;
+      const wrap=document.getElementById("obFotoEditorPick");if(!wrap)return;
+      wrap.replaceChildren();
+      const img=document.createElement("img");
+      img.className="soggetto-thumb";img.alt="Foto selezionata";
+      const u=URL.createObjectURL(file);
+      img.onload=()=>URL.revokeObjectURL(u);
+      img.onerror=()=>URL.revokeObjectURL(u);
+      img.src=u;wrap.appendChild(img);
+      const cap=document.createElement("span");
+      cap.textContent="✓ Foto selezionata · Salva soggetto per confermare";
+      wrap.appendChild(cap);
+    });
+  }
+  return box;
 }
 async function recuperaFotoAssociataSoggetto(id,soggetto){
   try{
@@ -4551,25 +4615,21 @@ async function modificaSoggetto(id){
     $("s_gabbia").value=obGabbiaDisplay(s.gabbia||"");
     $("s_stato").value=obV435StatoSoggetto(s.stato||"In allevamento");
     $("s_note").value=s.note||"";
-    // Mostra la foto già associata al soggetto anche durante la modifica.
-    const oldPhotoPreview = $("soggettoFotoModifica");
-    if(oldPhotoPreview) oldPhotoPreview.remove();
-    const fotoInput = $("s_foto_file");
-    if(fotoInput){
-      const preview = document.createElement("div");
-      preview.id = "soggettoFotoModifica";
-      preview.className = "small";
-      preview.style.marginBottom = "12px";
-      preview.innerHTML = s.foto_url && /^https?:\/\//i.test(String(s.foto_url))
-        ? '<div><b>📷 Foto attuale</b></div><img src="'+esc(normalizzaFotoUrl(s.foto_url))+'" alt="Foto attuale del soggetto" class="soggetto-thumb" loading="eager" onerror="this.remove()"><div>Puoi selezionare una foto da associare al soggetto.</div>'
-        : '<div class="soggetto-foto-box">📷 Nessuna foto caricata.</div><div>Puoi selezionare una nuova foto per sostituirla.</div>';
-      fotoInput.insertAdjacentElement("beforebegin", preview);
-      fotoInput.value = "";
+
+    const fotoInput=$("s_foto_file");
+    const photoBox=obFotoEditorInit();
+    if(fotoInput&&photoBox){
+      fotoInput.value="";
       if(s.foto_url){
         const url=await recuperaFotoAssociataSoggetto(id,s);
         if(url){
-          preview.innerHTML='<div><b>📷 Foto attuale</b></div><img src="'+esc(url)+'" alt="Foto attuale del soggetto" class="soggetto-thumb" loading="eager"><div>Puoi selezionare una nuova foto per sostituirla.</div>';
-          preview.querySelector('img')?.addEventListener('error',()=>{preview.innerHTML='<div class="soggetto-foto-box">📷 Foto associata ma non disponibile.</div><div>Puoi selezionare una nuova foto per sostituirla.</div>';});
+          photoBox.replaceChildren();
+          const img=document.createElement("img");
+          img.src=url;img.className="soggetto-thumb";img.alt="Foto attuale del soggetto";
+          photoBox.appendChild(img);
+          const caption=document.createElement("span");
+          caption.textContent="📷 Tocca la foto per sostituirla";
+          photoBox.appendChild(caption);
         }
       }
     }
@@ -7700,7 +7760,7 @@ function bindUI(){
  if($("btnUserNotificationsClear"))$("btnUserNotificationsClear").onclick=v3032SvuotaNotifiche;
  if($("btnUserNotificationsClose"))$("btnUserNotificationsClose").onclick=chiudiNotifichePersonali;
 
- if($("newSoggetto"))$("newSoggetto").onclick=()=>{pulisciForm("formSoggetto");delete $("formSoggetto").dataset.modificaId;const oldPhoto=$("soggettoFotoModifica");if(oldPhoto)oldPhoto.remove();const foto=$("s_foto_file");if(foto)foto.value="";obSetSaveSoggettoMode(false);mostraForm("formSoggetto");$("formSoggetto").scrollTop=0;};if($("cancelSoggetto"))$("cancelSoggetto").onclick=()=>nascondiForm("formSoggetto");if($("saveSoggetto"))$("saveSoggetto").onclick=salvaSoggetto;
+ if($("newSoggetto"))$("newSoggetto").onclick=()=>{pulisciForm("formSoggetto");delete $("formSoggetto").dataset.modificaId;const oldPhoto=$("soggettoFotoModifica");if(oldPhoto)oldPhoto.remove();const foto=$("s_foto_file");if(foto)foto.value="";obFotoEditorInit();obSetSaveSoggettoMode(false);mostraForm("formSoggetto");$("formSoggetto").scrollTop=0;};if($("cancelSoggetto"))$("cancelSoggetto").onclick=()=>nascondiForm("formSoggetto");if($("saveSoggetto"))$("saveSoggetto").onclick=salvaSoggetto;
  if($("searchSoggetto"))$("searchSoggetto").onclick=cercaSoggetto;if($("allSoggetti"))$("allSoggetti").onclick=mostraTuttiSoggetti;if($("archivioMorti"))$("archivioMorti").onclick=()=>obV435MostraArchivio("Morto");if($("archivioCeduti"))$("archivioCeduti").onclick=()=>obV435MostraArchivio("Ceduto");
  async function obV439FiltroSesso(sesso){
    const sel=$("cercaSessoSoggetto");if(sel)sel.value=sesso||"";
