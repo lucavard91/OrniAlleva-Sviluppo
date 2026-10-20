@@ -13613,7 +13613,7 @@ window.obV436ApriRiproduzione=async function(id){await obV436AggiornaRiproduzion
    }else{state.toolbar=document.getElementById('obV439HomeToolbar');state.farmToggle=document.getElementById('obV439FarmToggle');state.farmLabel=document.getElementById('obV439FarmLabel');state.farmPopup=document.getElementById('obV439FarmPopup');}
    if(state.farmPopup){if(state.farm&&state.farm.parentElement!==state.farmPopup)state.farmPopup.appendChild(state.farm);}
    if(state.farm){state.farm.classList.remove('ob-v439-farm-collapsed','ob-v439-farm-open');}
-   const sel=document.getElementById('selectAllevamento');if(sel&&!sel.dataset.obV439Label){sel.dataset.obV439Label='1';sel.addEventListener('change',()=>setTimeout(updateFarmLabel,0));}
+   const sel=document.getElementById('selectAllevamento');if(sel&&!sel.dataset.obV439Label){sel.dataset.obV439Label='1';sel.addEventListener('change',()=>{state.farmPopup?.classList.remove('open');state.farmToggle?.classList.remove('open');state.farmToggle?.setAttribute('aria-expanded','false');updateFarmLabel();});}
    updateFarmLabel();replaceSubjectIcons();
  }
  function updateFarmLabel(){const sel=document.getElementById('selectAllevamento');const nome=(sel?.selectedOptions?.[0]?.textContent||sel?.value||'—');if(state.farmLabel)state.farmLabel.innerHTML='Allevamento attivo: <em>'+esc(nome)+'</em>';}
