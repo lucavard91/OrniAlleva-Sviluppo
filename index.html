@@ -2660,14 +2660,60 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
   <div class="page-title"><h2>Scopri OrniBreed</h2></div>
   <button class="secondary back" data-page="home">← Home</button>
   <div class="card" style="max-width:620px;margin:12px auto;text-align:center">
-    <h2>Tu allevi. OrniBreed organizza.</h2>
-    <h3>Registra i tuoi uccelli una sola volta.</h3>
-    <p>Registra il soggetto e assegnalo alla gabbia. Una gabbia di riproduzione con maschio e femmina prepara la coppia; la coppia viene proposta in Riproduzione e mantiene collegati genitori, covata e pulli.</p>
-    <p><b>Soggetti → Gabbia → Coppia → Riproduzione → Pulli → nuovi Soggetti → Genealogia → nuova Coppia → nuova Riproduzione</b></p>
-    <p class="small">Quando i pulli crescono, torna in Soggetti, apri la loro scheda e completa i dati che alla nascita non erano ancora conosciuti, come sesso, razza e mutazione. OrniBreed mantiene i collegamenti; tu completi solo ciò che cambia o diventa noto.</p>
-    <button type="button" class="secondary" data-page="guida">Apri il Manuale utente</button>
+    <h2>🐦 Ogni allevamento ha una storia. Dai spazio alla tua.</h2>
+    <p><b>Tu allevi. OrniBreed organizza.</b></p>
+    <p>Dietro ogni soggetto c'è una storia fatta di passione, cure, scelte e piccoli grandi traguardi. OrniBreed nasce per aiutarti a seguirla, senza perdere informazioni importanti e senza complicarti la giornata.</p>
+    <p>In un unico posto puoi conoscere meglio i tuoi soggetti, organizzare gabbie e coppie, seguire uova e pulli, ricostruire le genealogie e ricordare gli appuntamenti del tuo allevamento.</p>
+    <p>Dal primo soggetto alla nuova generazione, ogni informazione rimane collegata: <b>meno appunti sparsi, più tempo per ciò che ami.</b></p>
+    <p>Che tu abbia poche coppie oppure un allevamento più grande, puoi iniziare con semplicità e scoprire le funzioni un passo alla volta.</p>
+    <p><b>Il tuo allevamento cresce. OrniBreed cresce con te.</b></p>
+    <button type="button" class="secondary" data-page="guida">Scopri come funziona · Manuale utente</button>
   </div>
 </section>
+<div id="obIntroWelcome" class="hidden" role="dialog" aria-modal="true" aria-labelledby="obIntroTitle" style="position:fixed;inset:0;z-index:90000;background:rgba(8,28,20,.7);display:flex;align-items:center;justify-content:center;padding:16px">
+  <div style="background:#fff;color:#16372a;border-radius:18px;padding:22px;max-width:475px;width:100%;max-height:88dvh;overflow-y:auto;box-shadow:0 18px 60px rgba(0,0,0,.25);text-align:center">
+    <div style="font-size:34px" aria-hidden="true">🐦</div>
+    <h2 id="obIntroTitle" style="margin:8px 0">Benvenuto in OrniBreed!</h2>
+    <p style="font-weight:700;color:#17633e">Tu allevi. OrniBreed organizza.</p>
+    <p>Ogni soggetto ha una storia. Ogni covata è un nuovo inizio.</p>
+    <p>Immagina di avere tutto il tuo allevamento a portata di mano: soggetti, coppie, gabbie, riproduzioni, genealogie e promemoria, organizzati in modo semplice.</p>
+    <p>Così puoi dedicare meno tempo agli appunti e più tempo alla tua passione.</p>
+    <p><b>Inizia da ciò che conosci. Al resto ti accompagna OrniBreed.</b></p>
+    <label style="display:flex;gap:9px;align-items:center;justify-content:center;margin:16px 0;cursor:pointer;font-size:14px"><input type="checkbox" id="obIntroDontShow" style="width:18px;height:18px">Non mostrare più automaticamente</label>
+    <button type="button" id="obIntroExploreBtn" class="success" style="width:100%;margin-bottom:7px">✨ Scopri OrniBreed</button>
+    <button type="button" id="obIntroStartBtn" class="secondary" style="width:100%">Inizia a utilizzare l'app</button>
+  </div>
+</div>
+<style>#obIntroWelcome.hidden{display:none!important}</style>
+<script>
+(function(){
+  function introKey(){
+    return "ob_intro_hide_v1_"+(window.__obGuestMode?"guest":String(sessionUser?.id||"account"));
+  }
+  function closeIntro(){
+    const dlg=document.getElementById("obIntroWelcome");
+    if(!dlg)return;
+    if(document.getElementById("obIntroDontShow")?.checked){
+      try{localStorage.setItem(introKey(),"1");}catch(_){}
+    }
+    dlg.classList.add("hidden");
+  }
+  window.obIntroMaybeShow=function(){
+    try{if(localStorage.getItem(introKey())==="1")return;}catch(_){}
+    const dlg=document.getElementById("obIntroWelcome");
+    if(!dlg||document.getElementById("app")?.classList.contains("hidden"))return;
+    document.getElementById("obIntroDontShow").checked=false;
+    dlg.classList.remove("hidden");
+  };
+  document.addEventListener("DOMContentLoaded",function(){
+    document.getElementById("obIntroStartBtn")?.addEventListener("click",closeIntro);
+    document.getElementById("obIntroExploreBtn")?.addEventListener("click",function(){
+      closeIntro();
+      if(typeof apriPagina==="function")apriPagina("scopri_ornibreed");
+    });
+  });
+})();
+</script>
 <section id="agenda_allevatori" class="hidden">
  <div class="page-title"><h2 class="ob-icon-title"><img class="ob-section-icon" src="assets_embedded/assets_embedded/ob_asset_034_877cc268ae.jpg" alt=""><span>Contatti / Agenda allevatori</span></h2></div>
  <button class="secondary back" data-page="home">← Home</button>
@@ -3928,6 +3974,7 @@ async function mostraApp(){
     toggle("registerScreen",false);
     toggle("resetScreen",false);
     toggle("app",true);
+    setTimeout(()=>{try{window.obIntroMaybeShow?.();}catch(_){}},650);
     try{document.documentElement.classList.remove("ob-return-from-admin");const t=document.getElementById("obAdminReturnTransition");if(t)t.style.display="none";if(location.search.includes("from=admin"))history.replaceState(null,"",location.pathname+location.hash);}catch(_){}
     const u=await utenteCorrente();
     const nomeCompleto=[
