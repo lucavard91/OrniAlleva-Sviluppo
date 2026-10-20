@@ -2679,7 +2679,7 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
 
 </div>
 </div>
-<script src="./guest-local.js?v=20261020"></script>
+<script src="./guest-local.js?v=20261020-photo-fix"></script>
 <script src="./guest-catalog.js?v=20261020b"></script>
 <script>
 "use strict";
@@ -4124,8 +4124,29 @@ async function caricaFotoSoggetto(soggettoId,file){
   return await creaUrlFoto(path);
 }
 async function caricaFotoDaScheda(id){
-  const input=document.createElement("input");input.type="file";input.accept="image/*";
-  input.onchange=async()=>{try{const f=input.files?.[0];if(!f)return;await caricaFotoSoggetto(id,f);await aggiornaSoggetti();obAvviso("📷 Foto caricata correttamente.");}catch(e){errore(e);}};
+  const input=document.createElement("input");
+  input.type="file";input.accept="image/*";
+  input.onchange=async()=>{
+    const file=input.files?.[0];
+    if(!file)return;
+    const btn=Array.from(document.querySelectorAll("[data-photo-soggetto]"))
+      .find(b=>String(b.dataset.photoSoggetto)===String(id));
+    const oldLabel=btn?.textContent||"Carica foto";
+    if(btn){btn.disabled=true;btn.textContent="Salvataggio foto…";}
+    if(window.v248OpShow)window.v248OpShow("Caricamento e salvataggio foto…");
+    try{
+      // Il pulsante sulla scheda salva immediatamente: non richiede Modifica.
+      await caricaFotoSoggetto(id,file);
+      await aggiornaSoggetti();
+      if(window.v248OpDone)window.v248OpDone("Foto salvata correttamente");
+      else obAvviso("Foto salvata correttamente.");
+    }catch(e){
+      if(window.v248OpHide)window.v248OpHide();
+      errore(e);
+    }finally{
+      if(btn){btn.disabled=false;btn.textContent=oldLabel;}
+    }
+  };
   input.click();
 }
 async function recuperaFotoAssociataSoggetto(id,soggetto){
