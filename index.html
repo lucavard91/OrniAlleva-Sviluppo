@@ -2680,6 +2680,7 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
 </div>
 </div>
 <script src="./guest-local.js?v=20261020"></script>
+<script src="./guest-catalog.js?v=20261020a"></script>
 <script>
 "use strict";
 // OrniBreed Manager — struttura consolidata v1.0
@@ -3574,6 +3575,22 @@ async function obGuestResume(session){
 /* Collaudo OSPITE LOCALE: tutte le query app passano all'archivio
  * temporaneo nel browser, nessun accesso anonimo al Supabase ufficiale.
  */
+function obGuestApplyCatalog(){
+  if(!window.__obGuestMode || !window.obGuestLocal?.isLocalDemo)return;
+  const C=window.OB_CATALOG;
+  const S=window.OB_GUEST_CATALOG_STATIC;
+  if(!C||!S)return;
+  ["taxa","breeds","mutations","phenotypes","variants","standards","globalCatalog"]
+    .forEach(k=>{C[k]=Array.isArray(S[k])?S[k].map(row=>({...row})):[];});
+  if(typeof v19ManualCatalog!=="undefined"){
+    v19ManualCatalog.taxa=C.taxa;
+    v19ManualCatalog.breeds=C.breeds;
+    v19ManualCatalog.mutations=C.mutations;
+  }
+  window.OB_CATALOG_HELPERS?.refreshSubjectCategory?.(
+    document.getElementById("s_razza")?.value||""
+  );
+}
 async function obGuestLogin(){
   if(window.__obGuestBooting)return;
   window.__obGuestBooting=true;
@@ -3591,6 +3608,7 @@ async function obGuestLogin(){
     sessionUser=demo.session.user;
     window.__MYAGARI_FRESH_LOGIN=true;
     obGuestDisableExports();
+    obGuestApplyCatalog();
     await avviaMostraApp(demo.session);
   }catch(e){
     if(!window.__obGuestMode)sb=previousClient;
@@ -7590,6 +7608,14 @@ box.innerHTML = `
       if(!gr.error)C.globalCatalog=arr(gr.data);
       else console.warn("Vista catalogo genetico non disponibile",gr.error);
     }catch(error){console.warn("Catalogo genetico globale: caricamento opzionale",error)}
+    // Il collaudo ospite locale dispone di un catalogo dimostrativo indipendente.
+    // Se il cambio al guest avviene durante queste richieste, non sovrascriverlo.
+    if(window.__obGuestMode && window.obGuestLocal?.isLocalDemo){
+      obGuestApplyCatalog();
+      refreshCarrierSuggestions();
+      if(currentType)render();
+      return;
+    }
     // Recupera l'archivio gia caricato se una singola richiesta non riesce.
     if(!C.taxa.length&&arr(v19ManualCatalog?.taxa).length)C.taxa=arr(v19ManualCatalog.taxa);
     if(!C.breeds.length&&arr(v19ManualCatalog?.breeds).length)C.breeds=arr(v19ManualCatalog.breeds);
@@ -7743,6 +7769,7 @@ async function init(){
       sessionUser=demo.session.user;
       window.__MYAGARI_FRESH_LOGIN=true;
       obGuestDisableExports();
+      obGuestApplyCatalog();
       await avviaMostraApp(demo.session);
       return;
     }
