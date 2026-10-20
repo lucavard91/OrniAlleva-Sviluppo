@@ -3917,9 +3917,9 @@ async function avviaMostraApp(sessionOverride=null){
 async function mostraApp(){
   try{
     await caricaAllevamenti();
-    if(!window.__obGuestMode)await inizializzaNotifichePersonali();
+    await inizializzaNotifichePersonali();
     await caricaProfilo();
-    if(!window.__obGuestMode){v19AggiornaNotificheScadenza();await completaAvvioNotifichePersonali();v1812PromemoriaGiornaliero();}
+    if(window.__obGuestMode){await completaAvvioNotificheOspite();}else{v19AggiornaNotificheScadenza();await completaAvvioNotifichePersonali();v1812PromemoriaGiornaliero();}
     if(!accessoValido()&&!obRuoloAdminValido(profilo.ruolo)){
       msg("Il tuo accesso non è attivo o è scaduto.");
       return;
@@ -7222,6 +7222,18 @@ async function completaAvvioNotifichePersonali(){
     await aggiornaNotificheCalendario();
     await aggiornaNotificheRiproduzione();
     await sincronizzaStatoNotifiche();
+  }finally{
+    notifichePersonaliSincronizzate=true;
+    aggiornaUINotifichePersonali();
+  }
+}
+async function completaAvvioNotificheOspite(){
+  // L’ospite usa solo il proprio archivio temporaneo: mai sincronizzare stati con Supabase.
+  notifichePersonaliSincronizzate=false;
+  aggiornaUINotifichePersonali();
+  try{
+    await aggiornaNotificheCalendario();
+    await aggiornaNotificheRiproduzione();
   }finally{
     notifichePersonaliSincronizzate=true;
     aggiornaUINotifichePersonali();
