@@ -7733,9 +7733,15 @@ box.innerHTML = `
     ];
     const results=await Promise.all(sources.map(async([key,table])=>{
       try{
-        const result=await sb.from(table).select("*").range(0,999);
-        if(result.error)throw result.error;
-        return {key,data:arr(result.data),error:null};
+        const data=[];
+        for(let offset=0;;offset+=1000){
+          const result=await sb.from(table).select("*").range(offset,offset+999);
+          if(result.error)throw result.error;
+          const page=arr(result.data);
+          data.push(...page);
+          if(page.length<1000)break;
+        }
+        return {key,data,error:null};
       }catch(error){return {key,data:[],error};}
     }));
     const errors=[];
