@@ -1994,10 +1994,10 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
 </div>
 <label>Colore / Mutazione</label>
 <div class="ob-catalog-field">
-  <input id="s_mutazione" type="text" placeholder="Es. Giallo intenso, Agata rosso mosaico (anche libero)" autocomplete="off"><div class="ob-inline-suggestions hidden" data-ob-hints="mutazione"></div>
+  <input id="s_mutazione" type="text" placeholder="Cerca: rosso mosaico, giallo intenso, bianco recessivo..." autocomplete="off"><div class="ob-inline-suggestions hidden" data-ob-hints="mutazione"></div>
   <button type="button" class="ob-catalog-open" data-ob-catalog="mutazione" aria-label="Apri catalogo mutazioni">›</button>
 </div>
-    <div class="ob-v34-color-fields" id="obV34ColorFields">
+    <div class="ob-v34-color-fields" id="obV34ColorFields" hidden>
       <label>Colore <span class="small">(facoltativo)</span></label>
       <div class="ob-catalog-field">
         <input id="s_colore" type="text" placeholder="Scrivi o seleziona colore" autocomplete="off"><div class="ob-inline-suggestions hidden" data-ob-hints="colore"></div>
@@ -4726,17 +4726,20 @@ async function obV437AssicuraGabbiaSoggetto(gabbia,soggetto,vecchiaGabbia=""){
   if(vecchiaGabbia&&obNorm(vecchiaGabbia)!==obNorm(gabbia)&&soggetto)obRegistraMovimentoGabbiaSoggetto(soggetto,vecchiaGabbia,gabbia);await obRicalcolaStatoGabbie([gabbia,vecchiaGabbia].filter(Boolean));
 }
 function obV34MutationDisplay(){
-  // Conserva il campo esistente 'mutazione' in Supabase, senza cambiare lo schema.
-  // Gli elementi separati da " · " sono denominazioni espositive, NON nuovi geni.
-  const pieces=[valore("s_mutazione"),valore("s_colore"),valore("s_categoria_piumaggio")].map(x=>String(x||"").trim()).filter(Boolean);
-  return pieces.join(" · ");
+  // Un'unica denominazione ricercabile: nessun secondo campo colore richiesto.
+  return String(valore("s_mutazione")||"").trim();
 }
 function obV34ReadMutationDisplay(saved){
-  const parts=String(saved||"").split(" · ");
-  const base=document.getElementById("s_mutazione"),color=document.getElementById("s_colore"),feather=document.getElementById("s_categoria_piumaggio");
-  if(base)base.value=(parts[0]||"").trim();
-  if(color)color.value=(parts[1]||"").trim();
-  if(feather)feather.value=["Intenso","Brinato","Mosaico"].includes(parts[2])?parts[2]:"";
+  // Legge anche i record storici "Mutazione · Colore · Piumaggio".
+  const parts=String(saved||"").split(" · ").map(x=>x.trim()).filter(Boolean);
+  const words=[];
+  parts.forEach(part=>{
+    const existing=words.join(" ").toLocaleLowerCase("it");
+    if(!existing.split(/\s+/).includes(part.toLocaleLowerCase("it")))words.push(part);
+  });
+  const base=document.getElementById("s_mutazione");
+  if(base)base.value=words.join(" ");
+  ["s_colore","s_categoria_piumaggio"].forEach(id=>{const el=document.getElementById(id);if(el)el.value=""});
 }
 function obV34ResetDetails(){
   ["s_categoria_specie","s_colore","s_categoria_piumaggio"].forEach(id=>{const el=document.getElementById(id);if(el)el.value=""});
@@ -7801,7 +7804,7 @@ box.innerHTML = `
     (norm(label)==="fawn"&&norm("fawn").includes(term));
   const updateDisplay=()=>{
     const el=$id("obV34FullName");if(!el)return;
-    const values=[$id("s_razza")?.value,$id("s_mutazione")?.value,$id("s_colore")?.value,$id("s_categoria_piumaggio")?.value].filter(Boolean);
+    const values=[$id("s_razza")?.value,$id("s_mutazione")?.value].filter(Boolean);
     el.textContent=values.length?"Denominazione: "+values.join(" · "):"";
   };
   $id("s_specie")?.addEventListener("change",()=>{$id("s_razza").value="";updateCategory();updateDisplay()});
