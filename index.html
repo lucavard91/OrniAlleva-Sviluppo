@@ -2192,6 +2192,16 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
     <label for="obMostraRing">Numero anellino</label>
     <div class="row"><input id="obMostraRing" type="text" autocomplete="off" placeholder="Cerca numero anellino" style="flex:1;min-width:130px"><button type="button" class="success" id="obMostraAdd">+ Aggiungi</button></div>
     <p id="obMostraMsg" role="status" class="small"></p>
+    <div class="row" style="gap:8px;flex-wrap:wrap;margin:12px 0">
+      <button type="button" class="secondary" data-ob-mostra-sex="Maschio">Maschi</button>
+      <button type="button" class="secondary" data-ob-mostra-sex="Femmina">Femmine</button>
+    </div>
+    <div id="obMostraPicker" class="card hidden" style="margin:10px 0;padding:12px">
+      <div class="row" style="justify-content:space-between;align-items:center"><h3 id="obMostraPickerTitle">Seleziona soggetto</h3><button type="button" class="secondary" id="obMostraPickerClose">✕</button></div>
+      <label for="obMostraPickerSearch">Cerca soggetto per numero anellino</label>
+      <input id="obMostraPickerSearch" type="search" placeholder="Es. 18" autocomplete="off">
+      <div id="obMostraPickerList" style="max-height:52vh;overflow-y:auto;margin-top:10px"></div>
+    </div>
     <details style="margin:16px 0"><summary><b>Informazioni mostra (facoltative)</b></summary>
       <label for="obMostraLuogo">Luogo della mostra</label><input id="obMostraLuogo" placeholder="Es. Caserta">
       <label for="obMostraData">Data</label><input id="obMostraData" type="date">
@@ -2243,8 +2253,36 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
     try{const url=await recuperaFotoAssociataSoggetto(s.id,s);const el=get("obMostraList")?.querySelector('[data-ob-mostra-photo="'+String(s.id).replace(/"/g,"")+'"]');if(url&&el){const im=document.createElement("img");im.src=url;im.alt="Foto soggetto";im.loading="lazy";im.style.cssText="width:100%;max-width:210px;max-height:210px;object-fit:contain;border-radius:10px";el.replaceChildren(im);}}catch(_){}
   });
  }
+ let pickerSex="";
+ function addSubject(subject){
+  const x=read(),id=String(subject.id);
+  if(x.ids.some(v=>String(v)===id)){get("obMostraMsg").textContent="Questo soggetto è già nella lista.";return;}
+  x.ids.push(id);save(x);get("obMostraMsg").textContent="Soggetto "+ring(subject)+" aggiunto alla mostra.";render();
+ }
+ function renderPicker(){
+  const term=String(get("obMostraPickerSearch").value||"").trim().toLowerCase();
+  const rows=catalog.filter(s=>String(s.sesso||"").trim().toLowerCase()===pickerSex.toLowerCase())
+    .filter(s=>!term||[ring(s),s.anno,s.rna,s.specie,s.mutazione].some(v=>String(v||"").toLowerCase().includes(term)));
+  get("obMostraPickerList").innerHTML=rows.length?rows.map(s=>
+    '<button type="button" class="secondary" data-ob-mostra-pick="'+escMostra(s.id)+'" style="display:block;text-align:left;width:100%;margin:6px 0;padding:10px">'+
+    '<b>Anello '+escMostra(ring(s)||"—")+'</b> · '+escMostra(s.anno||"—")+
+    '<div class="small">'+escMostra(label(s))+'</div></button>'
+  ).join(""):'Nessun soggetto trovato.';
+  get("obMostraPickerList").querySelectorAll("[data-ob-mostra-pick]").forEach(btn=>btn.addEventListener("click",()=>{
+    const sub=catalog.find(s=>String(s.id)===btn.dataset.obMostraPick);
+    if(sub){addSubject(sub);get("obMostraPicker").classList.add("hidden");}
+  }));
+ }
  function init(){
   if(!get("obMostraAdd"))return;
+  get("obMostraPickerSearch").addEventListener("input",renderPicker);
+  get("obMostraPickerClose").addEventListener("click",()=>get("obMostraPicker").classList.add("hidden"));
+  document.querySelectorAll("[data-ob-mostra-sex]").forEach(btn=>btn.addEventListener("click",()=>{
+    pickerSex=btn.dataset.obMostraSex;
+    get("obMostraPickerTitle").textContent="Soggetti "+(pickerSex==="Maschio"?"maschi":"femmine");
+    get("obMostraPickerSearch").value="";
+    get("obMostraPicker").classList.remove("hidden");renderPicker();
+  }));
   get("obMostraAdd").addEventListener("click",()=>{
    const value=get("obMostraRing").value.trim().toLowerCase();
    if(!value){get("obMostraMsg").textContent="Inserisci un numero di anellino.";return;}
