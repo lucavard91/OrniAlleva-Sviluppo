@@ -16,7 +16,9 @@ function wipe(){
   Object.keys(localStorage).filter(k=>
    k.startsWith("myagari_notifiche_"+old.id+"_") ||
    k.startsWith("ob_intro_hide_v1_"+old.id) ||
-   k.startsWith("myagari_nav_state_"+old.id+"_")
+   k.startsWith("myagari_nav_state_"+old.id+"_") ||
+   k.startsWith("ob_mostra_v1_"+old.id+"_") ||
+   k==="ob_intro_hide_v1_"+old.id
   ).forEach(k=>localStorage.removeItem(k));
   localStorage.removeItem("ob_intro_hide_v1_guest");
  }
