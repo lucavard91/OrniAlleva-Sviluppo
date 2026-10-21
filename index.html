@@ -7866,7 +7866,8 @@ box.innerHTML = `
     const q=norm(input.value);
     if(!q){box.innerHTML="";box.classList.add("hidden");return;}
     const source=type==="specie"?speciesItems():type==="razza"?breedItems():type==="colore"?colorItems():mutationItems();
-    const rows=source.filter(x=>obMatchCommonName(x,q)||(type==="mutazione"&&synonymsMatch(x,q))).slice(0,12);
+    const rank=x=>{const n=norm(x);return n===q?0:n.startsWith(q)?1:obMatchCommonName(x,q)?2:3};
+    const rows=source.filter(x=>rank(x)<3||(type==="mutazione"&&synonymsMatch(x,q))).sort((a,b)=>rank(a)-rank(b)||a.localeCompare(b,"it")).slice(0,12);
     box.innerHTML="";
     const selectHint=label=>{
       input.value=label;
@@ -7903,7 +7904,7 @@ box.innerHTML = `
   const titleFor=type=>type==="specie"?"Seleziona specie":type==="razza"?"Seleziona razza":type==="colore"?"Seleziona colore":"Seleziona mutazione";
   const contextFor=type=>{if(type==="specie")return "Scegli la specie.";const sp=$id("s_specie")?.value||"";if(type==="razza")return sp?"Specie: "+sp:"Scegli prima la specie.";return [sp&&("Specie: "+sp),$id("s_razza")?.value&&("Razza: "+$id("s_razza").value)].filter(Boolean).join(" · ")||(type==="colore"?"Scegli colore.":"Scegli mutazione.")};
   const searchable=(label,q)=>{if(!q)return true;const nq=norm(q);if(obMatchCommonName(label,nq))return true;if(currentType==="specie"&&validSpecies().some(t=>norm(taxLabel(t))===norm(label)&&names(t).some(name=>norm(name).includes(nq))))return true;if(currentType==="mutazione"&&synonymsMatch(label,nq))return true;if(currentType==="razza"&&label==="Gloster Fancy"&&norm("Gloucester").includes(nq))return true;if(currentType==="razza"&&label==="Razza Spagnola"&&norm("Spagnola").includes(nq))return true;return false};
-  const render=()=>{if(!list)return;const data=dataFor(currentType).filter(x=>searchable(x,search?.value||""));list.innerHTML="";data.forEach(label=>{const b=document.createElement("button");b.type="button";b.className="ob-catalog-item";b.textContent=currentType==="specie"?speciesDisplayLabel(label):label;b.addEventListener("click",()=>pick(label));list.appendChild(b)});empty?.classList.toggle("hidden",data.length!==0)};
+  const render=()=>{if(!list)return;const q=norm(search?.value||"");const rank=x=>{const n=norm(x);return n===q?0:n.startsWith(q)?1:obMatchCommonName(x,q)?2:3};const data=dataFor(currentType).filter(x=>searchable(x,q)).sort((a,b)=>q?rank(a)-rank(b)||a.localeCompare(b,"it"):a.localeCompare(b,"it"));list.innerHTML="";data.forEach(label=>{const b=document.createElement("button");b.type="button";b.className="ob-catalog-item";b.textContent=currentType==="specie"?speciesDisplayLabel(label):label;b.addEventListener("click",()=>pick(label));list.appendChild(b)});empty?.classList.toggle("hidden",data.length!==0)};
   const close=()=>{if(!dialog||dialog.classList.contains("hidden"))return;document.activeElement===search&&search.blur();dialog.classList.add("hidden");document.body.classList.remove("ob-catalog-locked");document.documentElement.style.overflow="";document.body.style.overflow="";window.scrollTo(0,savedScroll);currentInput=null;currentType="";if(search)search.value=""};
   const pick=label=>{if(!currentInput)return;currentInput.value=label;currentInput.dispatchEvent(new Event("change",{bubbles:true}));if(currentType==="specie"){$id("s_razza").value="";$id("s_mutazione").value=""}else if(currentType==="razza"){$id("s_mutazione").value=""}close()};
   const open=type=>{
