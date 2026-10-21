@@ -1748,6 +1748,7 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
   <div class="v18-drawer-menu">
       <button data-v18-page="home"><img class="ob-drawer-icon" src="assets_embedded/assets_embedded/ob_asset_052_4a2de22928.jpg" alt=""> <span>Home</span></button>
       <button data-v18-page="soggetti"><img class="ob-drawer-icon" src="assets_embedded/assets_embedded/ob_asset_026_9256e42820.jpg" alt=""> <span>Soggetti</span></button>
+      <button data-v18-page="mostra_soggetti"><img class="ob-drawer-icon" src="mostra_di_uccelli_ornamentali.png" alt=""> <span>Soggetti da mostra</span></button>
       <button data-v18-page="coppie"><img class="ob-drawer-icon" src="assets_embedded/assets_embedded/ob_asset_027_5aa7543ad9.jpg" alt=""> <span>Coppie</span></button>
       <button data-v18-page="gabbie"><img class="ob-drawer-icon" src="assets_embedded/assets_embedded/ob_asset_029_287ad914f8.jpg" alt=""> <span>Gabbie</span></button>
       <button data-v18-page="riproduzione"><img class="ob-drawer-icon" src="assets_embedded/assets_embedded/ob_asset_028_458e5e9399.jpg" alt=""> <span>Riproduzione</span></button>
@@ -1859,6 +1860,7 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
   </div>
   <div class="grid" id="homeGrid">
     <div data-page="soggetti" role="button" tabindex="0" class="card ob-home-nav-card"><h2 class="ob-icon-title"><img class="ob-section-icon" src="assets_embedded/assets_embedded/ob_asset_026_9256e42820.jpg" alt=""> <span>Soggetti</span></h2><p>Gestisci tutti i tuoi uccelli.</p><span class="ob-home-nav-chevron" aria-hidden="true">›</span></div>
+    <div data-page="mostra_soggetti" role="button" tabindex="0" class="card ob-home-nav-card"><h2 class="ob-icon-title"><img class="ob-section-icon" src="mostra_di_uccelli_ornamentali.png" alt=""> <span>Soggetti da mostra</span></h2><p>Seleziona per anellino i soggetti da portare in mostra.</p><span class="ob-home-nav-chevron" aria-hidden="true">›</span></div>
     <div data-page="coppie" role="button" tabindex="0" class="card ob-home-nav-card"><h2 class="ob-icon-title"><img class="ob-section-icon" src="assets_embedded/assets_embedded/ob_asset_027_5aa7543ad9.jpg" alt=""> <span>Coppie</span></h2><p>Gestisci le coppie del tuo allevamento.</p><span class="ob-home-nav-chevron" aria-hidden="true">›</span></div>
     <div data-page="gabbie" role="button" tabindex="0" class="card ob-home-nav-card"><h2 class="ob-icon-title"><img class="ob-section-icon" src="assets_embedded/assets_embedded/ob_asset_029_287ad914f8.jpg" alt=""> <span>Gabbie</span></h2><p>Gestisci le gabbie dell'allevamento.</p><span class="ob-home-nav-chevron" aria-hidden="true">›</span></div>
     <div data-page="riproduzione" role="button" tabindex="0" class="card ob-home-nav-card"><h2 class="ob-icon-title"><img class="ob-section-icon" src="assets_embedded/assets_embedded/ob_asset_028_458e5e9399.jpg" alt=""> <span>Riproduzione</span></h2><p>Gestisci covate e riproduzioni.</p><span class="ob-home-nav-chevron" aria-hidden="true">›</span></div>
@@ -2182,6 +2184,65 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
     <p class="small"><b>Legenda:</b> AR = autosomica recessiva · AD = autosomica dominante · SLR = recessiva legata al sesso. Le fonti morfologiche FOI vengono usate geneticamente solo quando dichiarano esplicitamente il tipo di trasmissione.</p>
   </div>
 </section>
+<section id="mostra_soggetti" class="hidden">
+  <div class="page-title"><h2 class="ob-icon-title"><img class="ob-section-icon" src="mostra_di_uccelli_ornamentali.png" alt=""><span>Soggetti da mostra</span></h2></div>
+  <button class="secondary back" data-page="home">← Home</button>
+  <div class="card" style="max-width:680px;margin:12px auto">
+    <p>Inserisci il numero dell'anellino di un soggetto già registrato. La sua scheda resta nella sezione Soggetti: qui crei soltanto la tua lista per la mostra.</p>
+    <label for="obMostraRing">Numero anellino</label>
+    <div class="row"><input id="obMostraRing" type="text" autocomplete="off" placeholder="Cerca numero anellino" style="flex:1;min-width:130px"><button type="button" class="success" id="obMostraAdd">+ Aggiungi</button></div>
+    <p id="obMostraMsg" role="status" class="small"></p>
+    <details style="margin:16px 0"><summary><b>Informazioni mostra (facoltative)</b></summary>
+      <label for="obMostraLuogo">Luogo della mostra</label><input id="obMostraLuogo" placeholder="Es. Caserta">
+      <label for="obMostraData">Data</label><input id="obMostraData" type="date">
+    </details>
+    <h3>Soggetti selezionati (<span id="obMostraCount">0</span>)</h3>
+    <div id="obMostraList">Nessun soggetto selezionato.</div>
+  </div>
+</section>
+<script>
+/* Elenco da mostra: contiene solo riferimenti ai soggetti registrati, non copie. */
+(function(){
+ const get=id=>document.getElementById(id);
+ const key=()=> "ob_mostra_v1_"+String(sessionUser?.id||"anon")+"_"+String(allevamentoAttivo?.id||"nessuno");
+ const read=()=>{try{const x=JSON.parse(localStorage.getItem(key())||"{}");return {ids:Array.isArray(x.ids)?x.ids:[],luogo:x.luogo||"",data:x.data||""};}catch(_){return {ids:[],luogo:"",data:""};}};
+ const save=x=>{try{localStorage.setItem(key(),JSON.stringify(x));}catch(e){get("obMostraMsg").textContent="Impossibile salvare la lista sul dispositivo.";}}
+ let catalog=[];
+ const ring=s=>String(s?.numero_anello||s?.anellino||s?.anello||s?.codice||"").trim();
+ const label=s=>[s?.specie,s?.razza,s?.mutazione||s?.colore,s?.sesso].filter(Boolean).join(" · ");
+ const escMostra=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ async function load(){
+  try{catalog=await leggi("soggetti");}catch(e){catalog=[];get("obMostraMsg").textContent="Non riesco a caricare i soggetti: "+String(e?.message||e);}
+  const x=read();
+  get("obMostraLuogo").value=x.luogo;get("obMostraData").value=x.data;
+  render();
+ }
+ function render(){
+  const x=read(),active=x.ids.map(id=>catalog.find(s=>String(s.id)===String(id))).filter(Boolean);
+  get("obMostraCount").textContent=String(active.length);
+  get("obMostraList").innerHTML=active.length?active.map(s=>'<div class="card" style="margin:8px 0;padding:12px"><div style="display:flex;gap:10px;justify-content:space-between;align-items:flex-start"><div><b>Anello '+escMostra(ring(s)||"Non indicato")+'</b><div class="small">'+escMostra(label(s))+'</div><div class="small">'+escMostra(s?.note||"")+'</div></div><button type="button" class="secondary" data-ob-mostra-remove="'+escMostra(s.id)+'" aria-label="Rimuovi dalla mostra">✕</button></div></div>').join(""):'Nessun soggetto selezionato.';
+  get("obMostraList").querySelectorAll("[data-ob-mostra-remove]").forEach(btn=>btn.addEventListener("click",()=>{
+   if(!confirm("Rimuovere questo soggetto dalla lista della mostra? La scheda originale resterà salvata."))return;
+   const x=read();x.ids=x.ids.filter(id=>String(id)!==String(btn.dataset.obMostraRemove));save(x);render();
+  }));
+ }
+ function init(){
+  if(!get("obMostraAdd"))return;
+  get("obMostraAdd").addEventListener("click",()=>{
+   const value=get("obMostraRing").value.trim().toLowerCase();
+   if(!value){get("obMostraMsg").textContent="Inserisci un numero di anellino.";return;}
+   const matches=catalog.filter(s=>ring(s).toLowerCase()===value);
+   if(matches.length!==1){get("obMostraMsg").textContent=matches.length?"Anellino presente su più soggetti: controlla le schede.":"Nessun soggetto trovato con questo anellino.";return;}
+   const x=read(),id=String(matches[0].id);
+   if(x.ids.some(v=>String(v)===id)){get("obMostraMsg").textContent="Soggetto già presente nella lista.";return;}
+   x.ids.push(id);save(x);get("obMostraRing").value="";get("obMostraMsg").textContent="Soggetto aggiunto.";render();
+  });
+  for(const [id,field] of [["obMostraLuogo","luogo"],["obMostraData","data"]])get(id).addEventListener("change",()=>{const x=read();x[field]=get(id).value;save(x);});
+ }
+ window.obMostraRefresh=load;
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
+})();
+</script>
 <section id="coppie" class="hidden">
   <div class="page-title"><h2 class="ob-icon-title"><img class="ob-section-icon" src="assets_embedded/assets_embedded/ob_asset_027_5aa7543ad9.jpg" alt=""> <span>Coppie</span></h2><button id="newCoppia" class="ob-action-new">+ Nuova coppia</button></div>
   <div class="card">
@@ -2701,7 +2762,7 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
 <script>
 (function(){
   function introKey(){
-    return "ob_intro_hide_v1_"+(window.__obGuestMode?"guest":String(sessionUser?.id||"account"));
+    return "ob_intro_hide_v1_"+(window.__obGuestMode?String(sessionUser?.id||"guest"):String(sessionUser?.id||"account"));
   }
   function closeIntro(){
     const dlg=document.getElementById("obIntroWelcome");
@@ -3585,6 +3646,7 @@ async function apriPagina(nome,opzioni={}){
     e.classList.add("hidden");
     e.style.display="none";
   });
+  if(nome==="mostra_soggetti")setTimeout(()=>window.obMostraRefresh?.(),0);
   // Mostra esclusivamente la pagina richiesta.
   // V18.4: controllo più robusto, così anche la pagina Profilo viene sempre resa visibile.
   const pagina=document.getElementById(nome);
@@ -3952,6 +4014,7 @@ async function aggiornaPassword(){
 }
 async function logout(){
   if(!await obConfermaCestino({titolo:"Uscire da OrniBreed Manager?",testo:"Vuoi davvero uscire dall’applicazione?",annulla:"Annulla",conferma:"Esci"}))return;
+  if(window.__obGuestMode){try{localStorage.removeItem("ob_intro_hide_v1_"+String(sessionUser?.id||"guest"));localStorage.removeItem("ob_mostra_v1_"+String(sessionUser?.id||"")+"_"+String(allevamentoAttivo?.id||"nessuno"));}catch(_){}}
   obV2630AzzeraRuntimeAutenticato();
   try{localStorage.removeItem(chiaveStatoNavigazione());localStorage.setItem("ornibreed_force_home_after_logout","1");}catch(e){}
   window.__MYAGARI_FRESH_LOGIN=false;
