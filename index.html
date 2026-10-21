@@ -1987,15 +1987,15 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
 </div>
 <label id="obV34SpecializationLabel" for="s_categoria_specie">Specializzazione</label>
 <select id="s_categoria_specie" aria-label="Specializzazione o gruppo della specie"><option value="">Seleziona prima la specie</option></select>
-<label id="obV34BreedLabel">Razza <span class="small">(se applicabile)</span></label>
-<div id="obV34BreedField" class="ob-catalog-field">
-  <input id="s_razza" type="text" placeholder="Scrivi o seleziona razza" autocomplete="off"><div class="ob-inline-suggestions hidden" data-ob-hints="razza"></div>
-  <button type="button" class="ob-catalog-open" data-ob-catalog="razza" aria-label="Apri catalogo razze">›</button>
-</div>
 <label>Colore / Mutazione</label>
 <div class="ob-catalog-field">
   <input id="s_mutazione" type="text" placeholder="Cerca: rosso mosaico, giallo intenso, bianco recessivo..." autocomplete="off"><div class="ob-inline-suggestions hidden" data-ob-hints="mutazione"></div>
   <button type="button" class="ob-catalog-open" data-ob-catalog="mutazione" aria-label="Apri catalogo mutazioni">›</button>
+</div>
+<label id="obV34BreedLabel">Razza <span class="small">(se applicabile)</span></label>
+<div id="obV34BreedField" class="ob-catalog-field">
+  <input id="s_razza" type="text" placeholder="Scrivi o seleziona razza" autocomplete="off"><div class="ob-inline-suggestions hidden" data-ob-hints="razza"></div>
+  <button type="button" class="ob-catalog-open" data-ob-catalog="razza" aria-label="Apri catalogo razze">›</button>
 </div>
     <div class="ob-v34-color-fields" id="obV34ColorFields" hidden>
       <label>Colore <span class="small">(facoltativo)</span></label>
@@ -7770,6 +7770,11 @@ box.innerHTML = `
     field.replaceChildren(new Option(taxa.length?(isCan?"Seleziona specializzazione":"Gruppo della specie"):"Seleziona prima la specie",""));
     choices.forEach(v=>field.add(new Option(v,v)));
     field.value=choices.includes(was)?was:(isCan?"":(choices[0]||""));
+    // Un nome tipico del Canarino di Colore può scegliere la specializzazione
+    // solo se l'allevatore non ne ha già scelta una diversa.
+    const mutation=norm($id("s_mutazione")?.value||"");
+    const isColorName=/^(?:(?:agata|bruno|isabella|nero|avorio)\s+)*(?:giallo|rosso)\s+(?:intenso|brinato|mosaico)$|^bianco\s+(?:recessivo|dominante)$/.test(mutation);
+    if(isCan&&!field.value&&isColorName)field.value=canaryCategories[0];
     const isColor=isCan&&field.value===canaryCategories[0];
     const breedField=$id("obV34BreedField"),breedLabel=$id("obV34BreedLabel"),breedInput=$id("s_razza");
     if(breedField)breedField.hidden=isColor;
@@ -7809,7 +7814,7 @@ box.innerHTML = `
   };
   $id("s_specie")?.addEventListener("change",()=>{$id("s_razza").value="";updateCategory();updateDisplay()});
   $id("s_categoria_specie")?.addEventListener("change",()=>{$id("s_razza").value="";updateCategory();updateDisplay()});
-  ["s_razza","s_mutazione","s_colore","s_categoria_piumaggio"].forEach(id=>{const el=$id(id);el?.addEventListener("input",updateDisplay);el?.addEventListener("change",updateDisplay)});
+  ["s_razza","s_mutazione","s_colore","s_categoria_piumaggio"].forEach(id=>{const el=$id(id);el?.addEventListener("input",updateDisplay);el?.addEventListener("change",()=>{if(id==="s_mutazione")updateCategory();updateDisplay()})});
   $id("newSoggetto")?.addEventListener("click",()=>{obV34ResetDetails();updateCategory();document.querySelector('[data-ob-hints="colore"]')?.classList.add("hidden")});
   updateCategory();
   const canaryMutationItems=()=>{
