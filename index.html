@@ -2208,7 +2208,7 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
  const read=()=>{try{const x=JSON.parse(localStorage.getItem(key())||"{}");return {ids:Array.isArray(x.ids)?x.ids:[],luogo:x.luogo||"",data:x.data||""};}catch(_){return {ids:[],luogo:"",data:""};}};
  const save=x=>{try{localStorage.setItem(key(),JSON.stringify(x));}catch(e){get("obMostraMsg").textContent="Impossibile salvare la lista sul dispositivo.";}}
  let catalog=[];
- const ring=s=>String(s?.numero_anello||s?.anellino||s?.anello||s?.codice||"").trim();
+ const ring=s=>String(s?.numero||s?.numero_anello||s?.anellino||s?.anello||s?.codice||"").trim();
  const label=s=>[s?.specie,s?.razza,s?.mutazione||s?.colore,s?.sesso].filter(Boolean).join(" · ");
  const escMostra=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
  async function load(){
