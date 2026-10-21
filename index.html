@@ -7816,11 +7816,7 @@ box.innerHTML = `
     // Nomi di uso comune: suggerimenti per la registrazione, non nuovi geni.
     // L'ID genetico viene assegnato soltanto quando il nome corrisponde
     // a una mutazione effettivamente documentata per questa specie.
-    const common=["Giallo intenso","Giallo brinato","Giallo mosaico",
-      "Rosso intenso","Rosso brinato","Rosso mosaico",
-      "Bianco recessivo","Bianco dominante","Agata rosso mosaico",
-      "Agata rosso intenso","Agata rosso brinato",
-      "Agata giallo intenso","Agata giallo brinato","Agata giallo mosaico"];
+    const common=["Giallo intenso","Giallo brinato","Giallo mosaico","Rosso intenso","Rosso brinato","Rosso mosaico","Bianco recessivo","Bianco dominante","Avorio giallo intenso","Avorio giallo brinato","Avorio giallo mosaico","Avorio rosso intenso","Avorio rosso brinato","Avorio rosso mosaico","Agata giallo intenso","Agata giallo brinato","Agata giallo mosaico","Agata rosso intenso","Agata rosso brinato","Agata rosso mosaico","Bruno giallo intenso","Bruno giallo brinato","Bruno giallo mosaico","Bruno rosso intenso","Bruno rosso brinato","Bruno rosso mosaico","Isabella giallo intenso","Isabella giallo brinato","Isabella giallo mosaico","Isabella rosso intenso","Isabella rosso brinato","Isabella rosso mosaico","Nero giallo intenso","Nero giallo brinato","Nero giallo mosaico","Nero rosso intenso","Nero rosso brinato","Nero rosso mosaico"];
     const options=[...raw,...common];
     // Fattori documentati nel catalogo Supabase: selezionabili senza inserirli come colori.
     options.push(...C.phenotypes.filter(p=>ids.has(String(p.taxon_id))&&
