@@ -7802,7 +7802,9 @@ box.innerHTML = `
       .flatMap(g=>arr(g.sinonimi).map(String));
     const fromMutations=C.mutations.filter(m=>ids.has(String(m.taxon_id))&&(equivalent(m.name)||norm(mutLabel(m))===z))
       .flatMap(m=>[...aliases(m),...arr(meta(m).synonyms),...arr(meta(m).aliases)]);
-    return uniq([...fromView,...fromMutations]);
+    const fromPhenotypes=C.phenotypes.filter(p=>ids.has(String(p.taxon_id))&&norm(mutLabel(p))===z&&
+      meta(p).catalog_usage==="SEARCH_DISPLAY").flatMap(aliases);
+    return uniq([...fromView,...fromMutations,...fromPhenotypes]);
   };
   const synonymsMatch=(label,term)=>mutationSynonyms(label).some(a=>norm(a).includes(term)) ||
     (norm(label)==="cinnamon"&&norm("cannella").includes(term)) ||
@@ -7826,16 +7828,15 @@ box.innerHTML = `
     // a una mutazione effettivamente documentata per questa specie.
     const common=["Giallo intenso","Giallo brinato","Giallo mosaico","Rosso intenso","Rosso brinato","Rosso mosaico","Bianco recessivo","Bianco dominante","Avorio giallo intenso","Avorio giallo brinato","Avorio giallo mosaico","Avorio rosso intenso","Avorio rosso brinato","Avorio rosso mosaico","Agata giallo intenso","Agata giallo brinato","Agata giallo mosaico","Agata rosso intenso","Agata rosso brinato","Agata rosso mosaico","Bruno giallo intenso","Bruno giallo brinato","Bruno giallo mosaico","Bruno rosso intenso","Bruno rosso brinato","Bruno rosso mosaico","Isabella giallo intenso","Isabella giallo brinato","Isabella giallo mosaico","Isabella rosso intenso","Isabella rosso brinato","Isabella rosso mosaico","Nero giallo intenso","Nero giallo brinato","Nero giallo mosaico","Nero rosso intenso","Nero rosso brinato","Nero rosso mosaico"];
     const options=[...raw,...common];
-    // Fattori documentati nel catalogo Supabase: selezionabili senza inserirli come colori.
-    options.push(...C.phenotypes.filter(p=>ids.has(String(p.taxon_id))&&
-      ["COLOR_FACTOR","WING_EXPRESSION","LIPOCHROME_MODIFIER"].includes(String(p.component_type||"").toUpperCase()))
+    // Fattori e denominazioni documentate: ricercabili, senza creare nuovi geni.
+    options.push(...C.phenotypes.filter(p=>ids.has(String(p.taxon_id))&&(
+      ["COLOR_FACTOR","WING_EXPRESSION","LIPOCHROME_MODIFIER"].includes(String(p.component_type||"").toUpperCase())||
+      (String(p.component_type||"").toUpperCase()==="EXHIBITION_VARIANT"&&
+       meta(p).catalog_usage==="SEARCH_DISPLAY")))
       .map(mutLabel));
-    if(C.mutations.some(m=>ids.has(String(m.taxon_id))&&[m.name,...aliases(m)].some(n=>["cinnamon","cannella"].includes(norm(n)))))options.push("Cinnamon");
-    const breed=norm($id("s_razza")?.value||"");
-    if(breed.includes("gloster")||breed.includes("gloucester"))options.push("Cinnamon","Fawn","Verde","Ardesia","Agata ardesia");
-    if(breed.includes("spagnola"))options.push("Verde","Ardesia","Agata ardesia");
-    // Denominazioni comuni espositive: non attribuiscono automaticamente un gene.
-    options.push("Verde","Ardesia","Agata ardesia");
+    // Denominazioni comuni disponibili per ogni razza, anche nel catalogo ospite.
+    // Le eventuali restrizioni espositive sono gestite separatamente.
+    options.push("Verde","Ardesia","Cinnamon","Fawn","Agata ardesia");
     
     return uniq(options);
   };
