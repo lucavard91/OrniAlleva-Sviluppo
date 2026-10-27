@@ -7585,7 +7585,7 @@ async function suggerisciCoppieAI(){
         const punti=new Map();
         for(const x of valutazioni.get(String(s.id))?.criteri||[]){
           const nome=String(x.criterio||"").trim().toLowerCase();
-          if(x.punteggio===null||x.punteggio===undefined)return;
+          if(x.punteggio===null||x.punteggio===undefined)continue;
           const v=Number(x.punteggio),max=Number(x.punteggio_max);
           if(nome&&Number.isFinite(v)&&Number.isFinite(max)&&max>0)
             punti.set(nome,Math.max(0,Math.min(1,v/max)));
