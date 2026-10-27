@@ -2302,7 +2302,7 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
   <div class="page-title"><h2 class="ob-icon-title"><img class="ob-section-icon" src="assets_embedded/assets_embedded/ob_asset_027_5aa7543ad9.jpg" alt=""> <span>Coppie</span></h2><button id="newCoppia" class="ob-action-new">+ Nuova coppia</button></div>
   <div class="card">
   <h3><img class="ob-action-icon" src="assets_embedded/assets_embedded/ob_asset_005_cc38f88be0.jpg" alt=""> Formazione coppie con AI</h3>
-  <p>L'intelligenza artificiale analizzerà i soggetti disponibili, la genetica e la genealogia per suggerire gli accoppiamenti più adatti a migliorare il ceppo.</p>
+  <p>Gratuito: verifica specie, razza e genealogia dei soggetti disponibili. Le compensazioni morfologiche saranno proposte soltanto quando sono presenti valutazioni AI affidabili.</p>
   <div class="ob-ai-actions"><button id="btnAICoppie" class="success ob-action ob-act-ai">Suggerisci coppie con AI</button><button type="button" class="v3035-available-entry" onclick="v3034ApriSceltaDisponibili()" aria-label="Apri soggetti disponibili per la riproduzione"><picture><source media="(max-width:600px)" srcset="ornibreed_soggetti_disponibili_mobile_v2.png"><img src="assets_embedded/assets_embedded/ob_asset_063_929f187bb4.png" alt="Soggetti disponibili per la riproduzione"></picture></button></div>
     <div id="risultatoAICoppie"></div>
 </div>
@@ -2805,7 +2805,7 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
     <h3>La memoria del tuo allevamento</h3>
     <p>Consulta schede e genealogie, registra gli eventi, prepara registri da stampare e osserva statistiche e riepiloghi nel tempo.</p>
     <h3>Genetica e intelligenza artificiale</h3>
-    <p>Scopri mutazioni, genetica e genealogie. La valutazione fotografica con intelligenza artificiale ti aiuta a osservare i soggetti; l’assistenza AI alla formazione delle coppie mira a confrontare punti forti e punti deboli dei riproduttori per individuare abbinamenti complementari e aiutarti nella selezione del tuo ceppo. La scelta finale resta sempre tua.</p>
+    <p>Scopri mutazioni, genetica e genealogie. La valutazione AI gratuita con foto e video di 30–50 secondi (5 al giorno) ti aiuta a osservare i soggetti; l’assistenza AI alla formazione delle coppie mira a confrontare punti forti e punti deboli dei riproduttori per individuare abbinamenti complementari e aiutarti nella selezione del tuo ceppo. La scelta finale resta sempre tua.</p>
     <p><b>Un solo posto per le informazioni, più tempo per ciò che ami.</b></p>
     <p><b>Il tuo allevamento cresce. OrniBreed cresce con te.</b></p>
     <label style="display:flex;gap:9px;align-items:center;justify-content:center;margin:16px 0;cursor:pointer;font-size:14px"><input type="checkbox" id="obIntroDontShow" style="width:18px;height:18px">Non mostrare più automaticamente</label>
@@ -4507,7 +4507,12 @@ async function apriValutazioneAI(id){
         <p><b>Sesso:</b> ${esc(s.sesso||"-")} · <b>Razza:</b> ${esc(s.razza||"-")} · <b>Mutazione:</b> ${esc(s.mutazione||"-")}</p>
         ${foto}
         <div style="margin-top:16px">
-          <button class="primary ob-action ob-act-ai" id="btnEseguiValutazioneAI">Avvia valutazione AI</button>
+          <label for="obAiVideoFile"><b>Video obbligatorio del soggetto (30–50 secondi)</b></label>
+          <input id="obAiVideoFile" type="file" accept="video/mp4,video/quicktime,video/webm,.mov,.mp4,.webm">
+          <p class="small">Riprendi il soggetto per intero, con buona luce e senza ostacoli. Massimo 60 MB.</p>
+          <label><input id="obAiPrivacy" type="checkbox"> Autorizzo l'invio di foto e video al servizio AI per questa valutazione, secondo l'informativa privacy.</label>
+          <p class="small">5 valutazioni gratuite al giorno per account. La formazione coppie è gratuita.</p>
+          <button class="primary ob-action ob-act-ai" id="btnEseguiValutazioneAI">Avvia valutazione AI gratuita</button>
           <button class="secondary" id="btnIndietroAI">← Torna ai soggetti</button>
         </div>
         <div id="aiResult" style="margin-top:16px"></div>
@@ -4576,96 +4581,85 @@ async function recuperaValutazioneCoerenteSalvata(id,impronta){
 }
 async function eseguiValutazioneAI(id){
   if(window.__obGuestMode){obAvviso("La valutazione AI online non è disponibile nella prova ospite locale.");return;}
-  const endpoint=(window.MYAGARI_AI_ENDPOINT||"https://mddsmqwfufzebahemxcn.supabase.co/functions/v1/smooth-endpoint").trim();
-  if(!endpoint){
-    obAvviso("La schermata AI è pronta, ma il motore AI non è ancora collegato.");
-    return;
-  }
   const root=$("aiResult");
-  if(root) root.innerHTML='<p>🤖 Analisi in corso…</p>';
+  const btn=$("btnEseguiValutazioneAI");
+  let uploadedPath=null;
+  let successful=false;
+  if(btn?.disabled)return;
   try{
-    // V17.2: usa direttamente il soggetto già caricato nella schermata AI.
-    // Fallback al database solo se la memoria non è disponibile.
-    let s=(window.__MYAGARI_AI_SOGGETTO &&
-           String(window.__MYAGARI_AI_SOGGETTO.id)===String(id))
-           ? window.__MYAGARI_AI_SOGGETTO
-           : null;
-    if(!s){
-      const dati=await leggi("soggetti");
-      s=dati.find(x=>String(x.id)===String(id))||null;
-    }
-    if(!s) throw new Error("Soggetto non trovato nella scheda AI.");
+    const file=$("obAiVideoFile")?.files?.[0];
+    if(!file)throw new Error("Seleziona un video del soggetto di 30–50 secondi.");
+    if(file.size>60*1024*1024)throw new Error("Video troppo grande: massimo 60 MB.");
+    const mime=file.type||(/\.mov$/i.test(file.name)?"video/quicktime":/\.webm$/i.test(file.name)?"video/webm":"video/mp4");
+    if(!["video/mp4","video/quicktime","video/webm"].includes(mime))throw new Error("Formato video non supportato (MP4, MOV o WebM).");
+    const durata=await new Promise((resolve,reject)=>{
+      const video=document.createElement("video");
+      const url=URL.createObjectURL(file);
+      let complete=false;
+      const timer=setTimeout(()=>finish(new Error("Impossibile leggere la durata del video.")),12000);
+      function finish(err,value){
+        if(complete)return; complete=true; clearTimeout(timer); URL.revokeObjectURL(url);
+        video.removeAttribute("src"); video.load();
+        if(err)reject(err);else resolve(value);
+      }
+      video.preload="metadata";
+      video.onloadedmetadata=()=>finish(null,video.duration);
+      video.onerror=()=>finish(new Error("Video illeggibile: registra un nuovo MP4/MOV/WebM."));
+      video.src=url;
+    });
+    if(!Number.isFinite(durata)||durata<30||durata>50)throw new Error("Il video deve durare almeno 30 e non più di 50 secondi.");
+    if(!$("obAiPrivacy")?.checked)throw new Error("Devi accettare l'informativa prima di inviare foto e video.");
+    const dati=await leggi("soggetti");
+    const s=dati.find(x=>String(x.id)===String(id));
+    if(!s)throw new Error("Soggetto non trovato.");
     const u=await utenteCorrente();
-    if(!u) throw new Error("Utente non autenticato.");
-    const criteriFOI=await recuperaCriteriFOIPerAI(s);
+    if(!u?.id)throw new Error("Accedi al tuo account per le cinque valutazioni gratuite.");
     const fotoUrl=await recuperaFotoAssociataSoggetto(id,s);
-    const inputFingerprint=creaImprontaValutazioneAI(s,fotoUrl,criteriFOI);
-    // Stessa foto + stesso soggetto + stessi criteri FOI = stesso giudizio.
-    const valutazioneEsistente=await recuperaValutazioneCoerenteSalvata(id,inputFingerprint);
-    if(valutazioneEsistente){
-      renderRisultatoAI(id,valutazioneEsistente);
-      return;
-    }
-    // Mantiene l'autenticazione dell'endpoint esattamente come V16
-    const session=(await sb.auth.getSession()).data?.session;
-    const istruzioni=`Valuta esclusivamente usando i criteri FOI forniti nel campo criteri_foi.
-Non inventare criteri, massimali o standard.
-Restituisci JSON con criteri [{criterio,punteggio_max,punteggio,giudizio}], punti_forza, da_migliorare, analisi, affidabilita_foto, limitazioni_foto.
-Per ogni criterio assegna un punteggio compreso tra 0 e il massimo previsto.
-Applica sempre la stessa scala di severità FOI e non introdurre casualità intenzionale.
-A parità di foto, dati del soggetto e criteri, il punteggio deve rimanere invariato.
-Se un criterio non è giudicabile con sufficiente affidabilità dalla foto, usa punteggio null e spiegalo nel giudizio.`;
-    const r=await fetch(endpoint,{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json",
-        ...(session?.access_token ? {"Authorization":"Bearer "+session.access_token} : {})
-      },
-      body:JSON.stringify({
-        soggetto:s,
-        standardFonte:"FOI",
-        foto_url:fotoUrl||null,
-        criteri_foi:criteriFOI,
-        istruzioni_foi:istruzioni
-      })
+    if(!fotoUrl)throw new Error("Prima di valutare il soggetto, carica una foto nella sua scheda.");
+    if(!sb?.functions?.invoke)throw new Error("Motore AI gratuito non configurato nell'ambiente di sviluppo.");
+    if(btn)btn.disabled=true;
+    if(root)root.textContent="Caricamento video e analisi AI in corso…";
+    const criteriFOI=await recuperaCriteriFOIPerAI(s);
+    const ext=mime==="video/quicktime"?"mov":mime==="video/webm"?"webm":"mp4";
+    uploadedPath=u.id+"/"+id+"/"+crypto.randomUUID()+"."+ext;
+    const upload=await sb.storage.from("ob-ai-media").upload(uploadedPath,file,{contentType:mime,upsert:false});
+    if(upload.error)throw new Error("Caricamento video non riuscito: "+upload.error.message);
+    const call=await sb.functions.invoke("ornibreed-ai-eval",{
+      body:{soggetto_id:String(id),video_path:uploadedPath,durata_secondi:durata,
+            consenso_privacy:true,criteri_foi:Array.isArray(criteriFOI)?criteriFOI:[]}
     });
-    if(!r.ok){
-      let dettaglio="";
-      try{
-        const testo=await r.text();
-        if(testo){
-          try{
-            const errData=JSON.parse(testo);
-            dettaglio=errData?.details||errData?.error||errData?.message||errData?.detail||testo;
-          }catch(_){
-            dettaglio=testo;
-          }
-        }
-      }catch(_){}
-      throw new Error(
-        "Servizio AI non disponibile (HTTP "+r.status+")"+
-        (dettaglio?": "+dettaglio:"")
-      );
+    if(call.error){
+      let message=call.error.message||"Il motore AI gratuito non è disponibile.";
+      try{const response=call.error.context;const detail=await response?.json?.();if(detail?.error)message=detail.error;}catch(_){}
+      throw new Error(message);
     }
-    const raw=await r.json();
-    const result=normalizzaRisultatoAIV17(raw,criteriFOI);
-    result.input_fingerprint=inputFingerprint;
-    const ins=await sb.from("valutazioni_ai").insert({
-      user_id:u.id,
-      soggetto_id:id,
-      punteggio:result.punteggio,
-      punti_forza:Array.isArray(result.punti_forza)?result.punti_forza:[],
-      da_migliorare:Array.isArray(result.da_migliorare)?result.da_migliorare:[],
-      analisi:JSON.stringify(result)
-    });
-    if(ins.error) throw ins.error;
+    if(call.data?.error)throw new Error(call.data.error);
+    if(!call.data?.ok||!call.data?.risultato)throw new Error("Risposta AI non valida: nessuna valutazione è stata salvata.");
+    successful=true;
+    const result=normalizzaRisultatoAIV17(call.data.risultato,criteriFOI);
+    result.avvertenza="Analisi foto + video indicativa: non sostituisce il giudizio ufficiale FOI/COM.";
+    if(typeof call.data.remaining==="number")result.valutazioni_gratuite_rimanenti=call.data.remaining;
+    // Compatibilità con la cronologia esistente. La fonte primaria rimane ob_ai_evaluations_v2.
+    try{
+      const ins=await sb.from("valutazioni_ai").insert({
+        user_id:u.id,soggetto_id:id,punteggio:result.punteggio,
+        punti_forza:Array.isArray(result.punti_forza)?result.punti_forza:[],
+        da_migliorare:Array.isArray(result.da_migliorare)?result.da_migliorare:[],
+        analisi:JSON.stringify(result)
+      });
+      if(ins.error)console.warn("Cronologia AI precedente non sincronizzata:",ins.error.message);
+    }catch(e){console.warn("Cronologia AI precedente non disponibile",e);}
     renderRisultatoAI(id,result);
-    // Aggiorna anche la scheda del soggetto: comparirà subito "Osserva valutazione".
-    try{await aggiornaSoggetti();}catch(e){console.warn("Aggiornamento pulsante Osserva valutazione non completato",e);}
+    if(root&&typeof call.data.remaining==="number"){
+      root.insertAdjacentHTML("beforeend","<p class='small'>Valutazioni gratuite rimaste oggi: "+Number(call.data.remaining)+" su 5.</p>");
+    }
+    try{await aggiornaSoggetti();}catch(e){console.warn("Aggiornamento scheda soggetto:",e);}
   }catch(e){
-    console.error("Valutazione AI V17.1:",e);
-    if(root) root.innerHTML="";
-    obAvviso("Impossibile completare la valutazione AI: "+(e?.message||e));
+    console.error("Valutazione AI foto e video:",e);
+    if(root)root.textContent="Valutazione non completata: "+(e?.message||e);
+    if(uploadedPath&&!successful){try{await sb.storage.from("ob-ai-media").remove([uploadedPath]);}catch(_){}}
+  }finally{
+    if(btn)btn.disabled=false;
   }
 }
 function renderRisultatoAI(id,payload){
@@ -7541,10 +7535,11 @@ async function suggerisciCoppieAI(){
       obAvviso("Non ci sono ancora soggetti disponibili per la formazione delle coppie.");
       return;
     }
-    const maschi = data.filter(s =>
+    const disponibili=data.filter(s=>obV435SoggettoPresente(s));
+    const maschi = disponibili.filter(s =>
       String(s.sesso || "").toLowerCase().includes("masch")
     );
-    const femmine = data.filter(s =>
+    const femmine = disponibili.filter(s =>
       String(s.sesso || "").toLowerCase().includes("femm")
     );
     if(maschi.length === 0 || femmine.length === 0){
@@ -7559,16 +7554,19 @@ async function suggerisciCoppieAI(){
              b.madre_id === a.id;
     };
     const sonoFratelli = (a,b) => {
-      if(!a.padre_id || !a.madre_id || !b.padre_id || !b.madre_id) return false;
-      return (
-        a.padre_id === b.padre_id &&
-        a.madre_id === b.madre_id
+      return Boolean(
+        (a.padre_id && b.padre_id && String(a.padre_id)===String(b.padre_id)) ||
+        (a.madre_id && b.madre_id && String(a.madre_id)===String(b.madre_id))
       );
     };
     const coppie = [];
     maschi.forEach(maschio => {
       femmine.forEach(femmina => {
         if(stessoSoggetto(maschio,femmina)) return;
+        if(!maschio.specie||!femmina.specie||
+           String(maschio.specie).trim().toLowerCase()!==String(femmina.specie).trim().toLowerCase())return;
+        if(maschio.razza&&femmina.razza&&
+           String(maschio.razza).trim().toLowerCase()!==String(femmina.razza).trim().toLowerCase())return;
         let esclusa = false;
         let motivo = "";
         if(sonoGenitoriDiretti(maschio,femmina)){
@@ -7578,6 +7576,9 @@ async function suggerisciCoppieAI(){
         if(sonoFratelli(maschio,femmina)){
           esclusa = true;
           motivo = "Possibile rapporto tra fratelli";
+        }
+        if(!esclusa&&(!maschio.padre_id||!maschio.madre_id||!femmina.padre_id||!femmina.madre_id)){
+          motivo="Genealogia incompleta: non si può escludere tutta la parentela.";
         }
         coppie.push({
           maschio,
@@ -7637,18 +7638,8 @@ box.innerHTML = `
       const razzaFemmina = c.femmina.razza || "Non specificata";
       const mutazioneMaschio = c.maschio.mutazione || "Non specificata";
       const mutazioneFemmina = c.femmina.mutazione || "Non specificata";
-      let titolo = "Coppia candidata";
-      let icona = "🐦";
-      if(i === 0){
-        titolo = "🥇 Coppia consigliata";
-        icona = "⭐";
-      }else if(i === 1){
-        titolo = "🥈 Seconda scelta";
-        icona = "⭐";
-      }else if(i === 2){
-        titolo = "🥉 Terza scelta";
-        icona = "⭐";
-      }
+      const titolo = "Coppia candidata "+(i+1);
+      const icona = "🐦";
       return `
         <div class="ai-coppia">
           <h3>${titolo}</h3>
@@ -7680,15 +7671,12 @@ box.innerHTML = `
           <div class="ai-sezione">
             <div class="ai-titolo">🎯 Perché viene proposta</div>
             <div class="ai-spiegazione">
-              Questa proposta utilizza i dati presenti nell'allevamento,
-              la genealogia disponibile e i criteri di compatibilità registrati.
-              La valutazione genetica/standard avanzata verrà collegata al modulo degli standard.
+              Proposta preliminare basata su specie, razza, sesso e genealogia registrata.
+              Non è una previsione genetica né una graduatoria morfologica: occorre validare
+              il pedigree e confrontare gli standard prima di creare la coppia.
             </div>
           </div>
-          <button class="success" type="button"
-            onclick="obAvviso('La scelta della coppia verrà attivata nel prossimo passaggio.')">
-            💚 Scegli questa coppia
-          </button>
+          <p class="small">Per confermare utilizza il modulo «Nuova coppia», dopo aver verificato i soggetti.</p>
         </div>
       `;
     }).join("")}
@@ -8863,12 +8851,6 @@ function v18ApriDrawer(){
   if(window.__v1813ListaAllevamenti)aggiornaSelettoreAllevamento(window.__v1813ListaAllevamenti);
 }
 function v18ChiudiDrawer(){$("v18Drawer")?.classList.remove("open");$("v18DrawerBackdrop")?.classList.remove("open");$("v18Drawer")?.setAttribute("aria-hidden","true");}
-const _v18ApriValutazioneAI=apriValutazioneAI;
-apriValutazioneAI=async function(id){if(!v18HaPremium()){v18MostraPremium("La valutazione AI");return;}return _v18ApriValutazioneAI(id);};
-const _v18EseguiValutazioneAI=eseguiValutazioneAI;
-eseguiValutazioneAI=async function(id){if(!v18HaPremium()){v18MostraPremium("La valutazione AI");return;}return _v18EseguiValutazioneAI(id);};
-const _v18SuggerisciCoppieAI=suggerisciCoppieAI;
-suggerisciCoppieAI=async function(){if(!v18HaPremium()){v18MostraPremium("La formazione coppie con AI");return;}return _v18SuggerisciCoppieAI();};
 const _v18MostraStatoAccount=mostraStatoAccount;
 mostraStatoAccount=function(){
   if(!profilo)return;
@@ -9757,7 +9739,7 @@ function v18Init(){
   $("v18MenuBtn")?.addEventListener("click",v18ApriDrawer);$("v18DrawerClose")?.addEventListener("click",v18ChiudiDrawer);$("v18DrawerBackdrop")?.addEventListener("click",v18ChiudiDrawer);$("v18PremiumClose")?.addEventListener("click",v18ChiudiPremium);$("v18InstallBtn")?.addEventListener("click",v18Installa);
   $("obSvuotaCestinoSoggetti")?.addEventListener("click",()=>obV437SvuotaCestino());
   document.querySelectorAll("[data-v18-page]").forEach(b=>b.addEventListener("click",()=>{v18ChiudiDrawer();apriPagina(b.dataset.v18Page);}));
-  document.querySelectorAll("[data-v18-premium]").forEach(b=>b.addEventListener("click",()=>{v18ChiudiDrawer();v18MostraPremium(b.dataset.v18Premium==="coppie"?"La formazione coppie con AI":"La valutazione AI");}));
+  document.querySelectorAll("[data-v18-premium]").forEach(b=>b.addEventListener("click",()=>{v18ChiudiDrawer();if(b.dataset.v18Premium==="coppie"){apriPagina("coppie");}else{apriPagina("soggetti");obAvviso("Per valutare un soggetto, apri la sua scheda e scegli «Valuta con AI».");}}));
   $("btnFotoProfiloV18")?.addEventListener("click",v18CaricaFotoProfilo);
   $("v187ApriProfilo")?.addEventListener("click",v187ApriProfilo);
   $("v188DrawerProfilo")?.addEventListener("click",()=>{v18ChiudiDrawer();v187ApriProfilo();});
