@@ -4637,6 +4637,11 @@ async function eseguiValutazioneAI(id){
     if(!call.data?.ok||!call.data?.risultato)throw new Error("Risposta AI non valida: nessuna valutazione è stata salvata.");
     successful=true;
     const result=normalizzaRisultatoAIV17(call.data.risultato,criteriFOI);
+    // Il backend non fornisce ancora criteri validati server-side:
+    // i punteggi per criterio sono indicativi, mai un totale FOI ufficiale.
+    result.punteggio=null;
+    result.percentuale=null;
+    result.valutazione_completa=false;
     result.avvertenza="Analisi foto + video indicativa: non sostituisce il giudizio ufficiale FOI/COM.";
     if(typeof call.data.remaining==="number")result.valutazioni_gratuite_rimanenti=call.data.remaining;
     // Compatibilità con la cronologia esistente. La fonte primaria rimane ob_ai_evaluations_v2.
@@ -7524,7 +7529,7 @@ async function suggerisciCoppieAI(){
   try{
     const { data, error } = await sb
       .from("soggetti")
-      .select("id,codice,nome,specie,razza,mutazione,sesso,data_nascita,padre,madre,padre_id,madre_id,foto_url,stato,note")
+      .select("id,codice,nome,specie,razza,mutazione,sesso,data_nascita,padre,madre,padre_id,madre_id,foto_url,stato,note,nel_cestino,data_uscita")
       .eq("allevamento_id",allevamentoAttivo.id)
       .order("nome",{ascending:true});
     if(error){
@@ -7559,6 +7564,43 @@ async function suggerisciCoppieAI(){
         (a.madre_id && b.madre_id && String(a.madre_id)===String(b.madre_id))
       );
     };
+    // Leggiamo solo l'ultima valutazione di ciascun soggetto, se il backend DEV
+    // è installato. In assenza del nuovo archivio, la funzione resta utilizzabile.
+    const valutazioni=new Map();
+    try{
+      const u=await utenteCorrente();
+      if(u?.id){
+        const storico=await sb.from("ob_ai_evaluations_v2")
+          .select("soggetto_id,risultato,created_at")
+          .eq("user_id",u.id)
+          .order("created_at",{ascending:false}).limit(500);
+        if(!storico.error)for(const v of storico.data||[]){
+          if(!valutazioni.has(String(v.soggetto_id)))
+            valutazioni.set(String(v.soggetto_id),v.risultato||{});
+        }
+      }
+    }catch(e){console.warn("Confronto visivo coppie non disponibile:",e);}
+    function confrontaMorfologia(m,f){
+      const val=s=>{
+        const punti=new Map();
+        for(const x of valutazioni.get(String(s.id))?.criteri||[]){
+          const nome=String(x.criterio||"").trim().toLowerCase();
+          if(x.punteggio===null||x.punteggio===undefined)return;
+          const v=Number(x.punteggio),max=Number(x.punteggio_max);
+          if(nome&&Number.isFinite(v)&&Number.isFinite(max)&&max>0)
+            punti.set(nome,Math.max(0,Math.min(1,v/max)));
+        }
+        return punti;
+      };
+      const a=val(m),b=val(f),out=[];
+      for(const [nome,va] of a){
+        if(!b.has(nome))continue;
+        const vb=b.get(nome);
+        if(Math.abs(va-vb)>=0.20)
+          out.push({criterio:nome,forte:va>vb?"maschio":"femmina"});
+      }
+      return out.slice(0,4);
+    }
     const coppie = [];
     maschi.forEach(maschio => {
       femmine.forEach(femmina => {
@@ -7584,39 +7626,13 @@ async function suggerisciCoppieAI(){
           maschio,
           femmina,
           esclusa,
-          motivo
+          motivo,
+          compensazioni:esclusa?[]:confrontaMorfologia(maschio,femmina)
         });
       });
     });
     const valide = coppie.filter(c => !c.esclusa);
     const escluse = coppie.filter(c => c.esclusa);
-    let messaggio =
-      "🤖 FORMAZIONE COPPIE\\n\\n" +
-      "Soggetti analizzati: " + data.length + "\\n" +
-      "Maschi: " + maschi.length + "\\n" +
-      "Femmine: " + femmine.length + "\\n\\n" +
-      "Coppie candidate: " + valide.length;
-    if(valide.length){
-      messaggio += "\\n\\nCOPPIE CANDIDATE:\\n";
-      valide.forEach((c,i) => {
-        const m = c.maschio.nome || c.maschio.codice || "Maschio";
-        const f = c.femmina.nome || c.femmina.codice || "Femmina";
-        messaggio +=
-          "\\n" + (i+1) + ". " + m + " × " + f +
-          "\\n   Razza: " +
-          (c.maschio.razza || c.femmina.razza || "non specificata") +
-          "\\n   Mutazione maschio: " +
-          (c.maschio.mutazione || "non specificata") +
-          "\\n   Mutazione femmina: " +
-          (c.femmina.mutazione || "non specificata") +
-          "\\n";
-      });
-    }
-    if(escluse.length){
-      messaggio +=
-        "\\n⚠️ Coppie escluse per possibile parentela: " +
-        escluse.length;
-    }
     const box = $("risultatoAICoppie");
 if(!box){
   obAvviso("Errore: area risultati AI non trovata.");
@@ -7671,9 +7687,11 @@ box.innerHTML = `
           <div class="ai-sezione">
             <div class="ai-titolo">🎯 Perché viene proposta</div>
             <div class="ai-spiegazione">
-              Proposta preliminare basata su specie, razza, sesso e genealogia registrata.
-              Non è una previsione genetica né una graduatoria morfologica: occorre validare
-              il pedigree e confrontare gli standard prima di creare la coppia.
+              Proposta basata su specie, razza e genealogia. Non è una previsione genetica.
+              ${c.compensazioni.length
+                ? "Possibile complementarità osservata: "+c.compensazioni.map(x=>esc(x.criterio)+" (più forte: "+x.forte+")").join("; ")+"."
+                : "Non sono disponibili due valutazioni confrontabili; nessuna compensazione dimostrata."}
+              Conferma il pedigree prima di creare la coppia.
             </div>
           </div>
           <p class="small">Per confermare utilizza il modulo «Nuova coppia», dopo aver verificato i soggetti.</p>
@@ -8248,13 +8266,13 @@ function normalizzaRisultatoAIV17(raw,criteriFOI){
 function htmlSchedaAIV17(p){
   p=p||{};
   const rows=(p.criteri||[]).map(c=>`<tr><td><strong>${escapeHtmlV17(c.criterio)}</strong></td><td>${c.punteggio==null?"N/V":escapeHtmlV17(c.punteggio)}</td><td>${escapeHtmlV17(c.punteggio_max)}</td><td>${escapeHtmlV17(c.giudizio||(c.valutabile?"":"Non valutabile con sufficiente affidabilità dalla foto disponibile."))}</td></tr>`).join("");
-  return `<div class="ai-v17-sheet"><div class="ai-v17-muted">Valutazione AI assistita secondo i criteri FOI disponibili</div>${p._riutilizzata_per_coerenza?`<div class="ai-v17-consistency">🔒 Stessa foto e stessi criteri FOI: è stata mantenuta la valutazione già salvata per evitare variazioni casuali tra dispositivi.</div>`:""}<div class="ai-v17-score">${p.punteggio==null?"N/V":escapeHtmlV17(p.punteggio)} / ${escapeHtmlV17(p.punteggio_massimo||100)}</div>
-  ${p.punteggio==null?`<div class="ai-v17-reliability"><strong>⚠️ Valutazione FOI non completata.</strong><div class="ai-v17-muted" style="margin-top:4px">Il motore AI non ha restituito un punteggio valido per tutti i criteri FOI. OrniBreed Manager non mostra più 0/100 in questo caso: i criteri mancanti restano N/V e la valutazione deve essere ripetuta.</div></div>`:""}
+  return `<div class="ai-v17-sheet"><div class="ai-v17-muted">Valutazione indicativa AI su foto + video (criteri da validare)</div>${p._riutilizzata_per_coerenza?`<div class="ai-v17-consistency">🔒 Stessa foto e stessi criteri FOI: è stata mantenuta la valutazione già salvata per evitare variazioni casuali tra dispositivi.</div>`:""}<div class="ai-v17-score">${p.punteggio==null?"N/V":escapeHtmlV17(p.punteggio)} / ${escapeHtmlV17(p.punteggio_massimo||100)}</div>
+  ${p.punteggio==null?`<div class="ai-v17-reliability"><strong>⚠️ Valutazione FOI non completata.</strong><div class="ai-v17-muted" style="margin-top:4px">Il punteggio totale non è certificabile senza criteri verificati sul server. Le osservazioni su foto e video restano indicative; non è necessario ripetere la valutazione solo per questo avviso.</div></div>`:""}
   ${rows?`<table class="ai-v17-table"><thead><tr><th>Criterio FOI</th><th>Punti</th><th>Max</th><th>Osservazione</th></tr></thead><tbody>${rows}</tbody></table>`:"<div class='ai-v17-muted'>Nessun criterio FOI disponibile.</div>"}
   <div class="ai-v17-section"><h4>✅ Punti di forza</h4>${listHtmlV17(p.punti_forza)}</div>
   <div class="ai-v17-section"><h4>🔧 Punti da migliorare</h4>${listHtmlV17(p.da_migliorare)}</div>
   <div class="ai-v17-section"><h4>🔎 Osservazioni tecniche</h4>${listHtmlV17(p.analisi)}</div>
-  ${p.affidabilita_foto?`<div class="ai-v17-reliability"><strong>Qualità foto per il giudizio:</strong> ${escapeHtmlV17(p.affidabilita_foto)}<div class="ai-v17-muted" style="margin-top:4px">Questo valore indica quanto la foto permette di osservare il soggetto; non è la percentuale di coincidenza con un giudice FOI.</div></div>`:""}
+  ${p.affidabilita_foto?`<div class="ai-v17-reliability"><strong>Affidabilità dei materiali per la valutazione:</strong> ${escapeHtmlV17(p.affidabilita_foto)}<div class="ai-v17-muted" style="margin-top:4px">Questo valore indica quanto la foto permette di osservare il soggetto; non è la percentuale di coincidenza con un giudice FOI.</div></div>`:""}
   ${p.limitazioni_foto?`<div class="ai-v17-reliability"><strong>Limiti della foto:</strong> ${escapeHtmlV17(p.limitazioni_foto)}</div>`:""}</div>`;
 }
 async function mostraValutazioneSalvata(id){
