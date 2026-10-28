@@ -609,7 +609,7 @@ html:has(body.ob-catalog-locked){overflow:hidden!important}body.ob-catalog-locke
 .ob-catalog-list{contain:layout style;overflow-anchor:none}
 @media(max-width:700px){.ob-catalog-dialog{padding:0;background:#fff;top:var(--ob-view-top,0px)!important;bottom:auto!important;height:var(--ob-view-height,100dvh)!important;max-height:var(--ob-view-height,100dvh)!important}.ob-catalog-sheet{width:100%;height:100%!important;max-height:100%!important;border-radius:0;box-shadow:none}.ob-catalog-list{padding-bottom:calc(24px + env(safe-area-inset-bottom))}.ob-catalog-head{padding-top:env(safe-area-inset-top);height:calc(58px + env(safe-area-inset-top));flex-basis:calc(58px + env(safe-area-inset-top))}}
 
-/* V34.16: aggiornamenti in stile OrniBreed Natural, compatibili con i cataloghi esistenti. */
+/* V34.16: aggiornamenti in stile OrniAlleva Natural, compatibili con i cataloghi esistenti. */
 #obReleaseNotice{position:fixed;z-index:8200;left:16px;right:16px;bottom:max(16px,env(safe-area-inset-bottom));width:min(440px,calc(100% - 32px));margin-left:auto;padding:19px;background:linear-gradient(145deg,#fffdf5 0%,#f0f8f0 70%,#e8f3ea 100%);color:#183a2b;border:2px solid #c29e4c;border-radius:18px;box-shadow:0 14px 38px rgba(7,41,25,.25);box-sizing:border-box;font-family:inherit;max-height:min(75vh,560px);overflow-y:auto;overscroll-behavior:contain}
 #obReleaseNotice.hidden{display:none!important}
 #obReleaseNotice .ob-release-head{display:flex;align-items:center;gap:11px;margin-bottom:9px}
@@ -1769,7 +1769,7 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
       <button id="v189DrawerMateriale" type="button"><img class="ob-drawer-icon" src="assets_embedded/assets_embedded/ob_asset_042_340cc264a0.jpg" alt=""> <span>Moduli e registri da stampare</span></button>
       <button data-v18-page="agenda_allevatori"><img class="ob-drawer-icon" src="assets_embedded/assets_embedded/ob_asset_034_877cc268ae.jpg" alt=""><span>Agenda allevatori</span></button>
       <button data-v18-page="contabilita"><img class="ob-drawer-icon" src="assets_embedded/assets_embedded/ob_asset_033_9d3816e888.jpg" alt=""> <span>Entrate e uscite</span></button>
-      <button data-v18-page="guida"><img class="ob-drawer-icon" src="assets_embedded/assets_embedded/ob_asset_043_163c0288b6.jpg" alt=""> <span>Guida all’uso di OrniBreed</span></button>
+      <button data-v18-page="guida"><img class="ob-drawer-icon" src="assets_embedded/assets_embedded/ob_asset_043_163c0288b6.jpg" alt=""> <span>Guida all’uso di OrniAlleva</span></button>
       <button id="v18AdminMenu" data-v18-page="admin" class="hidden"><img class="ob-drawer-icon" src="assets_embedded/assets_embedded/ob_asset_035_3269568509.jpg" alt=""> <span>Amministrazione</span></button>
       <button data-v18-page="impostazioni"><img class="ob-drawer-icon" src="ornibreed_impostazioni_v2.png" alt=""> <span>Impostazioni</span></button>
       <button data-v18-page="cestino"><span class="ob-drawer-icon ob-v263743975-trash-icon ob-trash-menu-icon" aria-hidden="true"></span><span>Cestino</span></button>
@@ -1887,13 +1887,13 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
     <div data-page="agenda_allevatori" role="button" tabindex="0" class="card ob-home-nav-card ob-v2615-agenda-home"><h2 class="ob-icon-title"><img class="ob-section-icon" src="assets_embedded/assets_embedded/ob_asset_034_877cc268ae.jpg" alt=""><span>Contatti / Agenda allevatori</span></h2><p>Rubrica personale degli allevatori con contatti, RNA, specie e note.</p><span class="ob-home-nav-chevron" aria-hidden="true">›</span></div>
     <div data-page="contabilita" role="button" tabindex="0" class="card ob-home-nav-card"><h2 class="ob-icon-title"><img class="ob-section-icon" src="assets_embedded/assets_embedded/ob_asset_033_9d3816e888.jpg" alt=""> <span>Entrate e uscite</span></h2><p>Gestisci costi, entrate e saldo dell'allevamento.</p><span class="ob-home-nav-chevron" aria-hidden="true">›</span></div>
     <div data-page="guida" role="button" tabindex="0" class="card ob-home-nav-card">
-      <h3 class="ob-icon-title"><img class="ob-section-icon" src="assets_embedded/assets_embedded/ob_asset_043_163c0288b6.jpg" alt=""> <span>Guida all'uso di OrniBreed</span></h3>
+      <h3 class="ob-icon-title"><img class="ob-section-icon" src="assets_embedded/assets_embedded/ob_asset_043_163c0288b6.jpg" alt=""> <span>Guida all'uso di OrniAlleva</span></h3>
       <p>Istruzioni semplici, passo per passo, per utilizzare tutte le sezioni dell'applicazione.</p>
       <span class="ob-home-nav-chevron" aria-hidden="true">›</span>
     </div>
     <div data-page="impostazioni" role="button" tabindex="0" class="card ob-home-nav-card ob-v2612-settings-home">
       <h3 class="ob-icon-title"><img class="ob-section-icon" src="ornibreed_impostazioni_v2.png" alt=""><span>Impostazioni</span></h3>
-      <p>Personalizza OrniBreed, gestisci contatti, notifiche, temi e dati.</p>
+      <p>Personalizza OrniAlleva, gestisci contatti, notifiche, temi e dati.</p>
       <span class="ob-home-nav-chevron" aria-hidden="true">›</span>
     </div>
   </div></section>
@@ -2468,7 +2468,7 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
     </select>
     <label>Capacità soggetti</label><input id="g_capacita_soggetti" type="number" min="0" autocomplete="off">
     <label>Coppia</label><input id="g_coppia_soggetti" list="g_coppie_lista" placeholder="Suggerita per gabbie da riproduzione" autocomplete="off"><datalist id="g_coppie_lista"></datalist>
-    <div id="g_coppia_suggerimento" class="small" style="margin-top:6px">Per una gabbia da riproduzione, OrniBreed suggerisce lo stesso numero: Gabbia 1 → Coppia 1. Puoi sempre modificarlo.</div>
+    <div id="g_coppia_suggerimento" class="small" style="margin-top:6px">Per una gabbia da riproduzione, OrniAlleva suggerisce lo stesso numero: Gabbia 1 → Coppia 1. Puoi sempre modificarlo.</div>
     <label>Soggetti presenti (facoltativo)</label>
     <div class="grid"><input id="g_maschio_suggerito" list="g_maschi_lista" placeholder="Maschio già registrato" autocomplete="off"><input id="g_femmina_suggerita" list="g_femmine_lista" placeholder="Femmina già registrata" autocomplete="off"></div>
     <datalist id="g_maschi_lista"></datalist><datalist id="g_femmine_lista"></datalist>
@@ -2558,7 +2558,7 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
 </section>
 <section id="guida" class="hidden">
   <div class="page-title">
-    <h2 class="ob-icon-title"><img class="ob-section-icon" src="assets_embedded/assets_embedded/ob_asset_043_163c0288b6.jpg" alt=""> <span>Guida all'uso di OrniBreed</span></h2>
+    <h2 class="ob-icon-title"><img class="ob-section-icon" src="assets_embedded/assets_embedded/ob_asset_043_163c0288b6.jpg" alt=""> <span>Guida all'uso di OrniAlleva</span></h2>
     <div class="ob-manual-top-actions v222-no-print">
       <button type="button" id="v222PrintManual">Stampa</button>
       <button type="button" id="v222SaveManual">Salva PDF</button>
@@ -2606,7 +2606,7 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
     <h2 class="ob-icon-title"><span>Moduli e registri da stampare</span></h2>
     <button type="button" class="secondary v17-close-x" data-page="home" aria-label="Chiudi e torna alla Home">✕</button>
   </div>
-  <div class="card"><p><b>Moduli OrniBreed approvati</b>: Anteprima, Stampa e PDF usano lo stesso identico modello. Registro Coppie e Registro Soggetti riportano automaticamente allevatore, allevamento attivo, RNA e anno corrente.</p></div>
+  <div class="card"><p><b>Moduli OrniAlleva approvati</b>: Anteprima, Stampa e PDF usano lo stesso identico modello. Registro Coppie e Registro Soggetti riportano automaticamente allevatore, allevamento attivo, RNA e anno corrente.</p></div>
   <div class="v263-material-grid">
     <div class="card v263-material-card"><h3>Registro Coppie</h3><p><b>A4 orizzontale</b> — quattro covate, femmina principale e maschio modificabile per ogni covata.</p><img class="v263-preview" src="" data-approved-type="coppie" alt="Anteprima Registro Coppie"><div class="v185-actions"><button id="v263CoppiePreview" class="ob-action-preview">Anteprima</button><button id="v263CoppiePrint" class="ob-action-print">Stampa</button><button id="v263CoppiePdf" class="v185-pdf ob-action-pdf">Scarica PDF</button></div></div>
     <div class="card v263-material-card"><h3>Registro Soggetti</h3><p><b>A4 orizzontale</b> — anello, anno, RNA, varietà/mutazione, portatore e note.</p><img class="v263-preview" src="" data-approved-type="soggetti" alt="Anteprima Registro Soggetti"><div class="v185-actions"><button id="v263SoggettiPreview" class="ob-action-preview">Anteprima</button><button id="v263SoggettiPrint" class="ob-action-print">Stampa</button><button id="v263SoggettiPdf" class="v185-pdf ob-action-pdf">Scarica PDF</button></div></div>
@@ -2732,7 +2732,7 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
 <section id="impostazioni_temi" class="hidden ob-setting-page">
   <div class="page-title"><h2 class="ob-icon-title"><img class="ob-section-icon" src="assets_embedded/assets_embedded/ob_asset_069_e560840ece.jpg" alt=""><span>Aspetto e temi</span></h2></div>
   <button class="secondary back" data-page="impostazioni">← Impostazioni</button>
-  <div class="card"><h3>OrniBreed Natural</h3><p>Tema attuale · Intro, sfondo, icone e card realistiche.</p><span class="badge success">ATTIVO</span><p class="small">La struttura è predisposta per temi completi futuri, ciascuno con propria intro, sfondo, icone e card.</p></div>
+  <div class="card"><h3>OrniAlleva Natural</h3><p>Tema attuale · Intro, sfondo, icone e card realistiche.</p><span class="badge success">ATTIVO</span><p class="small">La struttura è predisposta per temi completi futuri, ciascuno con propria intro, sfondo, icone e card.</p></div>
 </section>
 <section id="impostazioni_sicurezza" class="hidden ob-setting-page">
   <div class="page-title"><h2 class="ob-icon-title"><img class="ob-section-icon" src="assets_embedded/assets_embedded/ob_asset_070_21b7ce4bb7.jpg" alt=""><span>Dati e sicurezza</span></h2></div>
@@ -2747,9 +2747,9 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
 <section id="impostazioni_info" class="hidden ob-setting-page">
   <div class="page-title"><h2 class="ob-icon-title"><img class="ob-section-icon" src="assets_embedded/assets_embedded/ob_asset_071_e2b7fbdddb.jpg" alt=""><span>Informazioni app</span></h2></div>
   <button class="secondary back" data-page="impostazioni">← Impostazioni</button>
-  <div class="card"><h3>OrniAlleva</h3><p>Smart Aviculture Management</p><p class="small">Versione interfaccia: <strong id="obSettingsAppVersion">V34.18.1</strong> · Tema: OrniBreed Natural</p></div>
+  <div class="card"><h3>OrniAlleva</h3><p>Smart Aviculture Management</p><p class="small">Versione interfaccia: <strong id="obSettingsAppVersion">V34.18.1</strong> · Tema: OrniAlleva Natural</p></div>
   <div class="card ob-update-settings-card">
-    <h3>Aggiornamenti OrniBreed</h3>
+    <h3>Aggiornamenti OrniAlleva</h3>
     <p class="small">Controlla quando vuoi se è disponibile una nuova versione dell'applicazione.</p>
     <p id="obSettingsReleaseStatus" role="status" aria-live="polite">Premi «Controlla aggiornamenti» per verificare.</p>
     <div class="ob-settings-actions">
@@ -2786,9 +2786,9 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
     <h3>I dati diventano la memoria del tuo allevamento</h3>
     <p>Consulta schede e genealogie, registra gli eventi, prepara registri e stampe e osserva statistiche e riepiloghi per seguire i risultati del tuo lavoro nel tempo.</p>
     <h3>Genetica e intelligenza artificiale</h3>
-    <p>Scopri mutazioni e genetica, approfondisci la genealogia e osserva le caratteristiche dei tuoi soggetti con la valutazione fotografica assistita dall’intelligenza artificiale. OrniBreed punta anche ad aiutarti nella formazione delle coppie: mettendo a confronto punti forti e punti deboli dei riproduttori, può supportarti nella ricerca di abbinamenti complementari e nella selezione del tuo ceppo. Le valutazioni AI restano un supporto al giudizio dell’allevatore.</p>
+    <p>Scopri mutazioni e genetica, approfondisci la genealogia e osserva le caratteristiche dei tuoi soggetti con la valutazione fotografica assistita dall’intelligenza artificiale. OrniAlleva punta anche ad aiutarti nella formazione delle coppie: mettendo a confronto punti forti e punti deboli dei riproduttori, può supportarti nella ricerca di abbinamenti complementari e nella selezione del tuo ceppo. Le valutazioni AI restano un supporto al giudizio dell’allevatore.</p>
     <p><b>Un solo posto per le informazioni, più tempo per ciò che ami.</b> Che tu abbia poche coppie o un allevamento più grande, puoi iniziare con semplicità e crescere passo dopo passo.</p>
-    <h3>Il tuo allevamento cresce. OrniBreed cresce con te.</h3>
+    <h3>Il tuo allevamento cresce. OrniAlleva cresce con te.</h3>
     <button type="button" class="secondary" data-page="guida">Scopri come funziona · Manuale utente</button>
   </div>
 </section>
@@ -2801,13 +2801,13 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
     <h3>Tutto comincia dai tuoi soggetti</h3>
     <p><b>Li registri una sola volta, poi formi le coppie.</b> OrniAlleva mantiene collegati soggetti, gabbie, riproduzioni, covate, pulli e genealogie. I pulli registrati diventano soggetti già collegati ai genitori: tu completi in seguito soltanto i dati che ancora non conosci, come sesso, mutazione o altri dettagli della scheda.</p>
     <h3>Più organizzazione, meno pensieri</h3>
-    <p>Gestisci gabbie, calendario, scadenze, alimentazione, salute e attività importanti. OrniBreed ti ricorda con notifiche e promemoria speratura, schiusa, anellamento, svezzamento e gli eventi registrati nel calendario.</p>
+    <p>Gestisci gabbie, calendario, scadenze, alimentazione, salute e attività importanti. OrniAlleva ti ricorda con notifiche e promemoria speratura, schiusa, anellamento, svezzamento e gli eventi registrati nel calendario.</p>
     <h3>La memoria del tuo allevamento</h3>
     <p>Consulta schede e genealogie, registra gli eventi, prepara registri da stampare e osserva statistiche e riepiloghi nel tempo.</p>
     <h3>Genetica e intelligenza artificiale</h3>
     <p>Scopri mutazioni, genetica e genealogie. La valutazione AI gratuita con foto e video di 30–50 secondi (5 al giorno) ti aiuta a osservare i soggetti; l’assistenza AI alla formazione delle coppie mira a confrontare punti forti e punti deboli dei riproduttori per individuare abbinamenti complementari e aiutarti nella selezione del tuo ceppo. La scelta finale resta sempre tua.</p>
     <p><b>Un solo posto per le informazioni, più tempo per ciò che ami.</b></p>
-    <p><b>Il tuo allevamento cresce. OrniBreed cresce con te.</b></p>
+    <p><b>Il tuo allevamento cresce. OrniAlleva cresce con te.</b></p>
     <label style="display:flex;gap:9px;align-items:center;justify-content:center;margin:16px 0;cursor:pointer;font-size:14px"><input type="checkbox" id="obIntroDontShow" style="width:18px;height:18px">Non mostrare più automaticamente</label>
     <button type="button" id="obIntroExploreBtn" class="success" style="width:100%;margin-bottom:7px">✨ Scopri OrniAlleva</button>
     <button type="button" id="obIntroStartBtn" class="secondary" style="width:100%">Inizia a utilizzare l'app</button>
@@ -2945,7 +2945,7 @@ async function obV34161NotificaRelease(row){
   if(String(data?.letta_at||"").startsWith("9999-12-31"))return;
   if(notifichePersonali.some(n=>n.chiave===chiave))return;
   const nuova=aggiungiNotificaPersonale({
-   titolo:"Aggiornamento OrniBreed disponibile",
+   titolo:"Aggiornamento OrniAlleva disponibile",
    messaggio:"È disponibile la versione V"+row.version+". Apri questa notifica per aggiornare l'app dalle Impostazioni.",
    tipo:"aggiornamento",chiave
   });
@@ -2958,7 +2958,7 @@ const OB_CURRENT_RELEASE={
  version:"34.18.1",title:"OrniBreed V34.18.1 — Miglioramenti aggiornamenti",
  notes:[
   "Corretto il badge: le notifiche di aggiornamenti già installati non rimangono nella campanella.",
-  "Aggiunta la schermata «OrniBreed aggiornato con successo» con il riepilogo delle novità.",
+  "Aggiunta la schermata «OrniAlleva aggiornato con successo» con il riepilogo delle novità.",
   "Le modifiche disponibili sono visibili prima dell'aggiornamento e dalle Impostazioni.",
   "Aggiunta la cronologia degli aggiornamenti, consultabile in Informazioni app."
  ],published_at:null
@@ -2980,7 +2980,7 @@ function obV34181CronologiaLocale(){
 }
 function obV34181RegistraVersione(row){
  if(!obV3415VersionParts(row?.version))return;
- const entry={version:String(row.version),title:String(row.title||"Novità OrniBreed").slice(0,180),notes:obV34181NormalizzaNote(row.notes),published_at:row.published_at||null};
+ const entry={version:String(row.version),title:String(row.title||"Novità OrniAlleva").slice(0,180),notes:obV34181NormalizzaNote(row.notes),published_at:row.published_at||null};
  const old=obV34181CronologiaLocale();
  const i=old.findIndex(r=>r.version===entry.version);
  if(i>=0){
@@ -3995,7 +3995,7 @@ async function registratiSupabase(){
       rmsg("✅ Registrazione completata. Il tuo account è in attesa di approvazione da parte dell'amministratore.");
       return;
     }
-    rmsg("✅ Registrazione inviata. Controlla la tua email per confermare l’indirizzo. Dopo la conferma, l’account resterà in attesa dell’approvazione dell’amministratore OrniBreed.");
+    rmsg("✅ Registrazione inviata. Controlla la tua email per confermare l’indirizzo. Dopo la conferma, l’account resterà in attesa dell’approvazione dell’amministratore OrniAlleva.");
   }catch(e){console.error(e);rmsg("Non è stato possibile completare la registrazione. Riprova tra poco.");}
 }
 
@@ -6798,7 +6798,7 @@ function v1812GuidaHtml(){
       ["Coppie","Qui crei le coppie riproduttive.",["Premi “Aggiungi coppia”.","Inserisci numero della coppia e dati del maschio e della femmina.","Associa la gabbia quando necessario.","La coppia viene poi utilizzata in Riproduzione e nelle notifiche."]],
       ["Riproduzione","Qui gestisci covate, uova e pulli.",["Seleziona la coppia corretta.","Registra deposizione e ultimo uovo per lo storico e i controlli.","Inserisci manualmente la data di schiusa prevista: questa data viene usata per gli avvisi di schiusa.","Registra la nascita effettiva per anellamento e svezzamento, poi aggiorna nati, morti e svezzati."]],
       ["Genealogia","Serve per controllare genitori e ascendenza.",["Registra correttamente padre e madre nei Soggetti.","Cerca il soggetto tramite anellino e anno.","La genealogia usa i collegamenti salvati anche quando un soggetto è archiviato."]],
-      ["Gabbie","Serve per sapere dove si trova ogni soggetto o coppia.",["Aggiungi una gabbia o lascia che venga creata quando assegni un nuovo numero di gabbia.","La gabbia mostra i soggetti attualmente presenti.","Quando sposti un soggetto, OrniBreed registra automaticamente movimento e data."]],
+      ["Gabbie","Serve per sapere dove si trova ogni soggetto o coppia.",["Aggiungi una gabbia o lascia che venga creata quando assegni un nuovo numero di gabbia.","La gabbia mostra i soggetti attualmente presenti.","Quando sposti un soggetto, OrniAlleva registra automaticamente movimento e data."]],
       ["Alimentazione","Serve per organizzare alimentazione e programmi.",["Aggiungi una voce e scegli la fase: Riproduzione, Muta, Mantenimento o Riposo.","Scrivi alimenti, integratori e note utili.","Aggiorna il programma quando cambia la fase dell’allevamento."]],
       ["Calendario","Serve per appuntamenti e promemoria personali.",["Premi “Aggiungi evento”.","Inserisci data, eventuale ora, titolo, categoria e note.","Gli eventi restano associati all’allevamento selezionato."]],
       ["Salute","Serve per conservare controlli, trattamenti e osservazioni.",["Registra il soggetto interessato.","Inserisci data, tipo di controllo o trattamento e note.","Aggiorna la voce quando cambia la situazione."]],
@@ -6854,7 +6854,7 @@ function v1812GuidaHtml(){
       ["Parejas","Aquí creas las parejas reproductoras.",["Pulsa «Añadir pareja».","Introduce el número de pareja y los datos del macho y la hembra.","Asigna la jaula cuando sea necesario.","La pareja se utilizará en Reproducción y notificaciones."]],
       ["Reproducción","Aquí gestionas puestas, huevos y pollos.",["Selecciona la pareja correcta.","Registra la puesta y el último huevo para historial y controles.","Introduce manualmente la fecha prevista de eclosión: esa fecha se usa para los avisos.","Registra el nacimiento real para anillado y destete y actualiza nacidos, muertos y destetados."]],
       ["Genealogía","Sirve para consultar padres y ascendencia.",["Registra correctamente padre y madre.","Busca por anilla y año.","La genealogía usa los vínculos guardados incluso si un sujeto está archivado."]],
-      ["Jaulas","Sirve para saber dónde está cada sujeto o pareja.",["Añade una jaula o deja que la app la cree al asignar un nuevo número.","La jaula muestra los sujetos actualmente presentes.","Al mover un sujeto, OrniBreed registra automáticamente el movimiento y la fecha."]],
+      ["Jaulas","Sirve para saber dónde está cada sujeto o pareja.",["Añade una jaula o deja que la app la cree al asignar un nuevo número.","La jaula muestra los sujetos actualmente presentes.","Al mover un sujeto, OrniAlleva registra automáticamente el movimiento y la fecha."]],
       ["Alimentación","Organiza alimentación y programas.",["Elige Reproducción, Muda, Mantenimiento o Reposo.","Escribe alimentos, suplementos y notas.","Actualiza el programa cuando cambie la fase."]],
       ["Calendario","Gestiona citas y recordatorios.",["Pulsa «Añadir evento».","Introduce fecha, hora opcional, título, categoría y notas.","Los eventos quedan asociados al criadero seleccionado."]],
       ["Salud","Guarda controles y tratamientos.",["Selecciona el sujeto interesado.","Introduce fecha, tipo de control o tratamiento y notas.","Actualiza la entrada cuando cambie la situación."]],
@@ -10087,7 +10087,7 @@ function v19RenderStorico(){
   box.innerHTML=v19JudgingHistory.map(x=>'<div class="v19-judge-history-item"><b>📋 '+v19Esc(x.data_giudizio||v19J("sheet"))+'</b>'+(x.mostra?'<div>'+v19Esc(x.mostra)+'</div>':'')+(x.giudice?'<div>'+v19Esc(v19J("judgeLabel"))+': '+v19Esc(x.giudice)+'</div>':'')+'<div><b>'+v19Esc(v19J("total"))+': '+v19Esc(x.totale??"—")+'</b></div>'+(x.template_version_label?'<div class="small">Standard: '+v19Esc(x.template_version_label)+'</div>':'')+'<div class="small">'+v19Esc(x.note||"")+'</div><div class="v19-judge-actions"><button type="button" class="secondary" onclick="v19CaricaSchedaSalvata(\''+v19Esc(x.id)+'\')">'+v19Esc(v19J("open"))+'</button></div></div>').join("");
 }
 function v3092ManualPanel(reason=""){const taxa=[...v19ManualCatalog.taxa].sort((a,b)=>v3092LabelTaxon(a).localeCompare(v3092LabelTaxon(b),"it"));return '<div class="v19-judge-note"><b>Selezione manuale scheda</b><br>Usa lo stesso catalogo della scheda soggetto. Puoi anche scrivere liberamente.</div>'+(reason?'<div class="v19-judge-note">'+v19Esc(reason)+'</div>':'')+'<div class="v19-judge-grid"><label>Specie<input id="v3092ManualTaxonText" list="v3092TaxonList" type="text" placeholder="Scrivi o scegli la specie"><datalist id="v3092TaxonList">'+[...new Set(taxa.map(v3092LabelTaxon))].map(x=>'<option value="'+v19Esc(x)+'"></option>').join('')+'</datalist></label><label>Razza<input id="v3092ManualBreedText" list="v3092BreedList" type="text" placeholder="Scrivi o scegli la razza"><datalist id="v3092BreedList"></datalist></label><label>Mutazione / varietà<input id="v3092ManualMutationText" list="v3092MutationList" type="text" placeholder="Scrivi o scegli mutazione/varietà"><datalist id="v3092MutationList"></datalist></label><label>Sesso<select id="v3092ManualSex"><option value="">— Non rilevante —</option><option value="M">Maschio</option><option value="F">Femmina</option></select></label></div><div class="v19-judge-actions"><button type="button" id="v3092ManualSearch">🔎 Cerca scheda corretta</button></div>';}
-function v3092BindManual(){const tax=$("v3092ManualTaxonText"),breed=$("v3092ManualBreedText"),mut=$("v3092ManualMutationText");if(!tax)return;const taxa=()=>v3092FindTaxaBySubject({specie:tax.value});const breedRows=()=>{const ids=new Set(taxa().map(t=>String(t.id)));return v19ManualCatalog.breeds.filter(b=>ids.has(String(b.taxon_id)));};const resolveBreed=()=>v3092FindBreedAny(breed.value,taxa());const refresh=()=>{const br=breedRows();$("v3092BreedList").innerHTML=[...new Set(br.map(v3092BreedLabel))].sort((a,b)=>a.localeCompare(b,"it")).map(x=>'<option value="'+v19Esc(x)+'"></option>').join('');const b=resolveBreed(),t=b?v19ManualCatalog.taxa.find(x=>String(x.id)===String(b.taxon_id)):taxa()[0],ms=t?v19ManualCatalog.mutations.filter(x=>String(x.taxon_id)===String(t.id)&&(!b||!x.breed_id||String(x.breed_id)===String(b.id))):[];let labels=ms.map(v3092MutationLabel);const H=window.OB_CATALOG_HELPERS;if(H&&t&&H.isCanary(t)&&typeof H.mutationItems==="function")labels=H.mutationItems();$("v3092MutationList").innerHTML=[...new Set(labels)].sort((a,b)=>a.localeCompare(b,"it")).map(x=>'<option value="'+v19Esc(x)+'"></option>').join('');};tax.addEventListener("input",refresh);breed.addEventListener("input",refresh);refresh();$("v3092ManualSearch").onclick=async()=>{let b=resolveBreed();if(!b&&breed.value)b=v3092FindBreedAny(breed.value,[]);let t=b?v19ManualCatalog.taxa.find(x=>String(x.id)===String(b.taxon_id)):taxa()[0];if(!t){obAvviso("La specie non è riconosciuta nel database OrniBreed.");return;}const mk=v3092NormKey(mut.value),m=mk?v19ManualCatalog.mutations.find(x=>String(x.taxon_id)===String(t.id)&&(!b||!x.breed_id||String(x.breed_id)===String(b.id))&&[x.name,...(Array.isArray(x.aliases)?x.aliases:[])].map(v3092NormKey).includes(mk)):null,variant=m?"":v19Norm(mut.value);const resolved=await v3092ResolveTemplate({taxonId:t.id,breedId:b?.id||null,mutationId:m?.id||null,variant,sex:v19Norm($("v3092ManualSex")?.value),mode:"MANUAL"});if(!resolved||resolved.ambiguous){obAvviso(resolved?.ambiguous?"Più schede corrispondono ai dati inseriti.":"Nessuna scheda verificata disponibile per questa combinazione.");return;}v19JudgingRoute={...resolved,taxon:t,breed:b,mutation:m,variant};v19JudgingCriteria=resolved.criteria;v19RenderSchedaGiudizio();};}
+function v3092BindManual(){const tax=$("v3092ManualTaxonText"),breed=$("v3092ManualBreedText"),mut=$("v3092ManualMutationText");if(!tax)return;const taxa=()=>v3092FindTaxaBySubject({specie:tax.value});const breedRows=()=>{const ids=new Set(taxa().map(t=>String(t.id)));return v19ManualCatalog.breeds.filter(b=>ids.has(String(b.taxon_id)));};const resolveBreed=()=>v3092FindBreedAny(breed.value,taxa());const refresh=()=>{const br=breedRows();$("v3092BreedList").innerHTML=[...new Set(br.map(v3092BreedLabel))].sort((a,b)=>a.localeCompare(b,"it")).map(x=>'<option value="'+v19Esc(x)+'"></option>').join('');const b=resolveBreed(),t=b?v19ManualCatalog.taxa.find(x=>String(x.id)===String(b.taxon_id)):taxa()[0],ms=t?v19ManualCatalog.mutations.filter(x=>String(x.taxon_id)===String(t.id)&&(!b||!x.breed_id||String(x.breed_id)===String(b.id))):[];let labels=ms.map(v3092MutationLabel);const H=window.OB_CATALOG_HELPERS;if(H&&t&&H.isCanary(t)&&typeof H.mutationItems==="function")labels=H.mutationItems();$("v3092MutationList").innerHTML=[...new Set(labels)].sort((a,b)=>a.localeCompare(b,"it")).map(x=>'<option value="'+v19Esc(x)+'"></option>').join('');};tax.addEventListener("input",refresh);breed.addEventListener("input",refresh);refresh();$("v3092ManualSearch").onclick=async()=>{let b=resolveBreed();if(!b&&breed.value)b=v3092FindBreedAny(breed.value,[]);let t=b?v19ManualCatalog.taxa.find(x=>String(x.id)===String(b.taxon_id)):taxa()[0];if(!t){obAvviso("La specie non è riconosciuta nel database OrniAlleva.");return;}const mk=v3092NormKey(mut.value),m=mk?v19ManualCatalog.mutations.find(x=>String(x.taxon_id)===String(t.id)&&(!b||!x.breed_id||String(x.breed_id)===String(b.id))&&[x.name,...(Array.isArray(x.aliases)?x.aliases:[])].map(v3092NormKey).includes(mk)):null,variant=m?"":v19Norm(mut.value);const resolved=await v3092ResolveTemplate({taxonId:t.id,breedId:b?.id||null,mutationId:m?.id||null,variant,sex:v19Norm($("v3092ManualSex")?.value),mode:"MANUAL"});if(!resolved||resolved.ambiguous){obAvviso(resolved?.ambiguous?"Più schede corrispondono ai dati inseriti.":"Nessuna scheda verificata disponibile per questa combinazione.");return;}v19JudgingRoute={...resolved,taxon:t,breed:b,mutation:m,variant};v19JudgingCriteria=resolved.criteria;v19RenderSchedaGiudizio();};}
 function v19RenderSchedaGiudizio(reason=""){
   const box=$("v19JudgingContent"),s=v19JudgingSubject;if(!box||!s)return;
   const route=v19JudgingRoute,template=route?.template||null;
@@ -10353,35 +10353,35 @@ de:["Startseite","Dies ist der Ausgangspunkt der App. Hier öffnen Sie die Haupt
 es:["Inicio","Es el punto de partida de la aplicación. Desde aquí abres las secciones principales, revisas notificaciones y accedes rápidamente a las funciones del criadero."]
 },
 soggetti:{
-it:["Soggetti","Registra i soggetti del tuo allevamento e assegna, quando serve, la gabbia. Inserendo maschio e femmina in una gabbia di riproduzione, OrniBreed usa questi dati per preparare la coppia. I pulli registrati dalla riproduzione tornano automaticamente in Soggetti già collegati a padre, madre e covata. Quando cresceranno, apri il pullo in Soggetti e completa i dati che prima non potevi conoscere, come sesso, razza, mutazione e altre informazioni. Il ciclo continua: Soggetti → Gabbia → Coppia → Riproduzione → Pulli → nuovi Soggetti."],
+it:["Soggetti","Registra i soggetti del tuo allevamento e assegna, quando serve, la gabbia. Inserendo maschio e femmina in una gabbia di riproduzione, OrniAlleva usa questi dati per preparare la coppia. I pulli registrati dalla riproduzione tornano automaticamente in Soggetti già collegati a padre, madre e covata. Quando cresceranno, apri il pullo in Soggetti e completa i dati che prima non potevi conoscere, come sesso, razza, mutazione e altre informazioni. Il ciclo continua: Soggetti → Gabbia → Coppia → Riproduzione → Pulli → nuovi Soggetti."],
 fr:["Oiseaux","Enregistre et gère chaque oiseau : numéro, année, RNA, espèce, race, mutation, sexe, généalogie et, lorsqu’il est connu, statut de porteur. Les photos et évaluations sont également accessibles ici."],
 en:["Birds","Register and manage each bird: number, year, RNA, species, breed, mutation, sex, pedigree and, when known, carrier status. Photos and evaluations are also managed here."],
 de:["Vögel","Erfasst und verwaltet jeden Vogel: Nummer, Jahr, RNA, Art, Rasse, Mutation, Geschlecht, Abstammung und – sofern bekannt – Trägerstatus. Fotos und Bewertungen werden ebenfalls hier verwaltet."],
 es:["Aves","Registra y gestiona cada ave: número, año, RNA, especie, raza, mutación, sexo, genealogía y, cuando se conozca, estado de portador. Aquí también se gestionan fotos y evaluaciones."]
 },
 coppie:{
-it:["Coppie","La coppia può essere preparata automaticamente dalla gabbia di riproduzione. Controlla maschio e femmina e conferma la formazione: OrniBreed esegue sempre il controllo genealogico sulla combinazione scelta e segnala eventuali parentele. Una volta formata, la coppia viene resa disponibile direttamente in Riproduzione. Puoi comunque scegliere o modificare manualmente i soggetti quando necessario."],
+it:["Coppie","La coppia può essere preparata automaticamente dalla gabbia di riproduzione. Controlla maschio e femmina e conferma la formazione: OrniAlleva esegue sempre il controllo genealogico sulla combinazione scelta e segnala eventuali parentele. Una volta formata, la coppia viene resa disponibile direttamente in Riproduzione. Puoi comunque scegliere o modificare manualmente i soggetti quando necessario."],
 fr:["Couples","Créez et gérez les couples reproducteurs. Associez mâle et femelle et utilisez le couple comme référence dans les données de reproduction."],
 en:["Pairs","Create and manage breeding pairs. Link male and female and use the pair as the reference in reproduction records."],
 de:["Paare","Erstellen und verwalten Sie Zuchtpaare. Verknüpfen Sie Männchen und Weibchen und verwenden Sie das Paar in den Zuchtdaten."],
 es:["Parejas","Crea y gestiona parejas reproductoras. Vincula macho y hembra y utiliza la pareja como referencia en los registros de reproducción."]
 },
 riproduzione:{
-it:["Riproduzione","OrniBreed propone le coppie già formate e mantiene collegati Gabbia → Coppia → Genitori → Covata. Registra deposizione, ultimo uovo, schiusa e pulli; i dati possono essere corretti manualmente quando serve. Quando i pulli vengono anellati, inserisci i numeri e usa Crea soggetti: OrniBreed li registra in Soggetti mantenendo padre, madre e covata. In seguito apri ogni pullo in Soggetti per completare sesso, razza, mutazione e gli altri dati conosciuti."],
+it:["Riproduzione","OrniAlleva propone le coppie già formate e mantiene collegati Gabbia → Coppia → Genitori → Covata. Registra deposizione, ultimo uovo, schiusa e pulli; i dati possono essere corretti manualmente quando serve. Quando i pulli vengono anellati, inserisci i numeri e usa Crea soggetti: OrniAlleva li registra in Soggetti mantenendo padre, madre e covata. In seguito apri ogni pullo in Soggetti per completare sesso, razza, mutazione e gli altri dati conosciuti."],
 fr:["Reproduction","Enregistrez ponte, éclosion prévue, jeunes nés, morts et sevrés. Les dates enregistrées alimentent aussi les rappels automatiques de l’application."],
 en:["Reproduction","Record laying, expected hatch, chicks born, deaths and weaned young. Recorded dates also feed the app’s automatic reminders."],
 de:["Zucht","Erfassen Sie Eiablage, erwarteten Schlupf, geschlüpfte, verstorbene und abgesetzte Jungvögel. Die Daten steuern auch automatische Erinnerungen."],
 es:["Reproducción","Registra puesta, eclosión prevista, nacidos, fallecidos y destetados. Las fechas también alimentan los avisos automáticos de la aplicación."]
 },
 genealogia:{
-it:["Genealogia","Consulta padre, madre, nonni, fratelli, sorelle, figli e altri discendenti. La genealogia nasce dai collegamenti salvati tra genitori e pulli. Quando formi o cambi una coppia, OrniBreed usa questi dati per controllare sempre la parentela della combinazione scelta. I nuovi soggetti potranno poi entrare in nuove gabbie e nuove coppie, continuando il ciclo dell’allevamento."],
+it:["Genealogia","Consulta padre, madre, nonni, fratelli, sorelle, figli e altri discendenti. La genealogia nasce dai collegamenti salvati tra genitori e pulli. Quando formi o cambi una coppia, OrniAlleva usa questi dati per controllare sempre la parentela della combinazione scelta. I nuovi soggetti potranno poi entrare in nuove gabbie e nuove coppie, continuando il ciclo dell’allevamento."],
 fr:["Généalogie","Consultez les liens familiaux et la descendance. L’enregistrement correct du père et de la mère est également important pour les fonctions génétiques et de formation des couples."],
 en:["Pedigree","View family relationships and descendants. Correct parent records are also important for genetics and future pair-formation functions."],
 de:["Abstammung","Zeigt Verwandtschaft und Nachkommen. Korrekt erfasste Eltern sind auch für Genetik und spätere Paarbildung wichtig."],
 es:["Genealogía","Consulta relaciones familiares y descendencia. Registrar correctamente padre y madre también es importante para genética y futuras funciones de formación de parejas."]
 },
 gabbie:{
-it:["Gabbie","Organizza i soggetti nelle gabbie dell’allevamento. Se assegni un maschio e una femmina a una Gabbia di riproduzione, OrniBreed prepara automaticamente la coppia corrispondente, evitando di reinserire gli stessi dati. Puoi sempre modificare manualmente gabbia e soggetti quando necessario. Da qui il ciclo prosegue verso Coppie e Riproduzione."],
+it:["Gabbie","Organizza i soggetti nelle gabbie dell’allevamento. Se assegni un maschio e una femmina a una Gabbia di riproduzione, OrniAlleva prepara automaticamente la coppia corrispondente, evitando di reinserire gli stessi dati. Puoi sempre modificare manualmente gabbia e soggetti quando necessario. Da qui il ciclo prosegue verso Coppie e Riproduzione."],
 fr:["Cages","Organisez les cages de l’élevage et associez les oiseaux à leur emplacement pour les retrouver rapidement."],
 en:["Cages","Organize breeding cages and assign birds to their location so they can be found quickly."],
 de:["Käfige","Organisiert die Käfige und ordnet Vögel ihrem Standort zu, damit sie schnell gefunden werden."],
@@ -12131,7 +12131,7 @@ window.addEventListener("DOMContentLoaded",()=>{
 })();
 </script>
 <script id="ob-v2612-settings-js">
-window.OB_THEME_PACKS={natural:{id:'natural',name:'OrniBreed Natural',intro:'current',background:'current',icons:'current'}};
+window.OB_THEME_PACKS={natural:{id:'natural',name:'OrniAlleva Natural',intro:'current',background:'current',icons:'current'}};
 window.obV2612OpenPanel=function(id){document.querySelectorAll('#impostazioni .ob-settings-panel').forEach(x=>x.classList.add('hidden'));document.getElementById(id)?.classList.remove('hidden');document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});};
 window.obV2612NuovoContatto=function(){['obAgendaId','obAgendaNome','obAgendaCognome','obAgendaAllevamento','obAgendaRNA','obAgendaTelefono','obAgendaEmail','obAgendaSpecie','obAgendaNote'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=''});document.getElementById('obAgendaTitolo').textContent='Nuovo contatto';document.getElementById('obAgendaForm').classList.remove('hidden');document.getElementById('obAgendaForm').scrollIntoView({behavior:'smooth',block:'start'});};
 window.obV2612ChiudiContatto=function(){document.getElementById('obAgendaForm')?.classList.add('hidden');};
@@ -14407,7 +14407,7 @@ const obV3078ApriPagina=window.apriPagina;window.apriPagina=async function(id,..
   </div>
 </div>
 
-<aside id="obReleaseNotice" class="hidden" aria-live="polite" aria-label="Aggiornamento OrniBreed disponibile">
+<aside id="obReleaseNotice" class="hidden" aria-live="polite" aria-label="Aggiornamento OrniAlleva disponibile">
   <div class="ob-release-head"><img class="ob-release-mark" src="assets_embedded/assets_embedded/ob_asset_071_e2b7fbdddb.jpg" alt=""><h3 id="obReleaseTitle">Aggiornamento disponibile</h3></div>
   <p id="obReleaseVersion"></p>
   <ul id="obReleaseNotes"></ul>
@@ -14420,7 +14420,7 @@ const obV3078ApriPagina=window.apriPagina;window.apriPagina=async function(id,..
 <div id="obReleaseSuccessModal" class="ob-release-success-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="obReleaseSuccessTitle" aria-describedby="obReleaseSuccessSubtitle">
   <div class="ob-release-success-dialog">
     <div class="ob-release-success-heading"><span aria-hidden="true" class="ob-release-success-check">✓</span>
-      <div><h2 id="obReleaseSuccessTitle">OrniBreed aggiornato con successo!</h2><p id="obReleaseSuccessSubtitle"></p></div>
+      <div><h2 id="obReleaseSuccessTitle">OrniAlleva aggiornato con successo!</h2><p id="obReleaseSuccessSubtitle"></p></div>
     </div>
     <h3>Ecco le novità di questa versione</h3>
     <ul id="obReleaseSuccessNotes" class="ob-release-note-list"></ul>
