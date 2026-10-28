@@ -1604,7 +1604,7 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
 </style></head>
 <body>
 <div id="obAdminReturnTransition" aria-live="polite" aria-label="OrniAlleva — Caricamento"><div class="ob-return-card"><div class="ob-return-mark" aria-hidden="true"></div><b>OrniAlleva</b><span>Caricamento…</span></div></div>
-<div id="v255BrandIntro" aria-label="OrniAlleva — Smart Aviculture Management"><div class="v261-intro-bg" aria-hidden="true"></div><img class="v256-intro-image" alt="OrniAlleva — La tua passione. Il tuo allevamento." src="assets_embedded/assets_embedded/ob_asset_051_3aefa10cbb.jpg"></div></div>
+<div id="v255BrandIntro" aria-label="OrniAlleva — Smart Aviculture Management"><div class="v261-intro-bg" aria-hidden="true"></div><img class="v256-intro-image" alt="OrniAlleva — La tua passione. Il tuo allevamento." src="ob_asset_051_3aefa10cbb.jpg?oa=20261028"></div></div>
 <div id="allevamentoLoading" aria-live="polite" aria-busy="true"><div class="loading-card"><div class="spinner" aria-hidden="true"></div><p id="allevamentoLoadingTitle">Cambio allevamento…</p><div class="small" style="margin-top:6px;">Caricamento dei dati in corso</div></div></div>
 <div id="loginScreen">
   <div class="v264-auth-card">
@@ -1790,9 +1790,7 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
 <section id="home">
   <div class="card" id="obWelcomeCard">
     <div id="obWelcomeBannerWrap">
-      <img id="obWelcomeBanner" src="ornibreed_home_banner_v2.png" alt="OrniAlleva · Tu allevi. OrniAlleva organizza." loading="eager">
-      <button id="obScopriOrniBreedBtn" type="button" data-page="scopri_ornibreed" aria-label="Scopri OrniAlleva"></button>
-  <span id="obScopriFinger" aria-hidden="true">👇</span>
+      <img id="obWelcomeBanner" src="ornibreed_home_banner_v2.png?oa=20261028" alt="OrniAlleva · Tu allevi. OrniAlleva organizza." loading="eager">
     </div>
     <div class="page-title">
       <div>
@@ -9751,7 +9749,7 @@ async function v186PdfFormato(titolo,html,orientamento="portrait",formato="A4"){
 let v18InstallPrompt=null;
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();v18InstallPrompt=e;$("v18InstallBtn")?.classList.remove("hidden");});
 async function v18Installa(){if(!v18InstallPrompt){obAvviso("Se l'installazione non viene proposta automaticamente, usa il menu del browser e scegli “Aggiungi a schermata Home” / “Installa app”.");return;}v18InstallPrompt.prompt();await v18InstallPrompt.userChoice;v18InstallPrompt=null;$("v18InstallBtn")?.classList.add("hidden");}
-if("serviceWorker" in navigator){window.addEventListener("load",async()=>{try{const reg=await navigator.serviceWorker.register("service-worker.js?v=2637439727",{scope:"./",updateViaCache:"none"});reg.update().catch(()=>{});}catch(e){console.warn("Service worker",e);}});}
+if("serviceWorker" in navigator){window.addEventListener("load",async()=>{try{const reg=await navigator.serviceWorker.register("service-worker.js?v=ornialleva-grafica-20261028",{scope:"./",updateViaCache:"none"});reg.update().catch(()=>{});}catch(e){console.warn("Service worker",e);}});}
 function v18Init(){
   v1811InitLingua();
   $("v18MenuBtn")?.addEventListener("click",v18ApriDrawer);$("v18DrawerClose")?.addEventListener("click",v18ChiudiDrawer);$("v18DrawerBackdrop")?.addEventListener("click",v18ChiudiDrawer);$("v18PremiumClose")?.addEventListener("click",v18ChiudiPremium);$("v18InstallBtn")?.addEventListener("click",v18Installa);
@@ -12623,12 +12621,6 @@ table{max-width:100%}
   border:0!important;
 }
 #obWelcomeBannerWrap{position:relative!important;width:100%!important;margin:0!important;padding:0!important;}
-#obScopriOrniBreedBtn{position:absolute!important;left:37.5%!important;top:80.5%!important;width:30%!important;height:14.5%!important;margin:0!important;padding:0!important;border:0!important;border-radius:999px!important;background:transparent!important;box-shadow:none!important;opacity:0!important;cursor:pointer!important;z-index:5!important;-webkit-tap-highlight-color:transparent!important;}
-#obScopriOrniBreedBtn:focus-visible{opacity:1!important;outline:3px solid #17633e!important;outline-offset:2px!important;}
-#obScopriFinger{position:absolute!important;left:52.5%!important;top:67.5%!important;z-index:6!important;pointer-events:none!important;font-size:26px!important;line-height:1!important;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35));animation:obScopriFingerTap 2.8s ease-in-out infinite;transform:translate(-50%,-8px)}
-@keyframes obScopriFingerTap{0%,18%{transform:translate(-50%,-8px) scale(1)}38%,48%{transform:translate(-50%,7px) scale(.92)}62%,100%{transform:translate(-50%,-8px) scale(1)}}
-@media(max-width:700px){#obScopriFinger{font-size:23px!important;top:67%!important}}
-@media(prefers-reduced-motion:reduce){#obScopriFinger{animation:none!important;transform:translate(-50%,0)!important}}
 #obWelcomeCard>.page-title{
   padding:18px 22px 20px!important;
   margin:0!important;
