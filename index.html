@@ -3678,7 +3678,7 @@ async function obNavigateBack(){
 }
 window.obNavigateBack=obNavigateBack;
 async function apriPagina(nome,opzioni={}){
-  if(nome==="admin"){ window.location.href="admin.html"; return; }
+  if(nome==="admin"){ window.location.assign(new URL("./admin.html?v=ornialleva-admin-20261028b",window.location.href).href); return; }
   const precedente=obPaginaVisibile();
   if(!opzioni.daCronologia&&precedente&&precedente!==nome){
     obNavHistory.push({pagina:precedente,scroll:window.scrollY||0});
@@ -8339,7 +8339,7 @@ function obV2626ApplicaVisibilitaAdmin(){
       // V26.29: il nodo della campanella viene rimosso/reinserito in base al ruolo.
       // Ricolleghiamo sempre il click quando torna visibile, così l'apertura Admin
       // resta affidabile anche dopo bootstrap, cambio stato o ripristino DOM.
-      obAdminBellNode.onclick=()=>{ window.location.href="admin.html"; };
+      obAdminBellNode.onclick=()=>{ window.location.assign(new URL("./admin.html?v=ornialleva-admin-20261028b",window.location.href).href); };
     }
   }else{
     if(obAdminMenuNode?.parentNode)obAdminMenuNode.remove();
@@ -9749,7 +9749,7 @@ async function v186PdfFormato(titolo,html,orientamento="portrait",formato="A4"){
 let v18InstallPrompt=null;
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();v18InstallPrompt=e;$("v18InstallBtn")?.classList.remove("hidden");});
 async function v18Installa(){if(!v18InstallPrompt){obAvviso("Se l'installazione non viene proposta automaticamente, usa il menu del browser e scegli “Aggiungi a schermata Home” / “Installa app”.");return;}v18InstallPrompt.prompt();await v18InstallPrompt.userChoice;v18InstallPrompt=null;$("v18InstallBtn")?.classList.add("hidden");}
-if("serviceWorker" in navigator){window.addEventListener("load",async()=>{try{const reg=await navigator.serviceWorker.register("service-worker.js?v=ornialleva-grafica-20261028",{scope:"./",updateViaCache:"none"});reg.update().catch(()=>{});}catch(e){console.warn("Service worker",e);}});}
+if("serviceWorker" in navigator){window.addEventListener("load",async()=>{try{const reg=await navigator.serviceWorker.register("service-worker.js?v=ornialleva-admin-20261028b",{scope:"./",updateViaCache:"none"});reg.update().catch(()=>{});}catch(e){console.warn("Service worker",e);}});}
 function v18Init(){
   v1811InitLingua();
   $("v18MenuBtn")?.addEventListener("click",v18ApriDrawer);$("v18DrawerClose")?.addEventListener("click",v18ChiudiDrawer);$("v18DrawerBackdrop")?.addEventListener("click",v18ChiudiDrawer);$("v18PremiumClose")?.addEventListener("click",v18ChiudiPremium);$("v18InstallBtn")?.addEventListener("click",v18Installa);
