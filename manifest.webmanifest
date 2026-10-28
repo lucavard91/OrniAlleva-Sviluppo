@@ -1,7 +1,7 @@
 {
-  "name": "OrniBreed Manager",
-  "short_name": "OrniBreed",
-  "description": "Smart Aviculture Management",
+  "name": "OrniAlleva",
+  "short_name": "OrniAlleva",
+  "description": "OrniAlleva — Allevamento Uccelli. Smart Aviculture Management",
   "id": "./",
   "start_url": "./",
   "scope": "./",
