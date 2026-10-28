@@ -1,4 +1,4 @@
-const OB_CACHE = "ornibreed-v34-18-1-ornialleva-20261028";
+const OB_CACHE = "ornibreed-v34-18-1-ornialleva-grafica-20261028";
 const OB_STATIC = [
   "./",
   "./manifest.webmanifest",
@@ -6,7 +6,9 @@ const OB_STATIC = [
   "./icon-512.png",
   "./apple-touch-icon.png",
   "./favicon-32.png",
-  "./favicon-16.png"
+  "./favicon-16.png",
+  "./ob_asset_051_3aefa10cbb.jpg",
+  "./ornibreed_home_banner_v2.png"
 ];
 
 self.addEventListener("install", event => {
