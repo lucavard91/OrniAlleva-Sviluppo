@@ -3974,7 +3974,7 @@ async function registratiSupabase(){
       email,
       password,
       options:{
-        emailRedirectTo:"https://lucavard91.github.io/Il-Mio-Allevamento-/confirm.html",
+        emailRedirectTo:new URL("./confirm.html",window.location.href).href,
         data:{nome,cognome,username,nome_allevamento:nomeAllevamento,rna:rna||null,telefono:telefono||null,codice_partner:codicePartner||null}
       }
     });
