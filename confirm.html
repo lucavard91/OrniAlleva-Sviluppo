@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Conferma email · OrniBreed Manager</title>
+<title>Conferma email · OrniAlleva</title>
 <meta name="theme-color" content="#063c31">
 <style>
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Arial,Helvetica,sans-serif;background:#eef4ef;color:#17352b}
@@ -25,8 +25,8 @@ p{font-size:15px;line-height:1.55;margin:8px 0}.email{font-weight:700;word-break
 <body>
 <main class="card">
   <header class="head">
-    <img src="icon-512.png" alt="Logo OrniBreed Manager" class="logo">
-    <div class="brand">Orni<b>Breed</b></div><div class="manager">MANAGER</div>
+    <img src="icon-512.png" alt="Logo OrniAlleva" class="logo">
+    <div class="brand">Orni<b>Alleva</b></div><div class="manager">ALLEVAMENTO UCCELLI</div>
     <div class="sub">Smart Aviculture Management</div>
   </header>
   <section class="body">
@@ -35,11 +35,11 @@ p{font-size:15px;line-height:1.55;margin:8px 0}.email{font-weight:700;word-break
       <div class="ok">✓</div><h1>Email confermata</h1>
       <p>Grazie! Il tuo indirizzo email è stato confermato.</p>
       <p id="emailLine" class="email hidden"></p>
-      <p>La tua registrazione è stata inviata all’amministratore di OrniBreed.</p>
+      <p>La tua registrazione è stata inviata all’amministratore di OrniAlleva.</p>
       <p>Riceverai un’email quando il tuo account sarà stato approvato e sarà pronto per l’uso.</p>
       <div id="support" class="support hidden">
         <h2>Hai bisogno di assistenza?</h2>
-        <p>Se la tua richiesta non viene elaborata, puoi contattare l’amministratore OrniBreed.</p>
+        <p>Se la tua richiesta non viene elaborata, puoi contattare l’amministratore OrniAlleva.</p>
         <div id="phone" class="phone hidden"></div>
         <a id="wa" class="btn hidden" target="_blank" rel="noopener">Contatta su WhatsApp</a>
       </div>
@@ -47,11 +47,11 @@ p{font-size:15px;line-height:1.55;margin:8px 0}.email{font-weight:700;word-break
     <div id="failure" class="hidden">
       <div class="ok error">!</div><h1>Conferma non completata</h1>
       <p id="failureText">Il collegamento non è valido oppure è scaduto.</p>
-      <p class="muted">Puoi tornare a OrniBreed e richiedere una nuova conferma.</p>
-      <a class="btn secondary" href="index.html">Torna a OrniBreed</a>
+      <p class="muted">Puoi tornare a OrniAlleva e richiedere una nuova conferma.</p>
+      <a class="btn secondary" href="index.html">Torna a OrniAlleva</a>
     </div>
   </section>
-  <div class="foot">OrniBreed Manager · Assistenza e registrazioni</div>
+  <div class="foot">OrniAlleva · Assistenza e registrazioni</div>
 </main>
 <script>
 const SUPABASE_URL="https://mddsmqwfufzebahemxcn.supabase.co";
@@ -61,7 +61,7 @@ const $=id=>document.getElementById(id);
 const show=id=>$(id)?.classList.remove("hidden"), hide=id=>$(id)?.classList.add("hidden");
 
 function waText(email){
-  return `Buongiorno, ho completato la registrazione a OrniBreed e confermato il mio indirizzo email.\n\nEmail account: ${email||"[inserisci la tua email]"}\n\nSono in attesa dell'approvazione del mio account.`;
+  return `Buongiorno, ho completato la registrazione a OrniAlleva e confermato il mio indirizzo email.\n\nEmail account: ${email||"[inserisci la tua email]"}\n\nSono in attesa dell'approvazione del mio account.`;
 }
 async function loadSupport(email){
   try{
