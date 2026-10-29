@@ -3678,7 +3678,7 @@ async function obNavigateBack(){
 }
 window.obNavigateBack=obNavigateBack;
 async function apriPagina(nome,opzioni={}){
-  if(nome==="admin"){ window.location.assign(new URL("./admin.html?v=ornialleva-admin-safearea-20261029",window.location.href).href); return; }
+  if(nome==="admin"){ window.location.assign(new URL("./admin.html?v=ornialleva-admin-rewrite-20261029",window.location.href).href); return; }
   const precedente=obPaginaVisibile();
   if(!opzioni.daCronologia&&precedente&&precedente!==nome){
     obNavHistory.push({pagina:precedente,scroll:window.scrollY||0});
@@ -8339,7 +8339,7 @@ function obV2626ApplicaVisibilitaAdmin(){
       // V26.29: il nodo della campanella viene rimosso/reinserito in base al ruolo.
       // Ricolleghiamo sempre il click quando torna visibile, così l'apertura Admin
       // resta affidabile anche dopo bootstrap, cambio stato o ripristino DOM.
-      obAdminBellNode.onclick=()=>{ window.location.assign(new URL("./admin.html?v=ornialleva-admin-safearea-20261029",window.location.href).href); };
+      obAdminBellNode.onclick=()=>{ window.location.assign(new URL("./admin.html?v=ornialleva-admin-rewrite-20261029",window.location.href).href); };
     }
   }else{
     if(obAdminMenuNode?.parentNode)obAdminMenuNode.remove();
