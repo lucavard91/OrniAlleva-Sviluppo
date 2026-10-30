@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>OrniAlleva • Test aggiornamenti</title>
+<style>
+:root{font-family:system-ui,-apple-system,sans-serif;color:#163e2b;background:#f1f5ef}*{box-sizing:border-box}body{max-width:620px;margin:auto;padding:18px 14px 50px}header{background:#154f38;color:#fff;border-radius:16px;padding:16px;display:flex;justify-content:space-between;align-items:center}h1{font-size:22px;margin:0}p{line-height:1.5}button{border:1px solid #b5cbbb;border-radius:11px;padding:12px 14px;background:#fff;color:#164b33;font-size:15px;font-weight:700;cursor:pointer}button.primary{background:#16633f;color:#fff}button:disabled{opacity:.5}.panel{background:#fff;border:1px solid #d8e5d6;padding:16px;border-radius:15px;margin:14px 0}h2{font-size:19px;margin:0 0 9px}.row{display:flex;flex-wrap:wrap;gap:8px}.hidden{display:none!important}.bubble{display:inline-block;border-radius:50%;min-width:20px;padding:2px 5px;color:#fff;background:#bd4323;font-size:12px;text-align:center}textarea{display:block;width:100%;min-height:90px;margin:8px 0;border:1px solid #c4d3c7;border-radius:9px;padding:10px;font-size:15px}.shade{position:fixed;inset:0;background:#13271baf;display:grid;place-items:center;padding:16px;z-index:100}.dialog{max-width:430px;width:100%;padding:22px;border-radius:18px;background:#fff;box-shadow:0 14px 45px #0004}.muted{color:#52665c;font-size:14px}li{margin:8px 0}.test{background:#fff7dc;border:1px solid #e8c874;padding:12px;border-radius:12px}.ok{color:#09643d;font-weight:700}
+</style></head><body>
+<header><div><h1>🐤 OrniAlleva</h1><small>PROVA AGGIORNAMENTI — SIMULAZIONE</small></div><button id="bell" aria-label="Notifiche">🔔 <span id="badge" class="bubble hidden">1</span></button></header>
+<p class="test"><strong>Modalità dimostrativa.</strong> Non installa aggiornamenti e non accede a Supabase. Serve a provare dal telefono l'esperienza delle notifiche prima del test reale nell'app.</p>
+<section class="panel"><h2>Simula una registrazione soggetto</h2><p class="muted">Scrivi qualcosa senza salvare, poi simula l'arrivo di un aggiornamento.</p><label>Nome o numero anello<textarea id="subject" placeholder="Es. canarino n.18..."></textarea></label><div class="row"><button id="save">Salva scheda (simulazione)</button><button id="new">Simula nuovo aggiornamento</button></div><p id="subjectStatus" class="muted">Scheda vuota</p></section>
+<section class="panel"><h2>Impostazioni → Informazioni app</h2><p>Versione installata (simulata): <b id="installed">34.18.1</b></p><p id="available" class="muted">Nessun aggiornamento verificato</p><div class="row"><button id="check">Controlla aggiornamenti</button><button id="installFromSettings" class="primary hidden">Aggiorna ora</button></div></section>
+<section class="panel"><h2>Controlli di prova</h2><div class="row"><button id="reset">Ripeti test da capo</button><button id="reopen">Apri avviso aggiornamento</button></div><p class="muted" id="log">All'apertura, un aggiornamento fittizio verrà rilevato.</p></section>
+<div id="modal" class="shade hidden" role="dialog" aria-modal="true" aria-labelledby="title"><div class="dialog"><h2 id="title">Aggiornamento disponibile</h2><p><b>Versione 34.19.0</b></p><p>Ecco le novità di questa versione di prova:</p><ul><li>Nuove funzioni di gestione soggetti</li><li>Miglioramenti genealogia</li><li>Gestione notifiche e aggiornamenti</li></ul><p id="warning" class="muted"></p><div class="row"><button id="later">Più tardi</button><button id="now" class="primary">Aggiorna ora</button></div></div></div>
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const version="34.19.0";let pending=true,dirty=false,installed="34.18.1",notified=false;
+function log(s){$("log").textContent=s}
+function refresh(){
+ $("installed").textContent=installed;
+ $("badge").classList.toggle("hidden",!pending);
+ $("available").textContent=pending?"Disponibile V"+version:"L'app simulata è aggiornata";
+ $("installFromSettings").classList.toggle("hidden",!pending);
+ $("subjectStatus").textContent=dirty?"Scheda non salvata: i dati restano nel campo.":"Nessuna scheda non salvata";
+}
+function showNotice(){if(!pending){log("Non ci sono aggiornamenti da installare.");return;} $("warning").textContent=dirty?"Hai una scheda non salvata. Puoi rinviare l'aggiornamento.":"";$("modal").classList.remove("hidden");}
+function detect(opening=false){if(!pending)return;refresh();log(opening?"Aggiornamento disponibile all'apertura.":"Nuova versione rilevata durante l'utilizzo.");if(!dirty&&!notified)showNotice();notified=true;}
+$("subject").addEventListener("input",()=>{dirty=!!$("subject").value;refresh()});
+$("save").onclick=()=>{dirty=false;refresh();log("Scheda simulata salvata. Ora puoi aggiornare.")};
+$("new").onclick=()=>{pending=true;notified=false;detect(false)};
+$("bell").onclick=showNotice;
+$("check").onclick=()=>{refresh();log(pending?"Impostazioni: nuova versione disponibile.":"Impostazioni: nessun aggiornamento.")};
+$("installFromSettings").onclick=()=>install();
+$("reopen").onclick=showNotice;
+$("later").onclick=()=>{$("modal").classList.add("hidden");notified=true;refresh();log("Più tardi: notifica conservata nella campanella e nelle Impostazioni.")};
+$("now").onclick=()=>install();
+function install(){if(dirty){$("warning").textContent="Salva prima il soggetto: aggiornamento NON avviato.";showNotice();return;} if(!pending)return; pending=false;installed=version;$("modal").classList.add("hidden");refresh();log("✓ Aggiornamento SIMULATO completato. Nessun file reale è stato installato.");}
+$("reset").onclick=()=>{pending=true;dirty=false;installed="34.18.1";notified=false;$("subject").value="";refresh();detect(true)};
+refresh();detect(true);
+</script></body></html>
