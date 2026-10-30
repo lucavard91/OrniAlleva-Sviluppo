@@ -11582,7 +11582,7 @@ section:not(#home) > button.back[data-page="home"].v251-home-fixed{
     if(sel)sel.classList.add("v251-hidden-select");
     if(popup && !popup.querySelector(".v251-lang-flags")){
       const label=popup.querySelector("label");
-      if(label){label.classList.add("v251-lang-caption"); label.innerHTML='<img src="02_icon_lingua.png?v=263731" alt="Lingua"> Seleziona lingua';
+      if(label){label.classList.add("v251-lang-caption"); label.innerHTML='<img src="02_icon_lingua.png?v=263731" alt="Lingua"> Seleziona lingua';}
       popup.appendChild(makeFlags(async code=>{
         await manualLanguage(code);
         popup.classList.add("hidden");
