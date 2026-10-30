@@ -3112,8 +3112,9 @@ async function obV3415ControllaRelease(manuale=false){
   obReleasePending=data;
   await obV34161NotificaRelease(data);
   obV3416AggiornaImpostazioniRelease();
-  // Il controllo manuale aggiorna la scheda Impostazioni, senza riaprire il popup rinviato.
-  if(!manuale&&data.version!==obReleaseSnoozedVersion)obV3415MostraRelease(data);
+  // Aggiornamenti rilevati mentre si compila una scheda: solo campanella, nessuna interruzione.
+  // L'utente può riaprire il messaggio dalla notifica o dalle Impostazioni.
+  if(!manuale&&data.version!==obReleaseSnoozedVersion&&!obV3415SchedaAperta())obV3415MostraRelease(data);
  }catch(e){
   console.warn("Controllo versione non disponibile:",e);
   if(manuale&&stato){stato.textContent="Controllo non riuscito. Riprova quando sei online.";stato.dataset.state="error";}
@@ -7082,8 +7083,16 @@ function v1812ApriNotifica(id){
   segnaNotificaPersonaleComeLetta(id);
   if(n.tipo==="aggiornamento"&&String(n.chiave||"").startsWith("aggiornamento|")){
     v1812ChiudiNotifica();
-    apriPagina("impostazioni_info");
-    void obV3415ControllaRelease(true);
+    // Dalla campanella si apre il messaggio originale con versione, novità e pulsanti.
+    // Se il controllo non è ancora disponibile, si usa la scheda Impostazioni.
+    if(obReleasePending&&obV3415VersioneNuova(obReleasePending.version)){
+      obV3415MostraRelease(obReleasePending);
+    }else{
+      apriPagina("impostazioni_info");
+      void obV3415ControllaRelease(true).then(()=>{
+        if(obReleasePending&&obV3415VersioneNuova(obReleasePending.version))obV3415MostraRelease(obReleasePending);
+      });
+    }
     return;
   }
   v1814NotifApertaId=id;
