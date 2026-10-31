@@ -4151,7 +4151,7 @@ async function mostraApp(){
       (settingsHomeCard||$("homeGrid")).insertAdjacentHTML(
         settingsHomeCard?"beforebegin":"beforeend",
         '<div class="card ob-home-nav-card" id="adminCard" data-page="admin" role="button" tabindex="0">'+
-        '<h2 class="ob-icon-title"><img class="ob-section-icon" src="assets_embedded/assets_embedded/ob_asset_073_93bcf5099a.jpg" alt=""> <span>Amministrazione</span></h2>'+
+        '<h2 class="ob-icon-title"><img class="ob-section-icon" src="assets_embedded/assets_embedded/ob_asset_073_93bcf5099a.jpg" alt=""> <span style="font-size:12px;letter-spacing:-.35px;overflow-wrap:normal;word-break:keep-all">Amministrazione</span></h2>'+
         '<p>Gestisci utenti e scadenze.</p>'+
         '<span class="ob-home-nav-chevron" aria-hidden="true">›</span>'+
         '</div>'
@@ -4163,7 +4163,7 @@ async function mostraApp(){
       if(grid&&!document.getElementById("obTrashHomeCard")){
         const card=document.createElement("div");
         card.className="card ob-home-nav-card"; card.id="obTrashHomeCard"; card.dataset.page="cestino"; card.setAttribute("role","button"); card.tabIndex=0;
-        card.innerHTML='<h2 class="ob-icon-title"><span class="ob-section-icon ob-v263743975-trash-icon" aria-hidden="true" style="width:56px;height:56px;border-radius:12px"></span><span>Cestino</span></h2><p>Ripristina o elimina definitivamente gli elementi rimossi.</p><span class="ob-home-nav-chevron" aria-hidden="true">›</span>';
+        card.innerHTML='<h2 class="ob-icon-title"><span class="ob-section-icon ob-v263743975-trash-icon" aria-hidden="true" style="width:56px;height:56px;border-radius:12px"></span><span style="padding-left:12px">Cestino</span></h2><p>Ripristina o elimina definitivamente gli elementi rimossi.</p><span class="ob-home-nav-chevron" aria-hidden="true">›</span>';
         grid.appendChild(card);
         bindPageButtons();
       }
