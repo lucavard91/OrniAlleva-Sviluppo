@@ -3446,7 +3446,13 @@ function aggiornaSelettoreAllevamento(lista){
   const select=$("selectAllevamento");
   if(select){
     select.innerHTML=elenco.map(a=>`<option value="${esc(a.id)}" ${String(a.id)===String(allevamentoAttivo.id)?"selected":""}>${esc(a.nome)}</option>`).join("");
-    select.onchange=()=>cambiaAllevamento(select.value,elenco);
+    select.onchange=()=>{
+      const pannello=document.getElementById("obV439FarmPopup");
+      const pulsante=document.getElementById("obV439FarmToggle");
+      pannello?.classList.remove("open");
+      if(pulsante){pulsante.classList.remove("open");pulsante.setAttribute("aria-expanded","false");}
+      cambiaAllevamento(select.value,elenco);
+    };
   }
   obAggiornaProfiloAllevamento();
   const btnAdd=$("btnAggiungiAllevamento");
