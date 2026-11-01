@@ -13150,14 +13150,14 @@ table{max-width:100%}
 /* ---------- HEADER PULITO ---------- */
 .ob-v263727-legacy-hidden{display:none!important}
 .v263-app-header.ob-v263727-header{
-  position:relative!important;width:100%!important;height:92px!important;min-height:92px!important;
+  position:relative!important;width:100%!important;height:clamp(170px,calc(33.333vw + 64px),320px)!important;min-height:170px!important;
   padding:0!important;overflow:visible!important;
-  background:#043329 url("OrniAlleva_Banner_Interno.png?v=20261101") center center / cover no-repeat!important;
+  background:#043329 url("OrniAlleva_Banner_Interno.png?v=20261101") center top / 100% auto no-repeat!important;
   border-bottom:2px solid #c8953d!important;box-shadow:0 5px 16px rgba(0,0,0,.15)!important;z-index:50!important
 }
 .v263-app-header.ob-v263727-header .v263-app-brand{display:none!important}
 .ob-v263727-menu-wrap{
-  position:absolute!important;left:10px!important;top:50%!important;transform:translateY(-50%)!important;
+  position:absolute!important;left:10px!important;top:auto!important;bottom:8px!important;transform:none!important;
   z-index:6!important;display:flex!important;flex-direction:column!important;align-items:center!important;gap:1px!important
 }
 .ob-v263727-menu-label{
@@ -13165,7 +13165,7 @@ table{max-width:100%}
   text-shadow:0 1px 3px #000!important
 }
 .ob-v263727-actions-wrap{
-  position:absolute!important;right:10px!important;top:50%!important;transform:translateY(-50%)!important;z-index:7!important
+  position:absolute!important;right:10px!important;top:auto!important;bottom:8px!important;transform:none!important;z-index:7!important
 }
 .ob-v263727-actions-wrap .v1820-home-actions{
   display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:12px!important;margin:0!important;padding:0!important
@@ -13282,7 +13282,7 @@ table{max-width:100%}
 }
 /* ---------- TABLET ---------- */
 @media(max-width:900px){
-  .v263-app-header.ob-v263727-header{height:76px!important;min-height:76px!important}
+  .v263-app-header.ob-v263727-header{height:calc(33.333vw + 64px)!important;min-height:170px!important}
   .ob-v263727-menu-wrap{left:6px!important}
   .ob-v263727-actions-wrap{right:6px!important}
   .ob-v263727-actions-wrap .v1820-home-actions{gap:3px!important}
@@ -13299,7 +13299,7 @@ table{max-width:100%}
 }
 /* ---------- iPHONE / ANDROID ---------- */
 @media(max-width:700px){
-  .v263-app-header.ob-v263727-header{height:82px!important;min-height:82px!important;background-position:center!important}
+  .v263-app-header.ob-v263727-header{height:calc(33.333vw + 58px)!important;min-height:0!important;background-position:center top!important}
   .ob-v263727-menu-wrap{left:5px!important}
   .ob-v263727-menu-label{font-size:9px!important}
   .ob-v263727-actions-wrap{right:5px!important}
@@ -13483,7 +13483,7 @@ table{max-width:100%}
     min-width:32px!important;max-width:32px!important;
     flex-basis:32px!important;
   }
-  .v263-app-header.ob-v263727-header{height:78px!important;min-height:78px!important}
+  .v263-app-header.ob-v263727-header{height:calc(33.333vw + 58px)!important;min-height:0!important}
   .ob-v263727-header-btn,
   .ob-v263727-actions-wrap .v1820-home-actions > button,
   .ob-v263727-actions-wrap .v1820-language-wrap > button{
