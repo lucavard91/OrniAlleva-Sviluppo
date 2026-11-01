@@ -1807,7 +1807,7 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
           <div id="profiloAvatarHomeV18" class="v18-avatar"><img class="ob-avatar-default" src="icon-512.png" alt="Profilo"></div>
           <div class="ob-profile-copy">
             <div id="profiloRiepilogoHomeV18" class="small">Gestisci i tuoi dati personali e la foto profilo.</div>
-            <div class="ob-profile-account-actions" style="display:flex;gap:8px;width:100%;max-width:360px;align-items:stretch"><button id="v187ApriProfilo" class="ob-profile-open" type="button" style="flex:1 1 50%;width:50%;min-width:0;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;font-size:clamp(10px,2.7vw,14px)!important">Apri profilo <span aria-hidden="true" style="display:inline-block;margin:0!important;line-height:1">›</span></button><button id="obSwitchAccount" class="ob-profile-open" type="button" style="flex:1 1 50%;width:50%;min-width:0;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;font-size:clamp(9px,2.5vw,13px)!important">Cambia account <span aria-hidden="true" style="display:inline-flex;align-items:center;margin:0!important;line-height:1"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7v5h-5"/><path d="M4 17v-5h5"/><path d="M5.7 9a7 7 0 0 1 12-2L20 12"/><path d="M18.3 15a7 7 0 0 1-12 2L4 12"/></svg></span></button></div>
+            <div class="ob-profile-account-actions" style="display:flex;gap:8px;width:100%;max-width:360px;align-items:stretch"><button id="v187ApriProfilo" class="ob-profile-open" type="button" style="flex:0 0 auto;min-width:0;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;font-size:clamp(12px,2.9vw,14px)!important">Apri profilo <span aria-hidden="true" style="display:inline-block;margin:0!important;line-height:1">›</span></button></div>
           </div>
         </div>
         <div class="ob-profile-brand-scene" aria-hidden="true"></div>
@@ -4099,7 +4099,7 @@ function obMostraSceltaUscita(){
   screen.setAttribute("aria-modal","true");
   screen.setAttribute("aria-label","Uscita da OrniAlleva");
   screen.style.cssText="position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;overflow:auto;background:linear-gradient(160deg,#082b20,#17563d);padding:22px;box-sizing:border-box";
-  screen.innerHTML='<div style="background:#fffdf8;border:2px solid #d7ad4b;border-radius:20px;padding:25px 18px;width:100%;max-width:440px;box-sizing:border-box;text-align:center;color:#17432f;box-shadow:0 12px 35px #0004"><div style="font-size:36px">🦜</div><h2 style="color:#17432f;margin:8px 0 12px">Come vuoi uscire?</h2><p style="margin:0 0 20px">Scegli una delle due opzioni.</p><button type="button" data-exit-app style="display:block;width:100%;padding:14px;margin-bottom:12px;border-radius:12px;background:#14563f;color:white;border:2px solid #d7ad4b;font-weight:700">Esci dall’app</button><p style="font-size:12px;margin:0 0 15px">Mantiene l’account collegato.</p><button type="button" data-exit-account style="display:block;width:100%;padding:14px;border-radius:12px;background:#14563f;color:white;border:2px solid #d7ad4b;font-weight:700">Esci dall’account</button><p style="font-size:12px;margin:8px 0 16px">Disconnette questa email per accedere con un’altra.</p><button type="button" data-cancel-exit class="secondary" style="width:100%">Annulla e torna all’app</button></div>';
+  screen.innerHTML='<div style="background:#fffdf8;border:2px solid #d7ad4b;border-radius:20px;padding:25px 18px;width:100%;max-width:440px;box-sizing:border-box;text-align:center;color:#17432f;box-shadow:0 12px 35px #0004"><h2 style="color:#17432f;margin:4px 0 14px">Come vuoi uscire?</h2><p style="margin:0 0 20px">Scegli una delle due opzioni.</p><button type="button" data-exit-app style="display:block;width:100%;padding:14px;margin-bottom:12px;border-radius:12px;background:#14563f;color:white;border:2px solid #d7ad4b;font-weight:700">Esci dall’app</button><p style="font-size:12px;margin:0 0 15px">Mantiene l’account collegato.</p><button type="button" data-exit-account style="display:block;width:100%;padding:14px;border-radius:12px;background:#14563f;color:white;border:2px solid #d7ad4b;font-weight:700">Esci dall’account</button><p style="font-size:12px;margin:8px 0 16px">Disconnette questa email per accedere con un’altra.</p><button type="button" data-cancel-exit class="secondary" style="width:100%">Annulla e torna all’app</button></div>';
   document.body.appendChild(screen);
   screen.querySelector("[data-cancel-exit]").onclick=()=>screen.remove();
   screen.querySelector("[data-exit-app]").onclick=()=>{
@@ -4113,12 +4113,6 @@ function obMostraSceltaUscita(){
   };
 }
 function logout(){obMostraSceltaUscita();}
-async function obCambiaAccount(){
-  const ok=await obConfermaCestino({titolo:"Cambia account",testo:"Vuoi disconnettere questa email e accedere con un altro account? I dati salvati resteranno disponibili nel rispettivo account.",annulla:"Annulla",conferma:"Cambia account"});
-  if(!ok)return;
-  try{await obEseguiDisconnessioneAccount();}catch(e){if(typeof obAvviso==="function")obAvviso("Impossibile cambiare account: "+(e?.message||e));}
-}
-
 async function avviaMostraApp(sessionOverride=null){
   if(mostraAppPromise)return mostraAppPromise;
   if(sessionOverride?.user){
@@ -9806,7 +9800,7 @@ function v18Init(){
   document.querySelectorAll("[data-v18-premium]").forEach(b=>b.addEventListener("click",()=>{v18ChiudiDrawer();if(b.dataset.v18Premium==="coppie"){apriPagina("coppie");}else{apriPagina("soggetti");obAvviso("Per valutare un soggetto, apri la sua scheda e scegli «Valuta con AI».");}}));
   $("btnFotoProfiloV18")?.addEventListener("click",v18CaricaFotoProfilo);
   $("v187ApriProfilo")?.addEventListener("click",v187ApriProfilo);
-  $("obSwitchAccount")?.addEventListener("click",obCambiaAccount);
+  
   $("v188DrawerProfilo")?.addEventListener("click",()=>{v18ChiudiDrawer();v187ApriProfilo();});
   $("v19DrawerOpenProfile")?.addEventListener("click",()=>{v18ChiudiDrawer();v187ApriProfilo();});
   $("v189DrawerMateriale")?.addEventListener("click",()=>{v18ChiudiDrawer();apriPagina("materiale_allevamento");});
