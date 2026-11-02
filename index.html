@@ -1974,7 +1974,7 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
   </div>
   <div id="formSoggetto" class="card hidden">
     <div class="v17-form-title"><h3 class="ob-icon-title ob-form-title"><img class="ob-section-icon" src="assets_embedded/assets_embedded/ob_asset_026_9256e42820.jpg" alt=""> <span>Nuovo soggetto</span></h3><button type="button" class="secondary v17-close-x" data-close-form="formSoggetto" aria-label="Chiudi">✕</button></div>
-    <label>Sistemazione / Gabbia</label><input id="s_gabbia" list="obSistemazioniSoggetto" placeholder="Seleziona o scrivi una sistemazione" autocomplete="off"><datalist id="obSistemazioniSoggetto"></datalist>
+    <label>Sistemazione / Gabbia</label><div style="display:flex;gap:8px;align-items:stretch"><input id="s_gabbia" list="obSistemazioniSoggetto" placeholder="Es. Gabbia 1, Voliera 2" autocomplete="off" style="min-width:0;flex:1"><select id="s_gabbia_tipo" aria-label="Tipo di sistemazione" style="width:42%;min-width:125px;flex:none"><option value="">Tipo...</option><option value="Gabbia">Gabbia</option><option value="Voliera">Voliera</option><option value="Riproduzione">Riproduzione</option><option value="Svezzamento">Svezzamento</option><option value="Infermeria">Infermeria</option><option value="Quarantena">Quarantena</option><option value="Altro">Altro</option></select></div><datalist id="obSistemazioniSoggetto"></datalist>
     <label>Numero</label><input id="s_numero" placeholder="Es. 53" autocomplete="off">
     <label>Anno</label><input id="s_anno" type="number" placeholder="Es. 2026" autocomplete="off">
    <label>RNA</label><input id="s_rna" placeholder="RNA" autocomplete="off">
@@ -7775,7 +7775,7 @@ box.innerHTML = `
   const selectedTaxa=()=>taxaFor($id("s_specie")?.value||"");
   const taxIds=()=>new Set(selectedTaxa().map(t=>String(t.id)));
   const validSpecies=()=>C.taxa.filter(t=>norm(t.rank||"species")==="species");
-  const speciesItems=()=>uniq(validSpecies().map(taxLabel));
+  const speciesItems=()=>uniq(["Canarino",...validSpecies().map(taxLabel)]);
   const currentCategory=()=>String($id("s_categoria_specie")?.value||"");
   const catMap={CANARINI:"Canarini",EFI:"Estrildidi e Fringillidi",PSITTACIFORMI:"Psittaciformi",CANTO:"Uccelli da Canto"};
   const canaryCategories=["Canarino di Colore","Forma e Posizione — Lisci","Forma e Posizione — Arricciati","Canarino da Canto","Altre razze"];
@@ -14396,6 +14396,23 @@ img,video,canvas,svg{max-width:100%}
 <script>
 async function obV3078AggiornaSistemazioni(){try{const dl=document.getElementById('obSistemazioniSoggetto');if(!dl)return;const gs=await leggi('gabbie');const vals=[];(gs||[]).forEach(g=>{const n=String(g.numero||'').trim();if(n){vals.push(obGabbiaRef(g.tipo||'Gabbia',n));vals.push(n);}});dl.innerHTML=[...new Set(vals)].map(v=>`<option value="${esc(v)}"></option>`).join('');}catch(e){console.warn('Sistemazioni',e)}}
 document.addEventListener('focusin',e=>{if(e.target?.id==='s_gabbia'||e.target?.matches?.('[data-ob-pullo-dest]'))obV3078AggiornaSistemazioni();});
+(function(){
+ const field=document.getElementById('s_gabbia'),type=document.getElementById('s_gabbia_tipo');
+ if(!field||!type)return;
+ const types=['Gabbia','Voliera','Riproduzione','Svezzamento','Infermeria','Quarantena','Altro'];
+ const clean=s=>String(s||'').trim();
+ function sync(){const v=clean(field.value);const t=types.find(x=>v.toLocaleLowerCase('it').startsWith(x.toLocaleLowerCase('it')+' '));type.value=t||'';}
+ type.addEventListener('change',()=>{
+  const selected=type.value;if(!selected)return;
+  const raw=clean(field.value);
+  const rest=raw.replace(/^(?:Gabbia da riproduzione|Gabbia|Voliera|Riproduzione|Svezzamento|Infermeria|Quarantena|Altro)(?:\s+|::)?/i,'').trim();
+  field.value=selected+(rest?' '+rest:'');
+  field.dispatchEvent(new Event('input',{bubbles:true}));
+  field.dispatchEvent(new Event('change',{bubbles:true}));
+ });
+ field.addEventListener('change',sync);
+ document.addEventListener('focusin',e=>{if(e.target===type)sync();});
+})();
 async function obV3078CaricaParentela(){try{obPairSubjectsCache=(await leggi('soggetti')).filter(obV435SoggettoPresente);const opts='<option value="">Seleziona soggetto</option>'+obPairSubjectsCache.map(s=>`<option value="${esc(s.id)}">${esc(s.numero||'-')} / ${esc(s.anno||'-')} · RNA ${esc(s.rna||'-')} · ${esc(s.sesso||'-')}</option>`).join('');if($('obKinA'))$('obKinA').innerHTML=opts;if($('obKinB'))$('obKinB').innerHTML=opts;}catch(e){errore(e)}}
 async function obV3078ControllaParentela(){if(!obPairSubjectsCache?.length)await obV3078CaricaParentela();const a=obPairSubjectsCache.find(s=>String(s.id)===String($('obKinA')?.value)),b=obPairSubjectsCache.find(s=>String(s.id)===String($('obKinB')?.value)),box=$('obKinResult');if(!a||!b){box.classList.remove('hidden');box.innerHTML='<b>Seleziona due soggetti.</b>';return}if(String(a.id)===String(b.id)){box.classList.remove('hidden');box.innerHTML='<b>Seleziona due soggetti diversi.</b>';return}const pct=Math.round(obPairKinship(a,b)*10000)/100,rel=obPairRelation(a,b),inc=obPairGenealogyIncomplete(a)||obPairGenealogyIncomplete(b),has=pct>0;box.classList.remove('hidden');box.innerHTML=has?`<h3>Parentela rilevata</h3><p><b>${esc(rel)}</b></p><p>Consanguineità conosciuta: <b>${pct.toFixed(pct%1?2:0)}%</b></p>`:`<h3>Nessuna parentela rilevata nei dati disponibili</h3>${inc?'<p class="small">La genealogia di uno o entrambi i soggetti è incompleta: una parentela non registrata non può essere esclusa.</p>':''}`;}
 const obV3078ApriPagina=window.apriPagina;window.apriPagina=async function(id,...args){const r=await obV3078ApriPagina.call(this,id,...args);if(id==='parentelaRapida')await obV3078CaricaParentela();return r};
