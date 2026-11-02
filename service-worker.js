@@ -1,4 +1,4 @@
-const OB_CACHE = "ornialleva-development-v34-18-2";
+const OB_CACHE = "ornialleva-development-v34-18-3-icons1";
 const OB_STATIC = [
   "./",
   "./manifest.webmanifest",
@@ -8,7 +8,9 @@ const OB_STATIC = [
   "./favicon-32.png",
   "./favicon-16.png",
   "./ob_asset_051_3aefa10cbb.jpg",
-  "./ornibreed_home_banner_v2.png"
+  "./ornibreed_home_banner_v2.png",
+  "./ornialleva_icona_guida.png?v=20261102-icons1",
+  "./ornialleva_icona_moduli_stampa.png?v=20261102-icons1"
 ];
 
 self.addEventListener("install", event => {
@@ -18,7 +20,7 @@ self.addEventListener("install", event => {
 self.addEventListener("activate", event => {
   event.waitUntil((async()=>{
     const keys=await caches.keys();
-    await Promise.all(keys.filter(k=>k.startsWith("ornibreed-") && k!==OB_CACHE).map(k=>caches.delete(k)));
+    await Promise.all(keys.filter(k=>(k.startsWith("ornibreed-") || k.startsWith("ornialleva-development-")) && k!==OB_CACHE).map(k=>caches.delete(k)));
     await self.clients.claim();
   })());
 });
