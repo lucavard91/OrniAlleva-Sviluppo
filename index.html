@@ -7838,7 +7838,7 @@ box.innerHTML = `
     let labels=rows.map(breedLabel);
     // Forme e sottospecie gia catalogate (es. Cardellino Major/Frigoris).
     // Non sono mutazioni genetiche: compaiono nel campo Razza/forma.
-    if(ids.size)labels.push(...C.forms.filter(f=>ids.has(String(f.taxon_id))&&f.selectable_in_app!==false&&f.active!==false).map(f=>String(f.form_name||'')).filter(Boolean));
+    if(ids.size)labels.push(...C.forms.filter(f=>ids.has(String(f.taxon_id))&&f.active!==false).map(f=>String(f.form_name||'')).filter(Boolean));
     return uniq(labels);
   };
   const mutationSynonyms=label=>{
@@ -7850,7 +7850,8 @@ box.innerHTML = `
       .flatMap(m=>[...aliases(m),...arr(meta(m).synonyms),...arr(meta(m).aliases)]);
     const fromPhenotypes=C.phenotypes.filter(p=>ids.has(String(p.taxon_id))&&norm(mutLabel(p))===z&&
       meta(p).catalog_usage==="SEARCH_DISPLAY").flatMap(aliases);
-    return uniq([...fromView,...fromMutations,...fromPhenotypes]);
+    const fromVariants=C.variants.filter(v=>ids.has(String(v.taxon_id))&&norm(v.name)===z).flatMap(aliases);
+    return uniq([...fromView,...fromMutations,...fromPhenotypes,...fromVariants]);
   };
   const synonymsMatch=(label,term)=>mutationSynonyms(label).some(a=>norm(a).includes(term)) ||
     (norm(label)==="cinnamon"&&norm("cannella").includes(term)) ||
@@ -7870,8 +7871,9 @@ box.innerHTML = `
     const mutations=C.mutations.filter(m=>m.taxon_id&&ids.has(String(m.taxon_id))).map(mutLabel);
     const catalog=C.globalCatalog.filter(g=>g.mutation_id&&ids.has(String(g.taxon_id))).map(g=>mutLabel({name:g.mutazione}));
     const phenotypes=C.phenotypes.filter(p=>ids.has(String(p.taxon_id))&&meta(p).catalog_usage==="SEARCH_DISPLAY").map(mutLabel);
-    // Solo record presenti nel catalogo genetico o nelle combinazioni archiviate in Supabase.
-    return uniq([...mutations,...catalog,...phenotypes,...C.canaryColors]);
+    const variants=C.variants.filter(v=>ids.has(String(v.taxon_id))&&
+      ["MUTATION_EXPRESSION","COMBINATION","ANCESTRAL","PHENOTYPE"].includes(String(v.variant_type||"").toUpperCase())).map(v=>String(v.name||""));
+    return uniq([...mutations,...catalog,...phenotypes,...variants,...C.canaryColors]);
   };
   const mutationItems=()=>{
     const s=norm($id("s_specie")?.value||""),ids=taxIds();
@@ -7880,8 +7882,13 @@ box.innerHTML = `
     if(s&&!ids.size)return [];
     // Mutazione = mutazioni reali del taxon; i componenti fenotipici e le varianti
     // espositive restano archivi distinti, non diventano automaticamente geni.
-    const rows=C.mutations.filter(m=>!s||(m.taxon_id&&ids.has(String(m.taxon_id)))).map(mutLabel);
-    rows.push(...C.globalCatalog.filter(g=>g.mutation_id&&(!s||ids.has(String(g.taxon_id)))).map(g=>mutLabel({name:g.mutazione})));
+    const rows=C.mutations.filter(m=>m.taxon_id&&ids.has(String(m.taxon_id))).map(mutLabel);
+    rows.push(...C.globalCatalog.filter(g=>g.mutation_id&&ids.has(String(g.taxon_id))).map(g=>mutLabel({name:g.mutazione})));
+    // Espressioni, combinazioni e ancestrali sono voci descrittive, non nuovi geni.
+    rows.push(...C.variants.filter(v=>ids.has(String(v.taxon_id))&&
+      ["MUTATION_EXPRESSION","COMBINATION","ANCESTRAL","PHENOTYPE"].includes(String(v.variant_type||"").toUpperCase())).map(v=>String(v.name||"")).filter(Boolean));
+    rows.push(...C.phenotypes.filter(p=>ids.has(String(p.taxon_id))&&
+      meta(p).catalog_usage==="SEARCH_DISPLAY").map(mutLabel));
     return uniq(rows);
   };
   const refreshCarrierSuggestions=()=>{
@@ -7974,7 +7981,7 @@ box.innerHTML = `
   (async()=>{
     // Ogni elenco e indipendente: un permesso mancante non deve svuotare gli altri cataloghi.
     const sources=[
-      ["taxa","ob_taxa"],["breeds","ob_breeds"],["forms","ob_cardellino_forms_runtime"],["mutations","ob_mutations"],
+      ["taxa","ob_taxa"],["breeds","ob_breeds"],["forms","ob_taxon_forms"],["mutations","ob_mutations"],
       ["standards","ob_standard_versions"],["phenotypes","ob_phenotype_components"],
        ["variants","ob_exhibition_variants"]
     ];
@@ -7996,18 +8003,23 @@ box.innerHTML = `
       if(result.error){errors.push(result.key);console.warn("Catalogo OrniBreed: "+result.key,result.error);continue;}
       if(result.key==="taxa")C.taxa=result.data.filter(x=>x.active!==false);
       if(result.key==="breeds")C.breeds=result.data.filter(x=>String(x.status||"").toUpperCase()!=="SUPERSEDED");
-      if(result.key==="forms")C.forms=result.data.filter(x=>x.active!==false&&x.selectable_in_app!==false);
+      if(result.key==="forms")C.forms=result.data.filter(x=>x.active!==false&&String(x.status||"").toUpperCase()!=="SUPERSEDED").map(x=>({...x,form_name:x.name}));
       if(result.key==="mutations")C.mutations=result.data.filter(x=>String(x.status||"").toUpperCase()!=="SUPERSEDED");
       if(result.key==="standards")C.standards=result.data.filter(x=>x.is_current!==false&&String(x.status||"").toUpperCase()!=="SUPERSEDED");
       if(result.key==="phenotypes")C.phenotypes=result.data;
        if(result.key==="variants")C.variants=result.data.filter(v=>v.active!==false&&String(v.status||"").toUpperCase()!=="SUPERSEDED");
     }
     try{
-      const gr=await sb.from("ob_app_genetic_catalog_v1")
-        .select("taxon_id,mutation_id,mutazione,sinonimi,previsione_autorizzata")
-        .range(0,999);
-      if(!gr.error)C.globalCatalog=arr(gr.data);
-      else console.warn("Vista catalogo genetico non disponibile",gr.error);
+      const pages=[];
+      for(let offset=0;;offset+=1000){
+        const gr=await sb.from("ob_app_genetic_catalog_v1")
+          .select("taxon_id,mutation_id,mutazione,sinonimi,previsione_autorizzata")
+          .range(offset,offset+999);
+        if(gr.error)throw gr.error;
+        const page=arr(gr.data);pages.push(...page);
+        if(page.length<1000)break;
+      }
+      C.globalCatalog=pages;
     }catch(error){console.warn("Catalogo genetico globale: caricamento opzionale",error)}
     // Il collaudo ospite locale dispone di un catalogo dimostrativo indipendente.
     // Se il cambio al guest avviene durante queste richieste, non sovrascriverlo.
