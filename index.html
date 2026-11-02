@@ -8033,7 +8033,23 @@ box.innerHTML = `
     if(!C.taxa.length&&arr(v19ManualCatalog?.taxa).length)C.taxa=arr(v19ManualCatalog.taxa);
     if(!C.breeds.length&&arr(v19ManualCatalog?.breeds).length)C.breeds=arr(v19ManualCatalog.breeds);
     if(!C.mutations.length&&arr(v19ManualCatalog?.mutations).length)C.mutations=arr(v19ManualCatalog.mutations);
-    try{const cc=await sb.from('ob_canary_color_combinations').select('name').range(0,999);if(!cc.error)C.canaryColors=arr(cc.data).map(x=>String(x.name||'')).filter(Boolean);else console.warn('Combinazioni canarino non disponibili',cc.error);}catch(e){console.warn('Combinazioni canarino',e)}
+    try{
+      // Catalogo canarini: unione di fonti Supabase, senza suggerimenti scritti nell'HTML.
+      // Carica tutte le pagine e non perdere un'intera fonte se l'altra non risponde.
+      const options=[];
+      for(const [table,field] of [["ob_canary_color_combinations","name"],["ob_canarino_catalogo_selettore_v2","denominazione"]]){
+        try{
+          for(let offset=0;;offset+=1000){
+            const response=await sb.from(table).select(field).range(offset,offset+999);
+            if(response.error)throw response.error;
+            const page=arr(response.data);
+            options.push(...page.map(x=>String(x[field]||"")).filter(Boolean));
+            if(page.length<1000)break;
+          }
+        }catch(e){console.warn("Catalogo canarini: "+table,e)}
+      }
+      C.canaryColors=uniq(options);
+    }catch(e){console.warn("Catalogo combinazioni canarini",e)}
     updateCategory();refreshCarrierSuggestions();
     v19ManualCatalog.taxa=C.taxa;v19ManualCatalog.breeds=C.breeds;v19ManualCatalog.mutations=C.mutations;
     if(currentType)render();
