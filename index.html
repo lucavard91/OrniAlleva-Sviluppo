@@ -7833,7 +7833,7 @@ box.innerHTML = `
     const s=norm($id("s_specie")?.value||""),ids=taxIds(),cat=currentCategory();
     let rows=C.breeds;
     if(s)rows=ids.size?rows.filter(b=>ids.has(String(b.taxon_id))):[];
-    const isCan=s.includes("canar");
+    const isCan=selectedTaxa().some(isCanary);
     if(isCan&&cat)rows=rows.filter(b=>categoryOfBreed(b)===cat);
     let labels=rows.map(breedLabel);
     return uniq(labels);
@@ -7857,7 +7857,7 @@ box.innerHTML = `
     const values=[$id("s_razza")?.value,$id("s_mutazione")?.value].filter(Boolean);
     el.textContent=values.length?"Denominazione: "+values.join(" · "):"";
   };
-  $id("s_specie")?.addEventListener("change",()=>{$id("s_razza").value="";updateCategory();updateDisplay()});
+  $id("s_specie")?.addEventListener("change",()=>{$id("s_razza").value="";$id("s_mutazione").value="";$id("s_colore").value="";updateCategory();updateDisplay();refreshCarrierSuggestions()});
   $id("s_categoria_specie")?.addEventListener("change",()=>{$id("s_razza").value="";updateCategory();updateDisplay()});
   ["s_razza","s_mutazione","s_colore","s_categoria_piumaggio"].forEach(id=>{const el=$id(id);el?.addEventListener("input",updateDisplay);el?.addEventListener("change",()=>{if(id==="s_mutazione")updateCategory();updateDisplay()})});
   $id("newSoggetto")?.addEventListener("click",()=>{obV34ResetDetails();updateCategory();document.querySelector('[data-ob-hints="colore"]')?.classList.add("hidden")});
@@ -7872,12 +7872,12 @@ box.innerHTML = `
   };
   const mutationItems=()=>{
     const s=norm($id("s_specie")?.value||""),ids=taxIds();
-    if(s&&s.includes("canar"))return canaryMutationItems();
+    if(selectedTaxa().some(isCanary))return canaryMutationItems();
     
     if(s&&!ids.size)return [];
     // Mutazione = mutazioni reali del taxon; i componenti fenotipici e le varianti
     // espositive restano archivi distinti, non diventano automaticamente geni.
-    const rows=C.mutations.filter(m=>!s||!m.taxon_id||ids.has(String(m.taxon_id))).map(mutLabel);
+    const rows=C.mutations.filter(m=>!s||(m.taxon_id&&ids.has(String(m.taxon_id)))).map(mutLabel);
     rows.push(...C.globalCatalog.filter(g=>g.mutation_id&&(!s||ids.has(String(g.taxon_id)))).map(g=>mutLabel({name:g.mutazione})));
     return uniq(rows);
   };
@@ -7901,7 +7901,7 @@ box.innerHTML = `
     const input=$id(type==="specie"?"s_specie":type==="razza"?"s_razza":type==="colore"?"s_colore":"s_mutazione"),box=inlineBox(type);
     if(!input||!box)return;
     const q=norm(input.value);
-    if(!q){box.innerHTML="";box.classList.add("hidden");return;}
+    if(!q&&type==="specie"){box.innerHTML="";box.classList.add("hidden");return;}
     const source=type==="specie"?speciesItems():type==="razza"?breedItems():type==="colore"?colorItems():mutationItems();
     const rank=x=>{const n=norm(x);return n===q?0:n.startsWith(q)?1:obMatchCommonName(x,q)?2:3};
     const obScientificMatch=x=>type==="specie"&&(C.taxa.length?validSpecies():OB_APPROVED_SPECIES_20261102).some(t=>norm(taxLabel(t))===norm(x)&&[t.scientific_name,...aliases(t)].some(n=>norm(n).includes(q)));
@@ -7944,7 +7944,7 @@ box.innerHTML = `
   const searchable=(label,q)=>{if(!q)return true;const nq=norm(q);if(obMatchCommonName(label,nq))return true;if(currentType==="specie"&&(C.taxa.length?validSpecies():OB_APPROVED_SPECIES_20261102).some(t=>norm(taxLabel(t))===norm(label)&&names(t).some(name=>norm(name).includes(nq))))return true;if(currentType==="mutazione"&&synonymsMatch(label,nq))return true;if(currentType==="razza"&&label==="Gloster Fancy"&&norm("Gloucester").includes(nq))return true;if(currentType==="razza"&&label==="Razza Spagnola"&&norm("Spagnola").includes(nq))return true;return false};
   const render=()=>{if(!list)return;const q=norm(search?.value||"");const rank=x=>{const n=norm(x);return n===q?0:n.startsWith(q)?1:obMatchCommonName(x,q)?2:3};const data=dataFor(currentType).filter(x=>searchable(x,q)).sort((a,b)=>q?rank(a)-rank(b)||a.localeCompare(b,"it"):a.localeCompare(b,"it"));list.innerHTML="";data.forEach(label=>{const b=document.createElement("button");b.type="button";b.className="ob-catalog-item";b.textContent=currentType==="specie"?speciesDisplayLabel(label):label;b.addEventListener("click",()=>pick(label));list.appendChild(b)});empty?.classList.toggle("hidden",data.length!==0)};
   const close=()=>{if(!dialog||dialog.classList.contains("hidden"))return;document.activeElement===search&&search.blur();dialog.classList.add("hidden");document.body.classList.remove("ob-catalog-locked");document.documentElement.style.overflow="";document.body.style.overflow="";window.scrollTo(0,savedScroll);currentInput=null;currentType="";if(search)search.value=""};
-  const pick=label=>{if(!currentInput)return;currentInput.value=label;currentInput.dispatchEvent(new Event("change",{bubbles:true}));if(currentType==="specie"){$id("s_razza").value="";$id("s_mutazione").value=""}else if(currentType==="razza"){$id("s_mutazione").value=""}close()};
+  const pick=label=>{if(!currentInput)return;currentInput.value=label;currentInput.dispatchEvent(new Event("change",{bubbles:true}));if(currentType==="specie"){$id("s_razza").value="";$id("s_mutazione").value="";updateCategory()}else if(currentType==="razza"){$id("s_mutazione").value=""}close()};
   const open=type=>{
     currentType=type;
     currentInput=$id(type==="specie"?"s_specie":type==="razza"?"s_razza":type==="colore"?"s_colore":"s_mutazione");
