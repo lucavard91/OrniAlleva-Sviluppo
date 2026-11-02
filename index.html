@@ -7864,32 +7864,16 @@ box.innerHTML = `
   updateCategory();
   const canaryMutationItems=()=>{
     const ids=taxIds();
-    const raw=C.mutations.filter(m=>!m.taxon_id||ids.has(String(m.taxon_id))).map(mutLabel);
-    raw.push(...C.globalCatalog.filter(g=>g.mutation_id&&ids.has(String(g.taxon_id))).map(g=>mutLabel({name:g.mutazione})));
-    // Nomi di uso comune: suggerimenti per la registrazione, non nuovi geni.
-    // L'ID genetico viene assegnato soltanto quando il nome corrisponde
-    // a una mutazione effettivamente documentata per questa specie.
-    const common=["Giallo intenso","Giallo brinato","Giallo mosaico","Rosso intenso","Rosso brinato","Rosso mosaico","Bianco recessivo","Bianco dominante","Avorio giallo intenso","Avorio giallo brinato","Avorio giallo mosaico","Avorio rosso intenso","Avorio rosso brinato","Avorio rosso mosaico","Agata giallo intenso","Agata giallo brinato","Agata giallo mosaico","Agata rosso intenso","Agata rosso brinato","Agata rosso mosaico","Bruno giallo intenso","Bruno giallo brinato","Bruno giallo mosaico","Bruno rosso intenso","Bruno rosso brinato","Bruno rosso mosaico","Isabella giallo intenso","Isabella giallo brinato","Isabella giallo mosaico","Isabella rosso intenso","Isabella rosso brinato","Isabella rosso mosaico","Nero giallo intenso","Nero giallo brinato","Nero giallo mosaico","Nero rosso intenso","Nero rosso brinato","Nero rosso mosaico"];
-    const canaryBase=['Giallo intenso','Giallo brinato','Giallo mosaico','Rosso intenso','Rosso brinato','Rosso mosaico','Bianco recessivo','Bianco dominante'];
-    const prefixes=['Agata','Bruno','Isabella','Nero','Topazio nero','Topazio agata','Topazio bruno','Opale','Pastello','Satine','Cobalto','Onice','Jaspe'];
-    const expanded=prefixes.flatMap(p=>canaryBase.map(b=>p+' '+b));
-    const options=[...raw,...common,...canaryBase,...expanded,...C.canaryColors];
-    // Fattori e denominazioni documentate: ricercabili, senza creare nuovi geni.
-    options.push(...C.phenotypes.filter(p=>ids.has(String(p.taxon_id))&&(
-      ["COLOR_FACTOR","WING_EXPRESSION","LIPOCHROME_MODIFIER"].includes(String(p.component_type||"").toUpperCase())||
-      (String(p.component_type||"").toUpperCase()==="EXHIBITION_VARIANT"&&
-       meta(p).catalog_usage==="SEARCH_DISPLAY")))
-      .map(mutLabel));
-    // Denominazioni comuni disponibili per ogni razza, anche nel catalogo ospite.
-    // Le eventuali restrizioni espositive sono gestite separatamente.
-    options.push("Verde","Ardesia","Cinnamon","Fawn","Agata ardesia");
-    
-    return uniq(options);
+    const mutations=C.mutations.filter(m=>m.taxon_id&&ids.has(String(m.taxon_id))).map(mutLabel);
+    const catalog=C.globalCatalog.filter(g=>g.mutation_id&&ids.has(String(g.taxon_id))).map(g=>mutLabel({name:g.mutazione}));
+    const phenotypes=C.phenotypes.filter(p=>ids.has(String(p.taxon_id))&&meta(p).catalog_usage==="SEARCH_DISPLAY").map(mutLabel);
+    // Solo record presenti nel catalogo genetico o nelle combinazioni archiviate in Supabase.
+    return uniq([...mutations,...catalog,...phenotypes,...C.canaryColors]);
   };
   const mutationItems=()=>{
     const s=norm($id("s_specie")?.value||""),ids=taxIds();
     if(s&&s.includes("canar"))return canaryMutationItems();
-    if(s.includes('cardellin'))return uniq([...C.mutations.filter(m=>ids.has(String(m.taxon_id))).map(mutLabel),'Cardellino major','Cardellino nostrano','Cardellino bianco']);
+    
     if(s&&!ids.size)return [];
     // Mutazione = mutazioni reali del taxon; i componenti fenotipici e le varianti
     // espositive restano archivi distinti, non diventano automaticamente geni.
