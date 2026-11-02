@@ -1879,14 +1879,14 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
     <div data-page="registro" role="button" tabindex="0" class="card ob-home-nav-card"><h2 class="ob-icon-title"><img class="ob-section-icon" src="assets_embedded/assets_embedded/ob_asset_040_a8c796d90c.jpg" alt=""> <span>Registro allevamento</span></h2><p>Registro riepilogativo di coppie e riproduzioni.</p><span class="ob-home-nav-chevron" aria-hidden="true">›</span></div>
     <div data-page="report" role="button" tabindex="0" class="card ob-home-nav-card"><h2 class="ob-icon-title"><img class="ob-section-icon" src="assets_embedded/assets_embedded/ob_asset_041_08730cf38c.jpg" alt=""> <span>Stampa e report</span></h2><p>Stampa schede e riepiloghi dell'allevamento.</p><span class="ob-home-nav-chevron" aria-hidden="true">›</span></div>
     <div data-page="materiale_allevamento" role="button" tabindex="0" class="card ob-home-nav-card v186-materiale-card">
-      <h3 class="ob-icon-title"><img class="ob-section-icon" src="assets_embedded/assets_embedded/ob_asset_042_340cc264a0.jpg" alt="" style="transform:translateY(-12px)"> <span>Moduli e registri da stampare</span></h3>
+      <h3 class="ob-icon-title"><span class="ob-section-icon" aria-hidden="true" style="display:block;background-image:url(&quot;assets_embedded/assets_embedded/ob_asset_042_340cc264a0.jpg&quot;);background-repeat:no-repeat;background-size:124% auto;background-position:center 72%;background-color:#fff"></span> <span>Moduli e registri da stampare</span></h3>
       <p>Schede e registri vuoti da stampare e compilare a mano.</p>
       <span class="ob-home-nav-chevron" aria-hidden="true">›</span>
     </div>
     <div data-page="agenda_allevatori" role="button" tabindex="0" class="card ob-home-nav-card ob-v2615-agenda-home"><h2 class="ob-icon-title"><img class="ob-section-icon" src="assets_embedded/assets_embedded/ob_asset_034_877cc268ae.jpg" alt=""><span>Contatti / Agenda allevatori</span></h2><p>Rubrica personale degli allevatori con contatti, RNA, specie e note.</p><span class="ob-home-nav-chevron" aria-hidden="true">›</span></div>
     <div data-page="contabilita" role="button" tabindex="0" class="card ob-home-nav-card"><h2 class="ob-icon-title"><img class="ob-section-icon" src="assets_embedded/assets_embedded/ob_asset_033_9d3816e888.jpg" alt=""> <span>Entrate e uscite</span></h2><p>Gestisci costi, entrate e saldo dell'allevamento.</p><span class="ob-home-nav-chevron" aria-hidden="true">›</span></div>
     <div data-page="guida" role="button" tabindex="0" class="card ob-home-nav-card">
-      <h3 class="ob-icon-title"><img class="ob-section-icon" src="assets_embedded/assets_embedded/ob_asset_043_163c0288b6.jpg" alt="" style="transform:translateY(-12px)"> <span>Guida all'uso di OrniAlleva</span></h3>
+      <h3 class="ob-icon-title"><span class="ob-section-icon" aria-hidden="true" style="display:block;background-image:url(&quot;assets_embedded/assets_embedded/ob_asset_043_163c0288b6.jpg&quot;);background-repeat:no-repeat;background-size:124% auto;background-position:center 72%;background-color:#fff"></span> <span>Guida all'uso di OrniAlleva</span></h3>
       <p>Istruzioni semplici, passo per passo, per utilizzare tutte le sezioni dell'applicazione.</p>
       <span class="ob-home-nav-chevron" aria-hidden="true">›</span>
     </div>
@@ -4195,7 +4195,7 @@ async function mostraApp(){
       if(grid&&!document.getElementById("obTrashHomeCard")){
         const card=document.createElement("div");
         card.className="card ob-home-nav-card"; card.id="obTrashHomeCard"; card.dataset.page="cestino"; card.setAttribute("role","button"); card.tabIndex=0;
-        card.innerHTML='<h2 class="ob-icon-title"><span class="ob-section-icon ob-v263743975-trash-icon" aria-hidden="true" style="width:54px;height:54px;flex:0 0 54px;border-radius:15px"></span><span>Cestino</span></h2><p>Ripristina o elimina definitivamente gli elementi rimossi.</p><span class="ob-home-nav-chevron" aria-hidden="true">›</span>';
+        card.innerHTML='<h2 class="ob-icon-title"><span class="ob-section-icon ob-v263743975-trash-icon" aria-hidden="true" style="width:54px;height:54px;flex:0 0 54px;border-radius:15px;background-size:88% 88%;background-repeat:no-repeat;background-color:#fff"></span><span>Cestino</span></h2><p>Ripristina o elimina definitivamente gli elementi rimossi.</p><span class="ob-home-nav-chevron" aria-hidden="true">›</span>';
         grid.appendChild(card);
         bindPageButtons();
       }
