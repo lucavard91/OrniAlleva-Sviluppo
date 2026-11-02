@@ -7750,7 +7750,7 @@ box.innerHTML = `
   }
 }  
  function attivaSuggerimentiSoggetti(){
-  const C={taxa:[],breeds:[],mutations:[],phenotypes:[],variants:[],standards:[],globalCatalog:[],canaryColors:[]};
+  const C={taxa:[],breeds:[],forms:[],mutations:[],phenotypes:[],variants:[],standards:[],globalCatalog:[],canaryColors:[]};
   const $id=id=>$(id),arr=x=>Array.isArray(x)?x:[];
   const norm=x=>String(x||"").trim().toLocaleLowerCase("it").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim();
   const uniq=xs=>[...new Map(xs.filter(Boolean).map(x=>[norm(x),String(x).trim()])).values()].sort((a,b)=>a.localeCompare(b,"it"));
@@ -7836,6 +7836,9 @@ box.innerHTML = `
     const isCan=selectedTaxa().some(isCanary);
     if(isCan&&cat)rows=rows.filter(b=>categoryOfBreed(b)===cat);
     let labels=rows.map(breedLabel);
+    // Forme e sottospecie gia catalogate (es. Cardellino Major/Frigoris).
+    // Non sono mutazioni genetiche: compaiono nel campo Razza/forma.
+    if(ids.size)labels.push(...C.forms.filter(f=>ids.has(String(f.taxon_id))&&f.selectable_in_app!==false&&f.active!==false).map(f=>String(f.form_name||'')).filter(Boolean));
     return uniq(labels);
   };
   const mutationSynonyms=label=>{
@@ -7971,7 +7974,7 @@ box.innerHTML = `
   (async()=>{
     // Ogni elenco e indipendente: un permesso mancante non deve svuotare gli altri cataloghi.
     const sources=[
-      ["taxa","ob_taxa"],["breeds","ob_breeds"],["mutations","ob_mutations"],
+      ["taxa","ob_taxa"],["breeds","ob_breeds"],["forms","ob_cardellino_forms_runtime"],["mutations","ob_mutations"],
       ["standards","ob_standard_versions"],["phenotypes","ob_phenotype_components"],
        ["variants","ob_exhibition_variants"]
     ];
@@ -7993,6 +7996,7 @@ box.innerHTML = `
       if(result.error){errors.push(result.key);console.warn("Catalogo OrniBreed: "+result.key,result.error);continue;}
       if(result.key==="taxa")C.taxa=result.data.filter(x=>x.active!==false);
       if(result.key==="breeds")C.breeds=result.data.filter(x=>String(x.status||"").toUpperCase()!=="SUPERSEDED");
+      if(result.key==="forms")C.forms=result.data.filter(x=>x.active!==false&&x.selectable_in_app!==false);
       if(result.key==="mutations")C.mutations=result.data.filter(x=>String(x.status||"").toUpperCase()!=="SUPERSEDED");
       if(result.key==="standards")C.standards=result.data.filter(x=>x.is_current!==false&&String(x.status||"").toUpperCase()!=="SUPERSEDED");
       if(result.key==="phenotypes")C.phenotypes=result.data;
