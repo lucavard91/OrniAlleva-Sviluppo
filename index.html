@@ -285,10 +285,15 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .v185-doc-toolbar{position:sticky;top:0;z-index:3;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;background:#fff;border-bottom:1px solid #ddd;padding:10px 12px}
 .v185-doc-toolbar .actions{display:flex;gap:8px;flex-wrap:wrap}
 #v185DocPreview{padding:18px;background:#fff;color:#111;overflow-x:auto}
-#v185DocPreview .obdev-report-riproduzione{min-width:850px;max-width:none}
-#v185DocPreview .obdev-report-riproduzione .obdev-report-meta{grid-template-columns:repeat(4,minmax(0,1fr))!important}
-#v185DocPreview .obdev-report-riproduzione .obdev-report-body table{font-size:11px!important}
-#v185DocPreview .obdev-report-riproduzione .obdev-report-body th,#v185DocPreview .obdev-report-riproduzione .obdev-report-body td{padding:6px 4px!important}\n#v185DocPreview .obdev-report-body th{background:#06472e!important;color:#fff7d4!important;border-color:#bc9540!important}\n#v185DocPreview .obdev-report-body td{border-color:#729183!important}\n#v185DocPreview .obdev-report-meta{display:grid!important}\n#v185DocPreview .obdev-report-hero{display:grid!important}
+#v185DocPreview .obdev-report-riproduzione{width:100%;min-width:0;max-width:100%}
+#v185DocPreview .obdev-report-riproduzione .obdev-report-meta{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+#v185DocPreview .obdev-report-riproduzione .obdev-report-body .v18-table-wrap{max-width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+#v185DocPreview .obdev-report-riproduzione .obdev-report-body table{min-width:770px;width:770px!important;font-size:11px!important;table-layout:fixed}
+#v185DocPreview .obdev-report-riproduzione .obdev-report-body th,#v185DocPreview .obdev-report-riproduzione .obdev-report-body td{padding:6px 4px!important}
+#v185DocPreview .obdev-report-body th{background:#06472e!important;color:#fff7d4!important;border-color:#bc9540!important}
+#v185DocPreview .obdev-report-body td{border-color:#729183!important}
+#v185DocPreview .obdev-report-meta{display:grid!important}
+#v185DocPreview .obdev-report-hero{display:grid!important}
 #v185DocPreview table{width:100%;border-collapse:collapse;font-size:12px}
 #v185DocPreview th,#v185DocPreview td{border:1px solid #777;padding:6px;vertical-align:top}
 #v185DocPreview .owner-head{border-bottom:2px solid #111;padding-bottom:10px;margin-bottom:14px}
@@ -9414,7 +9419,7 @@ function obDevReportDinamicoCss(){
  .obdev-report-body td{border:1px solid #729183!important;padding:6px 4px!important;line-height:1.24;color:#163b2c;vertical-align:middle;overflow-wrap:anywhere}
  .obdev-report-body tbody tr:nth-child(even){background:#eaf4eb!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
  .obdev-report-body tbody tr{break-inside:avoid;page-break-inside:avoid}
- .obdev-report-statistiche .obdev-report-body{padding:12px;background:linear-gradient(180deg,#fffdf4,#fff)}
+ .ob-pdf-export .obdev-report-riproduzione .obdev-report-body .v18-table-wrap{overflow:visible!important}\n .ob-pdf-export .obdev-report-riproduzione .obdev-report-body table{min-width:0!important;width:100%!important;font-size:9px!important}\n .obdev-report-statistiche .obdev-report-body{padding:12px;background:linear-gradient(180deg,#fffdf4,#fff)}
  .obdev-report-statistiche .obdev-report-body h2,.obdev-report-statistiche .obdev-report-body h3{font-family:Georgia,serif;color:#14533a;margin:9px 0 12px}
  .obdev-report-statistiche .obdev-report-body .card{padding:10px;margin:7px 0;border:1px solid #d5c18f;border-radius:9px;background:#fffef9;break-inside:avoid;page-break-inside:avoid}
  .obdev-report-statistiche .obdev-report-body .v18-metric-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:9px!important;margin:10px 0!important}
@@ -9429,7 +9434,7 @@ function obDevReportDinamicoCss(){
  .obdev-report-soggetti .obdev-report-body th:nth-child(5){width:14%}
  .obdev-report-soggetti .obdev-report-body th:nth-child(6){width:17%}
  .obdev-report-soggetti .obdev-report-body th:nth-child(7){width:27%}
- .obdev-report-riproduzione .obdev-report-body th:nth-child(1){width:13%}
+ .obdev-report-riproduzione .obdev-report-body .v18-table-wrap{max-width:100%;overflow-x:auto}\n @media print{.obdev-report-riproduzione .obdev-report-body .v18-table-wrap{overflow:visible!important}.obdev-report-riproduzione .obdev-report-body table{min-width:0!important;width:100%!important;font-size:8px!important}.obdev-report-riproduzione .obdev-report-body th,.obdev-report-riproduzione .obdev-report-body td{font-size:8px!important;padding:3px 2px!important;overflow-wrap:anywhere}}\n .obdev-report-riproduzione .obdev-report-body th:nth-child(1){width:13%}
  .obdev-report-riproduzione .obdev-report-body th:nth-child(2){width:10%}
  .obdev-report-riproduzione .obdev-report-body th:nth-child(3),.obdev-report-riproduzione .obdev-report-body th:nth-child(4),.obdev-report-riproduzione .obdev-report-body th:nth-child(5),.obdev-report-riproduzione .obdev-report-body th:nth-child(6),.obdev-report-riproduzione .obdev-report-body th:nth-child(7){width:9%}
  .obdev-report-riproduzione .obdev-report-body th:nth-child(8){width:13%}
@@ -9470,6 +9475,10 @@ function v185ApriDocumento(titolo,html,orientamento="portrait"){
   if(title)title.textContent=titolo;
   if(back)back.textContent=origine==="materiale_allevamento"?"← Torna a Materiale da stampare":origine==="report"?"← Torna a Stampe e Report":"← Torna indietro";
   preview.innerHTML=v185DocumentoHtml(titolo,html);
+  if(titolo==="Registro allevamento / riproduzione"){
+    const tabella=preview.querySelector(".obdev-report-riproduzione .v18-table-wrap");
+    if(tabella){tabella.setAttribute("aria-label","Tabella riproduzione: scorri orizzontalmente per vedere tutte le colonne");tabella.setAttribute("tabindex","0");const nota=document.createElement("p");nota.textContent="Scorri la tabella verso destra per leggere tutte le colonne.";nota.className="small";nota.style.cssText="color:#14513f;padding:5px 9px;margin:0;background:#f4f6ed";tabella.parentNode.insertBefore(nota,tabella);}
+  }
   modal.classList.add("open");
   modal.setAttribute("aria-hidden","false");
   obBloccaScroll();
@@ -9557,7 +9566,7 @@ async function v183StampaSchedaRiproduzioneVuota(){v18PrintDoc("Scheda riproduzi
 async function v183StampaRegistroVuoto(){v18PrintDoc("Registro riproduzione cartaceo",v185RegistroRiproduzioneVuotoHtml(),"landscape");}
 async function v183StampaContabilitaVuota(){v18PrintDoc("Registro entrate e uscite",v185ContabilitaVuotaHtml(),"landscape");}
 async function v18StampaStatistiche(){v18PrintDoc("Statistiche allevamento",await v18StatisticheHtml(),"portrait");}
-async function v18StampaRegistro(){v18PrintDoc("Registro allevamento / riproduzione",await v18RegistroHtml(),"landscape");}
+async function v18StampaRegistro(){v18PrintDoc("Registro allevamento / riproduzione",await v18RegistroHtml(),"portrait");}
 async function v18StampaContabilita(){v18PrintDoc("Entrate e uscite",await v18ContabilitaHtml(),"landscape");}
 async function v185SoggettiHtml(){
   const d=await leggi("soggetti");
@@ -9919,7 +9928,7 @@ function v18Init(){
   $("v185DocPdf")?.addEventListener("click",v185ScaricaDocumentoCorrente);
   $("v185DocModal")?.addEventListener("click",e=>{if(e.target===$("v185DocModal"))v185ChiudiDocumento();});
   $("v185PdfStatistiche")?.addEventListener("click",async()=>v185ScaricaPdf("Statistiche allevamento",await v18StatisticheHtml(),"portrait"));
-  $("v185PdfRegistroDati")?.addEventListener("click",async()=>v185ScaricaPdf("Registro allevamento - riproduzione",await v18RegistroHtml(),"landscape"));
+  $("v185PdfRegistroDati")?.addEventListener("click",async()=>v185ScaricaPdf("Registro allevamento - riproduzione",await v18RegistroHtml(),"portrait"));
   $("v185PdfContabilita")?.addEventListener("click",async()=>v185ScaricaPdf("Entrate e uscite",await v18ContabilitaHtml(),"landscape"));
   $("v185PdfSoggetti")?.addEventListener("click",async()=>v185ScaricaPdf("Registro soggetti",await v185SoggettiHtml(),"landscape"));
   $("v185PdfSchedaRiproduzione")?.addEventListener("click",()=>v185ScaricaPdf("Scheda riproduzione",v185SchedaRiproduzioneHtml(),"landscape"));
