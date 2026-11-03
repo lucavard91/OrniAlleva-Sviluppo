@@ -284,7 +284,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .v185-doc-shell{width:min(1100px,100%);background:#fff;border-radius:14px;box-shadow:0 18px 60px rgba(0,0,0,.35);overflow:hidden}
 .v185-doc-toolbar{position:sticky;top:0;z-index:3;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;background:#fff;border-bottom:1px solid #ddd;padding:10px 12px}
 .v185-doc-toolbar .actions{display:flex;gap:8px;flex-wrap:wrap}
-#v185DocPreview{padding:18px;background:#fff;color:#111}
+#v185DocPreview{padding:18px;background:#fff;color:#111}\n#v185DocPreview .obdev-report-body th{background:#06472e!important;color:#fff7d4!important;border-color:#bc9540!important}\n#v185DocPreview .obdev-report-body td{border-color:#729183!important}\n#v185DocPreview .obdev-report-meta{display:grid!important}\n#v185DocPreview .obdev-report-hero{display:grid!important}
 #v185DocPreview table{width:100%;border-collapse:collapse;font-size:12px}
 #v185DocPreview th,#v185DocPreview td{border:1px solid #777;padding:6px;vertical-align:top}
 #v185DocPreview .owner-head{border-bottom:2px solid #111;padding-bottom:10px;margin-bottom:14px}
@@ -9381,64 +9381,68 @@ let v185DocumentoCorrente={titolo:"",html:"",orientamento:"portrait"};
 function v185NomeFile(titolo){
   const a=(allevamentoAttivo?.nome||"allevamento").toString().trim();
   const base=(titolo+" - "+a).normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9 _-]+/g,"").trim().replace(/\s+/g,"_");
-  return (base||"OrniBreed_Report")+".pdf";
+  return (base||"OrniAlleva_Report")+".pdf";
 }
 
-/* Registro Soggetti OrniAlleva: modello dinamico, solo per Stampe e Report. */
-function obDevReportSoggettiCss(){
- return \`<style>
- .obdev-report{font-family:Arial,Helvetica,sans-serif;color:#123c2e;background:#fff;max-width:100%;box-sizing:border-box}
+
+/* OrniAlleva - Stampe e Report automatici: stesso modello per anteprima, stampa e PDF. */
+function obDevReportDinamicoCss(){
+ return `<style>
+ .obdev-report{font-family:Arial,Helvetica,sans-serif;color:#123c2e;background:#fff;width:100%;box-sizing:border-box}
  .obdev-report *{box-sizing:border-box}
- .obdev-report-hero{position:relative;display:grid;grid-template-columns:110px minmax(0,1fr);gap:15px;align-items:center;min-height:130px;padding:12px 22px 12px 12px;overflow:hidden;border:3px solid #b89438;border-radius:13px 13px 0 0;background:linear-gradient(115deg,rgba(0,48,29,.97),rgba(0,84,43,.87) 52%,rgba(0,48,29,.95)),radial-gradient(circle at 85% 10%,#d1a750,transparent 45%);color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
- .obdev-report-hero:after{content:"❀  ❧  ❀";position:absolute;right:12px;top:5px;color:#d8c078;font-size:21px;opacity:.55;letter-spacing:9px;pointer-events:none}
- .obdev-report-logo{width:108px;height:108px;object-fit:cover;object-position:center 50%;border:2px solid #d5b35a;border-radius:50%;background:#063a25;box-shadow:0 0 0 3px rgba(255,255,255,.12)}
- .obdev-report-hero-copy{text-align:center;min-width:0;padding-right:10px}
- .obdev-report-hero-copy strong{display:block;font-family:Georgia,serif;color:#fff8d8;text-shadow:0 2px 2px #071d13;font-size:clamp(18px,3vw,31px);line-height:1.13;letter-spacing:.7px}
- .obdev-report-hero-copy small{display:block;margin-top:5px;font-size:15px;color:#e5cb77;letter-spacing:3px;font-weight:700}
- .obdev-report-hero-copy em{display:block;font-size:11px;color:#f0e8cb;margin-top:8px;font-style:italic}
- .obdev-report-meta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;background:#fffdf6;padding:9px 7px;border-left:2px solid #b89438;border-right:2px solid #b89438}
- .obdev-report-meta>div{min-width:0;border:1px solid #c7ac61;border-radius:6px;background:#fff;padding:7px 8px;font-size:11px;overflow-wrap:anywhere}
- .obdev-report-meta b{display:block;color:#145139;font-size:10px;margin-bottom:2px}
- .obdev-report-meta span{font-weight:700}
- .obdev-report-content{border-left:2px solid #b89438;border-right:2px solid #b89438;padding:0 6px 6px;background:#fff}
- .obdev-report-content table{table-layout:fixed;width:100%;border-collapse:collapse;font-size:11px;margin:0;border:1px solid #0f5137}
- .obdev-report-content table th{background:#07482b!important;color:#fff8dc!important;border:1px solid #c5a24b!important;text-align:center!important;font-weight:700;padding:10px 4px!important;overflow-wrap:anywhere;-webkit-print-color-adjust:exact;print-color-adjust:exact}
- .obdev-report-content table td{border:1px solid #719686!important;padding:6px 4px!important;line-height:1.2;overflow-wrap:anywhere;color:#18362b;vertical-align:middle}
- .obdev-report-content tbody tr:nth-child(even){background:#eef7ef!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
- .obdev-report-content tbody tr{break-inside:avoid;page-break-inside:avoid}
- .obdev-report-content thead{display:table-header-group}
- .obdev-report-content th:nth-child(1),.obdev-report-content td:nth-child(1){width:9%}
- .obdev-report-content th:nth-child(2),.obdev-report-content td:nth-child(2){width:11%}
- .obdev-report-content th:nth-child(3),.obdev-report-content td:nth-child(3){width:10%}
- .obdev-report-content th:nth-child(4),.obdev-report-content td:nth-child(4){width:12%}
- .obdev-report-content th:nth-child(5),.obdev-report-content td:nth-child(5){width:15%}
- .obdev-report-content th:nth-child(6),.obdev-report-content td:nth-child(6){width:16%}
- .obdev-report-content th:nth-child(7),.obdev-report-content td:nth-child(7){width:27%}
- .obdev-report-foot{padding:10px 14px;background:linear-gradient(105deg,#063923,#08613b,#063923);border:2px solid #b89438;border-top:3px solid #d9b45c;border-radius:0 0 13px 13px;color:#fff5cc;display:flex;justify-content:space-between;align-items:center;gap:15px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
- .obdev-report-foot strong{color:#f8db91;font-family:Georgia,serif;font-size:17px}
- .obdev-report-foot em{font-family:Georgia,serif;font-size:11px}
- @media print{.obdev-report{max-width:none}.obdev-report-hero{min-height:30mm;grid-template-columns:25mm 1fr;padding:2mm 4mm}.obdev-report-logo{width:24mm;height:24mm}.obdev-report-hero-copy strong{font-size:21pt}.obdev-report-content table{font-size:9pt}.obdev-report-content table td{padding:1.4mm 1mm!important}.obdev-report-hero,.obdev-report-meta,.obdev-report-foot{break-inside:avoid;page-break-inside:avoid}}
- @media(max-width:600px){.obdev-report-hero{grid-template-columns:58px minmax(0,1fr);gap:8px;min-height:90px;padding:8px}.obdev-report-logo{width:58px;height:58px}.obdev-report-hero-copy strong{font-size:17px}.obdev-report-hero-copy small{font-size:9px;letter-spacing:1px}.obdev-report-hero-copy em{font-size:8px}.obdev-report-meta{grid-template-columns:repeat(2,minmax(0,1fr))}.obdev-report-content table{font-size:8px!important}.obdev-report-content table th,.obdev-report-content table td{padding:3px 2px!important}.obdev-report-foot strong{font-size:12px}.obdev-report-foot em{font-size:9px}}
- </style>\`;
+ .obdev-report-hero{position:relative;display:grid;grid-template-columns:92px minmax(0,1fr);gap:12px;align-items:center;padding:13px;min-height:115px;overflow:hidden;border:2px solid #bc9540;border-radius:11px 11px 0 0;background:linear-gradient(100deg,rgba(0,43,28,.92),rgba(0,89,51,.86),rgba(0,49,30,.94)),radial-gradient(circle at 78% 20%,#cfbd73,transparent 45%);color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ .obdev-report-hero:after{content:"❀  ❧  ❀";position:absolute;right:9px;top:5px;font-size:19px;color:#e9d292;letter-spacing:6px;opacity:.65}
+ .obdev-report-identity{width:88px;height:88px;border-radius:50%;border:2px solid #deb969;background:#063923;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 2px 10px #002a1c}
+ .obdev-report-identity img{width:100%;height:100%;object-fit:cover}
+ .obdev-report-heading{text-align:center;min-width:0;padding-right:10px}
+ .obdev-report-heading strong{display:block;font:700 26px/1.12 Georgia,serif;letter-spacing:.3px;color:#fff3c7;text-shadow:0 2px 2px #12372b;overflow-wrap:anywhere}
+ .obdev-report-heading small{display:block;margin-top:5px;color:#eed18d;font:700 15px/1.1 Georgia,serif;letter-spacing:2px}
+ .obdev-report-heading em{display:block;margin-top:7px;color:#fff9df;font:italic 11px Georgia,serif}
+ .obdev-report-meta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;padding:9px 7px;background:#f8fbf4;border-left:2px solid #bc9540;border-right:2px solid #bc9540}
+ .obdev-report-meta>div{min-width:0;overflow-wrap:anywhere;padding:7px 8px;background:#fff;border:1px solid #cfb471;border-radius:5px;font-size:11px}
+ .obdev-report-meta b{display:block;margin-bottom:3px;color:#0d5435;font-size:10px}
+ .obdev-report-meta span{font-weight:700;color:#183c30}
+ .obdev-report-body{border-left:2px solid #bc9540;border-right:2px solid #bc9540;padding:0 6px 7px;background:#fff}
+ .obdev-report-body .card{margin:0;padding:0;box-shadow:none;border:0;background:transparent;overflow:visible}
+ .obdev-report-body table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:11px!important;margin:0}
+ .obdev-report-body thead{display:table-header-group}
+ .obdev-report-body th{background:#06472e!important;color:#fff7d4!important;border:1px solid #bc9540!important;text-align:center!important;padding:9px 4px!important;font-weight:700!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ .obdev-report-body td{border:1px solid #729183!important;padding:6px 4px!important;line-height:1.24;color:#163b2c;vertical-align:middle;overflow-wrap:anywhere}
+ .obdev-report-body tbody tr:nth-child(even){background:#eaf4eb!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ .obdev-report-body tbody tr{break-inside:avoid;page-break-inside:avoid}
+ .obdev-report-soggetti .obdev-report-body th:nth-child(1){width:9%}
+ .obdev-report-soggetti .obdev-report-body th:nth-child(2){width:11%}
+ .obdev-report-soggetti .obdev-report-body th:nth-child(3){width:9%}
+ .obdev-report-soggetti .obdev-report-body th:nth-child(4){width:13%}
+ .obdev-report-soggetti .obdev-report-body th:nth-child(5){width:14%}
+ .obdev-report-soggetti .obdev-report-body th:nth-child(6){width:17%}
+ .obdev-report-soggetti .obdev-report-body th:nth-child(7){width:27%}
+ .obdev-report-riproduzione .obdev-report-body th:nth-child(1){width:13%}
+ .obdev-report-riproduzione .obdev-report-body th:nth-child(2){width:10%}
+ .obdev-report-riproduzione .obdev-report-body th:nth-child(3),.obdev-report-riproduzione .obdev-report-body th:nth-child(4),.obdev-report-riproduzione .obdev-report-body th:nth-child(5),.obdev-report-riproduzione .obdev-report-body th:nth-child(6),.obdev-report-riproduzione .obdev-report-body th:nth-child(7){width:9%}
+ .obdev-report-riproduzione .obdev-report-body th:nth-child(8){width:16%}
+ .obdev-report-riproduzione .obdev-report-body th:nth-child(9){width:16%}
+ .obdev-report-foot{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 13px;background:linear-gradient(100deg,#063923,#087044,#063923);color:#fff5cf;border:2px solid #bc9540;border-top:3px solid #d2aa56;border-radius:0 0 11px 11px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ .obdev-report-foot strong{font:700 17px Georgia,serif;color:#f3d78e}
+ .obdev-report-foot em{font:italic 11px Georgia,serif}
+ @media(max-width:650px){.obdev-report-hero{grid-template-columns:54px minmax(0,1fr);gap:7px;min-height:83px;padding:8px}.obdev-report-identity{width:51px;height:51px}.obdev-report-heading strong{font-size:16px}.obdev-report-heading small{font-size:10px;letter-spacing:1px}.obdev-report-heading em{font-size:8px}.obdev-report-meta{grid-template-columns:repeat(2,minmax(0,1fr))}.obdev-report-body table{font-size:9px!important}.obdev-report-body th,.obdev-report-body td{padding:3px 2px!important}.obdev-report-foot strong{font-size:12px}.obdev-report-foot em{font-size:9px}}
+ @media print{.obdev-report-hero{min-height:28mm;grid-template-columns:24mm minmax(0,1fr)}.obdev-report-identity{width:22mm;height:22mm}.obdev-report-heading strong{font-size:20pt}.obdev-report-meta{grid-template-columns:repeat(4,minmax(0,1fr))}.obdev-report-body table{font-size:9pt!important}.obdev-report-hero,.obdev-report-meta,.obdev-report-foot{break-inside:avoid;page-break-inside:avoid}}
+ </style>`;
 }
-function obDevReportSoggetti(titolo,html){
+function obDevReportDinamico(titolo,html){
+ const soggetti=titolo==="Registro soggetti";
  const nome=[profilo?.nome,profilo?.cognome].filter(Boolean).join(" ").trim()||"—";
  const rna=(profilo?.rna||"").trim()||"—";
  const allevamento=(allevamentoAttivo?.nome||"").trim()||"—";
  const anno=String(new Date().getFullYear());
- return obDevReportSoggettiCss()+\`<article class="obdev-report">
- <header class="obdev-report-hero">
- <img class="obdev-report-logo" src="ob_asset_051_3aefa10cbb.jpg?oa=20261028" alt="Logo OrniAlleva">
- <div class="obdev-report-hero-copy"><strong>REGISTRO SOGGETTI</strong><small>OrniAlleva</small><em>La tua passione. Il tuo allevamento.</em></div>
- </header>
- <div class="obdev-report-meta"><div><b>Allevatore</b><span>\${esc(nome)}</span></div><div><b>Allevamento</b><span>\${esc(allevamento)}</span></div><div><b>R.N.A.</b><span>\${esc(rna)}</span></div><div><b>Anno</b><span>\${esc(anno)}</span></div></div>
- <div class="obdev-report-content">\${html}</div>
- <footer class="obdev-report-foot"><em>“Oggi le nostre cure, domani i loro voli.”</em><strong>OrniAlleva</strong></footer>
- </article>\`;
+ const heading=soggetti?"REGISTRO SOGGETTI":"REGISTRO ALLEVAMENTO / RIPRODUZIONE";
+ return obDevReportDinamicoCss()+`<article class="obdev-report obdev-report-${soggetti?"soggetti":"riproduzione"}">
+ <header class="obdev-report-hero"><div class="obdev-report-identity"><img src="ob_asset_051_3aefa10cbb.jpg?oa=20261028" alt="OrniAlleva"></div><div class="obdev-report-heading"><strong>${heading}</strong><small>OrniAlleva</small><em>La tua passione. Il tuo allevamento.</em></div></header>
+ <div class="obdev-report-meta"><div><b>Allevatore</b><span>${esc(nome)}</span></div><div><b>Allevamento</b><span>${esc(allevamento)}</span></div><div><b>R.N.A.</b><span>${esc(rna)}</span></div><div><b>Anno</b><span>${esc(anno)}</span></div></div>
+ <div class="obdev-report-body">${html}</div><footer class="obdev-report-foot"><em>“Oggi le nostre cure, domani i loro voli.”</em><strong>OrniAlleva</strong></footer></article>`;
 }
-
 function v185DocumentoHtml(titolo,html){
-  if(titolo==="Registro soggetti")return obDevReportSoggetti(titolo,html);
+  if(titolo==="Registro soggetti"||titolo==="Registro allevamento / riproduzione"||titolo==="Registro allevamento - riproduzione")return obDevReportDinamico(titolo,html);
   const nome=[profilo?.nome,profilo?.cognome].filter(Boolean).join(" ").trim()||"—";
   const rna=(profilo?.rna||"").trim()||"—";
   const allevamento=(allevamentoAttivo?.nome||"").trim()||"—";
