@@ -826,13 +826,10 @@ html:has(body.ob-catalog-locked){overflow:hidden!important}body.ob-catalog-locke
 @keyframes v264BgIn{0%{opacity:0;transform:scale(1.16)}100%{opacity:1;transform:scale(1.08)}}
 @keyframes v264ImageReveal{0%{opacity:0;transform:scale(.16)}28%{opacity:.56}100%{opacity:1;transform:scale(1)}}
 @media(min-width:701px){
-  /* Intro desktop: composizione panoramica a pieno schermo; nessuna deformazione dell'immagine. */
-  #v255BrandIntro{background:#092a1d!important}
   #v255BrandIntro::before{display:none!important;animation:none!important;filter:none!important}
-  #v255BrandIntro::after{background:linear-gradient(90deg,rgba(4,26,18,.18),transparent 28%,transparent 72%,rgba(4,26,18,.18))!important}
-  .v261-intro-bg{display:block!important;inset:-3%!important;background-image:url("ob_asset_051_3aefa10cbb.jpg?oa=20261028")!important;background-position:center center!important;background-size:cover!important;filter:blur(9px) saturate(1.16) brightness(.77)!important;transform:scale(1.07)!important;opacity:1!important;animation:none!important}
-  .v256-intro-image{width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important;object-fit:cover!important;object-position:center 51%!important;filter:none!important;will-change:transform,opacity;animation:v3019DesktopIntro 4.55s cubic-bezier(.18,.72,.22,1) both!important}
-  @keyframes v3019DesktopIntro{0%{opacity:0;transform:scale(1.06)}28%{opacity:.58}100%{opacity:1;transform:scale(1)}}
+  .v261-intro-bg{display:none!important;animation:none!important;filter:none!important}
+  .v256-intro-image{filter:none!important;will-change:transform,opacity;animation:v3019DesktopIntro 4.55s cubic-bezier(.18,.72,.22,1) both!important}
+  @keyframes v3019DesktopIntro{0%{opacity:0;transform:scale(.72)}28%{opacity:.58}100%{opacity:1;transform:scale(1)}}
 }
 #loginScreen,#registerScreen,#phoneAuthScreen,#recoverAccountScreen,#resetScreen{position:fixed!important;inset:0!important;z-index:900000!important;max-width:none!important;width:100%!important;min-height:100dvh!important;margin:0!important;padding:clamp(130px,25dvh,250px) 16px max(24px,env(safe-area-inset-bottom))!important;box-sizing:border-box!important;overflow:auto!important;border-radius:0!important;box-shadow:none!important;display:flex;align-items:flex-start;justify-content:center;background:linear-gradient(180deg,rgba(3,24,18,.02) 0%,rgba(3,24,18,.10) 40%,rgba(2,21,16,.76) 66%,rgba(2,18,14,.94) 100%),var(--v264-auth-bg) center center/cover no-repeat fixed!important}
 #loginScreen.hidden,#registerScreen.hidden,#phoneAuthScreen.hidden,#recoverAccountScreen.hidden,#resetScreen.hidden{display:none!important}
