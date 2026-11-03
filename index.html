@@ -9508,28 +9508,38 @@ function v185StampaDocumentoCorrente(){
   w.document.close();
 }
 async function v185ScaricaPdf(titolo,html,orientamento="portrait"){
+  // Safari iOS: render nel viewport, mai in un elemento posizionato fuori dallo schermo.
+  if(typeof html2pdf!=="function"){obAvviso("Il modulo PDF non è disponibile. Controlla la connessione.");return;}
+  let holder=null;
+  if(window.v248OpShow)window.v248OpShow("Preparazione PDF…");
   try{
-    if(typeof html2pdf!=="function"){
-      obAvviso("Il modulo PDF non è ancora disponibile. Controlla la connessione internet e riprova.");
-      return;
-    }
-    const holder=document.createElement("div");
-    holder.style.cssText="position:absolute;left:0;top:0;width:"+(orientamento==="landscape"?"1050px":"745px")+";background:#fff;color:#111;padding:12px;font-family:Arial,sans-serif;z-index:0;pointer-events:none;box-sizing:border-box";holder.className="ob-pdf-export";
-    holder.innerHTML=`<style>${v185PrintCss(orientamento)}.ob-pdf-export .obdev-report-meta{grid-template-columns:repeat(4,minmax(0,1fr))!important}.ob-pdf-export .obdev-report-hero{grid-template-columns:92px minmax(0,1fr)!important;min-height:112px!important}.ob-pdf-export .obdev-report-identity{width:88px!important;height:88px!important}.ob-pdf-export .obdev-report-body table{font-size:10px!important}.ob-pdf-export .obdev-report-body th,.ob-pdf-export .obdev-report-body td{padding:5px 3px!important}.ob-pdf-export .obdev-report-statistiche select,.ob-pdf-export .obdev-report-statistiche button,.ob-pdf-export .obdev-report-statistiche .actions,.ob-pdf-export .obdev-report-statistiche [role="button"]{display:none!important}</style>${v185DocumentoHtml(titolo,html)}`;
+    holder=document.createElement("div");
+    holder.className="ob-pdf-export";
+    const pageWidth=orientamento==="landscape"?1040:730;
+    holder.style.cssText="position:fixed;left:0;top:0;width:"+pageWidth+"px;max-width:none;box-sizing:border-box;padding:12px;background:#fff;color:#111;z-index:2147483000;pointer-events:none;opacity:1;font-family:Arial,sans-serif;overflow:visible";
+    holder.innerHTML=`<style>${v185PrintCss(orientamento)}.ob-pdf-export .obdev-report-meta{grid-template-columns:repeat(4,minmax(0,1fr))!important}.ob-pdf-export .obdev-report-hero{grid-template-columns:92px minmax(0,1fr)!important;min-height:112px!important}.ob-pdf-export .obdev-report-identity{width:88px!important;height:88px!important}.ob-pdf-export .obdev-report-body table{font-size:10px!important}.ob-pdf-export .obdev-report-body th,.ob-pdf-export .obdev-report-body td{padding:5px 3px!important}.ob-pdf-export .obdev-report-riproduzione .v18-table-wrap{overflow:visible!important}.ob-pdf-export .obdev-report-riproduzione table{width:100%!important;min-width:0!important;font-size:8px!important}.ob-pdf-export .obdev-report-statistiche select,.ob-pdf-export .obdev-report-statistiche button,.ob-pdf-export .obdev-report-statistiche .actions,.ob-pdf-export .obdev-report-statistiche [role="button"]{display:none!important}</style>${v185DocumentoHtml(titolo,html)}`;
     document.body.appendChild(holder);
-    const opt={
-      margin:8,
-      filename:v185NomeFile(titolo),
-      image:{type:"jpeg",quality:0.96},
-      html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff"},
+    await Promise.all([...holder.querySelectorAll("img")].map(img=>{
+      if(img.complete)return Promise.resolve();
+      return new Promise(resolve=>{img.addEventListener("load",resolve,{once:true});img.addEventListener("error",resolve,{once:true});});
+    }));
+    if(document.fonts?.ready)await document.fonts.ready;
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    if(!holder.getBoundingClientRect().width||!holder.querySelector(".obdev-report"))throw new Error("Il documento non è pronto per l'esportazione.");
+    await html2pdf().set({
+      margin:7,filename:v185NomeFile(titolo),
+      image:{type:"jpeg",quality:.96},
+      html2canvas:{scale:1.35,useCORS:true,allowTaint:false,backgroundColor:"#ffffff",scrollX:0,scrollY:0,windowWidth:pageWidth},
       jsPDF:{unit:"mm",format:"a4",orientation:orientamento},
       pagebreak:{mode:["css","legacy"]}
-    };
-    await html2pdf().set(opt).from(holder).save();
-    holder.remove();
+    }).from(holder).save();
+    if(window.v248OpDone)window.v248OpDone("PDF generato");
   }catch(e){
-    console.error(e);
+    console.error("OrniAlleva PDF report",e);
+    if(window.v248OpHide)window.v248OpHide();
     obAvviso("Non è stato possibile creare il PDF: "+(e?.message||e));
+  }finally{
+    holder?.remove();
   }
 }
 async function v185ScaricaDocumentoCorrente(){
@@ -12083,25 +12093,36 @@ function v263Print(titolo,tipo){
   w.focus();
 }
 async function v263Pdf(titolo,tipo){
-  if(window.v248OpShow)v248OpShow("Preparazione PDF…");
+  // Esporta una copia A4 a grandezza reale: non usare l'anteprima ridimensionata.
+  if(typeof html2pdf!=="function"){obAvviso("Il modulo PDF non è disponibile.");return;}
+  let holder=null;
+  if(window.v248OpShow)window.v248OpShow("Preparazione PDF…");
   try{
-    if(typeof html2pdf!=="function")throw new Error("Il modulo PDF non è disponibile.");
-    const source=document.querySelector('#v185DocPreview .ob-approved-page');
-    if(!source)throw new Error("Apri prima l’anteprima del documento.");
-    const imgs=[...source.querySelectorAll('img')];
-    await Promise.all(imgs.map(img=>img.complete&&img.naturalWidth?Promise.resolve():new Promise((resolve,reject)=>{img.addEventListener('load',resolve,{once:true});img.addEventListener('error',()=>reject(new Error('Immagine del modello non disponibile.')),{once:true});})));
-    await Promise.all(imgs.map(img=>typeof img.decode==='function'?img.decode().catch(()=>{}):Promise.resolve()));
-    v263FitFields(source);await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
-    if(tipo==="cova"){
-      const oldWidth=source.style.width,oldHeight=source.style.height,oldAspect=source.style.aspectRatio;
-      source.style.width='210mm';source.style.height='296.5mm';source.style.aspectRatio='auto';
-      try{await html2pdf().set({margin:0,filename:v185NomeFile(titolo),image:{type:"jpeg",quality:.99},html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff",scrollX:0,scrollY:0},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},pagebreak:{mode:["avoid-all"]}}).from(source).save();}
-      finally{source.style.width=oldWidth;source.style.height=oldHeight;source.style.aspectRatio=oldAspect;}
-    }else{
-      await html2pdf().set({margin:0,filename:v185NomeFile(titolo),image:{type:"jpeg",quality:.99},html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff",scrollX:0,scrollY:0},jsPDF:{unit:"mm",format:"a4",orientation:"landscape"},pagebreak:{mode:["avoid-all"]}}).from(source).save();
-    }
-    if(window.v248OpDone)v248OpDone("PDF pronto");
-  }catch(e){if(window.v248OpHide)v248OpHide();console.error(e);errore(new Error("Non è stato possibile creare il PDF: "+(e?.message||e)));}
+    const cova=tipo==="cova";
+    const width=cova?794:1122,height=cova?1122:794;
+    holder=document.createElement("div");
+    holder.style.cssText="position:fixed;left:0;top:0;width:"+width+"px;height:"+height+"px;max-width:none;background:#fff;z-index:2147483000;pointer-events:none;opacity:1;overflow:hidden";
+    holder.innerHTML=`<style>${v263ApprovedCss(tipo,"preview")}.ob-pdf-sheet .ob-approved-page{width:${width}px!important;height:${height}px!important;aspect-ratio:auto!important}.ob-pdf-sheet .ob-approved-field{font-size:${cova?12:tipo==="coppie"?11:14}px!important}</style><div class="ob-pdf-sheet">${v263ApprovedSheet(tipo)}</div>`;
+    document.body.appendChild(holder);
+    const imgs=[...holder.querySelectorAll("img")];
+    await Promise.all(imgs.map(img=>img.complete&&img.naturalWidth?Promise.resolve():new Promise((resolve,reject)=>{
+      img.addEventListener("load",resolve,{once:true});
+      img.addEventListener("error",()=>reject(new Error("Immagine del registro non disponibile: "+img.src)),{once:true});
+    })));
+    if(imgs.some(img=>!img.naturalWidth))throw new Error("Immagine del registro non caricata.");
+    v263FitFields(holder);
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    await html2pdf().set({
+      margin:0,filename:v185NomeFile(titolo),image:{type:"jpeg",quality:.98},
+      html2canvas:{scale:1.5,useCORS:true,backgroundColor:"#fff",scrollX:0,scrollY:0,windowWidth:width},
+      jsPDF:{unit:"mm",format:"a4",orientation:cova?"portrait":"landscape"},pagebreak:{mode:["avoid-all"]}
+    }).from(holder).save();
+    if(window.v248OpDone)window.v248OpDone("PDF generato");
+  }catch(e){
+    if(window.v248OpHide)window.v248OpHide();
+    console.error("OrniAlleva PDF registro",e);
+    errore(new Error("Non è stato possibile creare il PDF: "+(e?.message||e)));
+  }finally{holder?.remove();}
 }
 window.addEventListener("DOMContentLoaded",()=>{
   document.querySelectorAll("img[data-approved-type]").forEach(img=>{img.onerror=()=>{img.alt="Immagine non disponibile: verifica il file PNG nel repository";};img.src=OB_APPROVED_PRINT_ASSETS[img.dataset.approvedType]||"";});
