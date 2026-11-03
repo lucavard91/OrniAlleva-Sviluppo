@@ -9410,6 +9410,14 @@ function obDevReportDinamicoCss(){
  .obdev-report-body td{border:1px solid #729183!important;padding:6px 4px!important;line-height:1.24;color:#163b2c;vertical-align:middle;overflow-wrap:anywhere}
  .obdev-report-body tbody tr:nth-child(even){background:#eaf4eb!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
  .obdev-report-body tbody tr{break-inside:avoid;page-break-inside:avoid}
+ .obdev-report-statistiche .obdev-report-body{padding:12px;background:linear-gradient(180deg,#fffdf4,#fff)}
+ .obdev-report-statistiche .obdev-report-body h2,.obdev-report-statistiche .obdev-report-body h3{font-family:Georgia,serif;color:#14533a;margin:9px 0 12px}
+ .obdev-report-statistiche .obdev-report-body .card{padding:10px;margin:7px 0;border:1px solid #d5c18f;border-radius:9px;background:#fffef9;break-inside:avoid;page-break-inside:avoid}
+ .obdev-report-statistiche .obdev-report-body .v18-metric-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:9px!important;margin:10px 0!important}
+ .obdev-report-statistiche .obdev-report-body .v18-metric,.obdev-report-statistiche .obdev-report-body .ob-v3045-metric,.obdev-report-statistiche .obdev-report-body [class*="metric-card"]{background:linear-gradient(135deg,#eaf4eb,#fffdf4)!important;border:1px solid #ba9d59!important;border-radius:10px!important;padding:10px!important;box-shadow:none!important;color:#164d35!important;break-inside:avoid}
+ .obdev-report-statistiche .obdev-report-body .v18-metric b,.obdev-report-statistiche .obdev-report-body [class*="metric"] strong{color:#085938!important}
+ .obdev-report-statistiche .obdev-report-body select,.obdev-report-statistiche .obdev-report-body button,.obdev-report-statistiche .obdev-report-body .actions{display:none!important}
+ @media(max-width:650px){.obdev-report-statistiche .obdev-report-body .v18-metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
  .obdev-report-soggetti .obdev-report-body th:nth-child(1){width:9%}
  .obdev-report-soggetti .obdev-report-body th:nth-child(2){width:11%}
  .obdev-report-soggetti .obdev-report-body th:nth-child(3){width:9%}
@@ -9431,18 +9439,19 @@ function obDevReportDinamicoCss(){
 }
 function obDevReportDinamico(titolo,html){
  const soggetti=titolo==="Registro soggetti";
+ const statistiche=titolo==="Statistiche allevamento";
  const nome=[profilo?.nome,profilo?.cognome].filter(Boolean).join(" ").trim()||"—";
  const rna=(profilo?.rna||"").trim()||"—";
  const allevamento=(allevamentoAttivo?.nome||"").trim()||"—";
  const anno=String(new Date().getFullYear());
- const heading=soggetti?"REGISTRO SOGGETTI":"REGISTRO ALLEVAMENTO / RIPRODUZIONE";
- return obDevReportDinamicoCss()+`<article class="obdev-report obdev-report-${soggetti?"soggetti":"riproduzione"}">
+ const heading=soggetti?"REGISTRO SOGGETTI":statistiche?"STATISTICHE ALLEVAMENTO":"REGISTRO ALLEVAMENTO / RIPRODUZIONE";
+ return obDevReportDinamicoCss()+`<article class="obdev-report obdev-report-${soggetti?"soggetti":statistiche?"statistiche":"riproduzione"}">
  <header class="obdev-report-hero"><div class="obdev-report-identity"><img src="ob_asset_051_3aefa10cbb.jpg?oa=20261028" alt="OrniAlleva"></div><div class="obdev-report-heading"><strong>${heading}</strong><small>OrniAlleva</small><em>La tua passione. Il tuo allevamento.</em></div></header>
  <div class="obdev-report-meta"><div><b>Allevatore</b><span>${esc(nome)}</span></div><div><b>Allevamento</b><span>${esc(allevamento)}</span></div><div><b>R.N.A.</b><span>${esc(rna)}</span></div><div><b>Anno</b><span>${esc(anno)}</span></div></div>
  <div class="obdev-report-body">${html}</div><footer class="obdev-report-foot"><em>“Oggi le nostre cure, domani i loro voli.”</em><strong>OrniAlleva</strong></footer></article>`;
 }
 function v185DocumentoHtml(titolo,html){
-  if(titolo==="Registro soggetti"||titolo==="Registro allevamento / riproduzione"||titolo==="Registro allevamento - riproduzione")return obDevReportDinamico(titolo,html);
+  if(titolo==="Registro soggetti"||titolo==="Registro allevamento / riproduzione"||titolo==="Registro allevamento - riproduzione"||titolo==="Statistiche allevamento")return obDevReportDinamico(titolo,html);
   const nome=[profilo?.nome,profilo?.cognome].filter(Boolean).join(" ").trim()||"—";
   const rna=(profilo?.rna||"").trim()||"—";
   const allevamento=(allevamentoAttivo?.nome||"").trim()||"—";
