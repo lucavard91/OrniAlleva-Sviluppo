@@ -12014,7 +12014,7 @@ section:not(#home) > .v254-home-fixed{
 </script>
 <script>
 /* ===== OrniAlleva V26.37.43.9.7.2.21 — moduli approvati: una funzione, una sorgente ===== */
-const OB_APPROVED_PRINT_ASSETS={coppie:'ornialleva_registro_coppie.png',soggetti:'ornialleva_registro_soggetti.png',cova:'assets_embedded/assets_embedded/ob_asset_084_435e157910.png'};
+const OB_APPROVED_PRINT_ASSETS={coppie:'Registro_Coppie_Versione_2_Originale.png?v=20261103',soggetti:'registro_ornialleva_tra_foglie_e_voli.png?v=20261103',cova:'assets_embedded/assets_embedded/ob_asset_084_435e157910.png'};
 const OB_APPROVED_PRINT_LEGACY={coppie:'assets_embedded/assets_embedded/ob_asset_082_fb0d509a3c.png',soggetti:'assets_embedded/assets_embedded/ob_asset_083_c85130c66e.png'};
 function v263PrintProfile(){return {nome:[profilo?.nome,profilo?.cognome].filter(Boolean).join(" ").trim(),rna:(profilo?.rna||"").trim(),allevamento:(allevamentoAttivo?.nome||"").trim(),anno:String(new Date().getFullYear())};}
 function v263ApprovedSheet(tipo){
@@ -12091,7 +12091,7 @@ async function v263Pdf(titolo,tipo){
   }catch(e){if(window.v248OpHide)v248OpHide();console.error(e);errore(new Error("Non è stato possibile creare il PDF: "+(e?.message||e)));}
 }
 window.addEventListener("DOMContentLoaded",()=>{
-  document.querySelectorAll("img[data-approved-type]").forEach(img=>{img.src=OB_APPROVED_PRINT_ASSETS[img.dataset.approvedType]||"";});
+  document.querySelectorAll("img[data-approved-type]").forEach(img=>{img.onerror=()=>{img.alt="Immagine non disponibile: verifica il file PNG nel repository";};img.src=OB_APPROVED_PRINT_ASSETS[img.dataset.approvedType]||"";});
   [["v263Coppie","Registro Coppie","coppie"],["v263Soggetti","Registro Soggetti","soggetti"],["v263Cova","Scheda Cova — 8 per pagina","cova"]].forEach(([id,titolo,tipo])=>{
     document.getElementById(id+"Preview")?.addEventListener("click",()=>v263OpenPreview(titolo,tipo));
     document.getElementById(id+"Print")?.addEventListener("click",()=>v263Print(titolo,tipo));
