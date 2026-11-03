@@ -284,7 +284,11 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .v185-doc-shell{width:min(1100px,100%);background:#fff;border-radius:14px;box-shadow:0 18px 60px rgba(0,0,0,.35);overflow:hidden}
 .v185-doc-toolbar{position:sticky;top:0;z-index:3;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;background:#fff;border-bottom:1px solid #ddd;padding:10px 12px}
 .v185-doc-toolbar .actions{display:flex;gap:8px;flex-wrap:wrap}
-#v185DocPreview{padding:18px;background:#fff;color:#111}\n#v185DocPreview .obdev-report-body th{background:#06472e!important;color:#fff7d4!important;border-color:#bc9540!important}\n#v185DocPreview .obdev-report-body td{border-color:#729183!important}\n#v185DocPreview .obdev-report-meta{display:grid!important}\n#v185DocPreview .obdev-report-hero{display:grid!important}
+#v185DocPreview{padding:18px;background:#fff;color:#111;overflow-x:auto}
+#v185DocPreview .obdev-report-riproduzione{min-width:850px;max-width:none}
+#v185DocPreview .obdev-report-riproduzione .obdev-report-meta{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+#v185DocPreview .obdev-report-riproduzione .obdev-report-body table{font-size:11px!important}
+#v185DocPreview .obdev-report-riproduzione .obdev-report-body th,#v185DocPreview .obdev-report-riproduzione .obdev-report-body td{padding:6px 4px!important}\n#v185DocPreview .obdev-report-body th{background:#06472e!important;color:#fff7d4!important;border-color:#bc9540!important}\n#v185DocPreview .obdev-report-body td{border-color:#729183!important}\n#v185DocPreview .obdev-report-meta{display:grid!important}\n#v185DocPreview .obdev-report-hero{display:grid!important}
 #v185DocPreview table{width:100%;border-collapse:collapse;font-size:12px}
 #v185DocPreview th,#v185DocPreview td{border:1px solid #777;padding:6px;vertical-align:top}
 #v185DocPreview .owner-head{border-bottom:2px solid #111;padding-bottom:10px;margin-bottom:14px}
@@ -9340,7 +9344,7 @@ async function v18StatisticheHtml(){
  return `<div class="card"><h2 style="margin:0">Statistiche allevamento${attiva?` · Stagione ${esc(attiva.anno)}`:""}</h2></div><div class="v18-metric-grid">${obV3045MetricCard("stat_riproduttori.png",`Riproduttori stagione ${anno}`,riproduttori)}${obV3045MetricCard("stat_non_riproduzione.png","Soggetti non in riproduzione",nonRiproduzione)}${obV3045MetricCard("stat_nuovi_soggetti.png",`Nuovi soggetti ${anno}`,soggettiAnno)}${obV3045MetricCard("stat_totale_soggetti.png","Totale soggetti presenti",presenti)}${obV3045MetricCard("stat_soggetti_morti.png",`Soggetti morti ${anno}`,mortiAnno)}${obV3045MetricCard("stat_ceduti.png",`Ceduti ${anno}`,cedutiAnno)}</div>${v3033MetricGrid(m)}<div class="card ob-v435-history-note"><p class="small">La pagina principale mostra la stagione attiva. Le stagioni terminate restano consultabili nell'Archivio stagioni.</p></div>${confronto}<div class="card" role="button" tabindex="0" style="cursor:pointer" onclick="v3033ApriArchivioStagioni()"><h3 style="margin:0">📁 Archivio stagioni</h3><p class="small" style="margin-bottom:0">Apri l'archivio e scegli l'anno da consultare.</p></div>`;
 }
 window.v3032ConfrontaStagioni=async function(){
- const a=$("v3032SeasonA")?.value,b=$("v3032SeasonB")?.value,out=$("v3032SeasonCompare");if(!out||!a||!b)return;if(a===b){out.innerHTML='<div class="small" style="margin-top:10px">Seleziona due stagioni diverse.</div>';return;}
+ const scope=document.querySelector("#v185DocModal.open #v185DocPreview #v3032SeasonCompare")?document.querySelector("#v185DocPreview"):document;const a=scope.querySelector("#v3032SeasonA")?.value,b=scope.querySelector("#v3032SeasonB")?.value,out=scope.querySelector("#v3032SeasonCompare");if(!out||!a||!b)return;if(a===b){out.innerHTML='<div class="small" style="margin-top:10px">Seleziona due stagioni diverse.</div>';return;}
  if(window.v248OpShow)v248OpShow("Calcolo confronto stagioni…");
  try{const [rip,coppie,stagioni]=await Promise.all([leggi("riproduzione"),leggi("coppie"),leggi("stagioni_riproduttive")]),sa=stagioni.find(x=>String(x.id)===String(a)),sb=stagioni.find(x=>String(x.id)===String(b));if(String(sa?.stato||"").toLowerCase()==="attiva"||String(sb?.stato||"").toLowerCase()==="attiva")throw new Error("Il confronto è disponibile solo tra stagioni concluse.");
  const ma=v3032MetricheRip(v3032RiproduzioniStagione(rip,coppie,a)),mb=v3032MetricheRip(v3032RiproduzioniStagione(rip,coppie,b)),row=(l,k,s="")=>`<tr><td>${l}</td><td>${ma[k]}${s}</td><td>${mb[k]}${s}</td></tr>`;
@@ -9416,7 +9420,7 @@ function obDevReportDinamicoCss(){
  .obdev-report-statistiche .obdev-report-body .v18-metric-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:9px!important;margin:10px 0!important}
  .obdev-report-statistiche .obdev-report-body .v18-metric,.obdev-report-statistiche .obdev-report-body .ob-v3045-metric,.obdev-report-statistiche .obdev-report-body [class*="metric-card"]{background:linear-gradient(135deg,#eaf4eb,#fffdf4)!important;border:1px solid #ba9d59!important;border-radius:10px!important;padding:10px!important;box-shadow:none!important;color:#164d35!important;break-inside:avoid}
  .obdev-report-statistiche .obdev-report-body .v18-metric b,.obdev-report-statistiche .obdev-report-body [class*="metric"] strong{color:#085938!important}
- .obdev-report-statistiche .obdev-report-body select,.obdev-report-statistiche .obdev-report-body button,.obdev-report-statistiche .obdev-report-body .actions{display:none!important}
+ .obdev-report-statistiche .obdev-report-body select{display:block!important;max-width:100%;min-width:0;padding:8px;border:1px solid #bc9540;border-radius:7px;background:#fff;color:#164d35}.obdev-report-statistiche .obdev-report-body button{display:inline-flex!important;align-items:center;justify-content:center;background:#08613b;color:#fff;border:1px solid #bc9540;border-radius:8px;padding:9px 15px;cursor:pointer}.obdev-report-statistiche .obdev-report-body .actions{display:flex!important;gap:10px;flex-wrap:wrap;margin:10px 0}.obdev-report-statistiche .obdev-report-body [role="button"]{cursor:pointer!important}
  @media(max-width:650px){.obdev-report-statistiche .obdev-report-body .v18-metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
  .obdev-report-soggetti .obdev-report-body th:nth-child(1){width:9%}
  .obdev-report-soggetti .obdev-report-body th:nth-child(2){width:11%}
@@ -9428,8 +9432,8 @@ function obDevReportDinamicoCss(){
  .obdev-report-riproduzione .obdev-report-body th:nth-child(1){width:13%}
  .obdev-report-riproduzione .obdev-report-body th:nth-child(2){width:10%}
  .obdev-report-riproduzione .obdev-report-body th:nth-child(3),.obdev-report-riproduzione .obdev-report-body th:nth-child(4),.obdev-report-riproduzione .obdev-report-body th:nth-child(5),.obdev-report-riproduzione .obdev-report-body th:nth-child(6),.obdev-report-riproduzione .obdev-report-body th:nth-child(7){width:9%}
- .obdev-report-riproduzione .obdev-report-body th:nth-child(8){width:16%}
- .obdev-report-riproduzione .obdev-report-body th:nth-child(9){width:16%}
+ .obdev-report-riproduzione .obdev-report-body th:nth-child(8){width:13%}
+ .obdev-report-riproduzione .obdev-report-body th:nth-child(9){width:19%}
  .obdev-report-foot{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 13px;background:linear-gradient(100deg,#063923,#087044,#063923);color:#fff5cf;border:2px solid #bc9540;border-top:3px solid #d2aa56;border-radius:0 0 11px 11px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
  .obdev-report-foot strong{font:700 17px Georgia,serif;color:#f3d78e}
  .obdev-report-foot em{font:italic 11px Georgia,serif}
@@ -9497,8 +9501,8 @@ async function v185ScaricaPdf(titolo,html,orientamento="portrait"){
       return;
     }
     const holder=document.createElement("div");
-    holder.style.cssText="position:fixed;left:-100000px;top:0;width:"+(orientamento==="landscape"?"1120px":"794px")+";background:#fff;color:#111;padding:24px;font-family:Arial,sans-serif;z-index:-1";
-    holder.innerHTML=`<style>${v185PrintCss(orientamento)}</style>${v185DocumentoHtml(titolo,html)}`;
+    holder.style.cssText="position:absolute;left:0;top:0;width:"+(orientamento==="landscape"?"1050px":"745px")+";background:#fff;color:#111;padding:12px;font-family:Arial,sans-serif;z-index:0;pointer-events:none;box-sizing:border-box";holder.className="ob-pdf-export";
+    holder.innerHTML=`<style>${v185PrintCss(orientamento)}.ob-pdf-export .obdev-report-meta{grid-template-columns:repeat(4,minmax(0,1fr))!important}.ob-pdf-export .obdev-report-hero{grid-template-columns:92px minmax(0,1fr)!important;min-height:112px!important}.ob-pdf-export .obdev-report-identity{width:88px!important;height:88px!important}.ob-pdf-export .obdev-report-body table{font-size:10px!important}.ob-pdf-export .obdev-report-body th,.ob-pdf-export .obdev-report-body td{padding:5px 3px!important}.ob-pdf-export .obdev-report-statistiche select,.ob-pdf-export .obdev-report-statistiche button,.ob-pdf-export .obdev-report-statistiche .actions,.ob-pdf-export .obdev-report-statistiche [role="button"]{display:none!important}</style>${v185DocumentoHtml(titolo,html)}`;
     document.body.appendChild(holder);
     const opt={
       margin:8,
