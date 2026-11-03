@@ -2888,7 +2888,7 @@ const SUPABASE_URL="https://mddsmqwfufzebahemxcn.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kZHNtcXdmdWZ6ZWJhaGVteGNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzOTMyMTksImV4cCI6MjEwMTk2OTIxOX0.UXzR227VZ1EBwq4fuGapZQen3ekGvGIzezfvJZbXojY";
 const FOTO_BUCKET="myagari-fot";
 /* V34.15 — rilasci controllati via Supabase. Non cambia i dati degli allevatori. */
-const OB_APP_VERSION="34.18.5";
+const OB_APP_VERSION="34.18.6";
 const OB_RELEASE_CHANNEL=document.querySelector('meta[name="ornibreed-release-channel"]')?.content==="production"?"production":"development";
 const OB_RELEASE_POLL_MS=120000; // Realtime se disponibile, controllo di riserva ogni 2 minuti.
 let obReleaseTimer=null,obReleaseRealtime=null,obReleaseBusy=false,obReleaseSnoozedVersion="",obReleasePending=null,obReleaseLastCheckOk=false;
@@ -2964,9 +2964,9 @@ async function obV34161NotificaRelease(row){
 /* V34.18.1 — informazioni sulle versioni: provenienza Supabase, archivio locale e conferma reale.
    Gli esempi di specie e mutazioni NON sono pubblicati come novità: solo modifiche effettive. */
 const OB_CURRENT_RELEASE={
- version:"34.18.5",title:"OrniAlleva V34.18.5 — Esportazione PDF iPhone",
+ version:"34.18.6",title:"OrniAlleva V34.18.6 — Statistiche PDF A4",
  notes:[
-  "Acquisizione PDF in un documento isolato per migliorare la resa su Safari iPhone.",
+  "Statistiche PDF in pagine A4: riquadri interi, senza tagli tra una pagina e l’altra.",
   "Corretto il controllo degli aggiornamenti installati e del badge notifiche.",
   "Migliorata la compatibilità di registri e report su iPhone."
  ],published_at:null
@@ -9524,6 +9524,56 @@ function obV34184CanvasNonVuota(canvas){
  }
  return false;
 }
+/* V34.18.6: pagine A4 delle statistiche: le righe di schede restano intere. */
+function obV34186PagineStatistiche(canvas,dom,opzioni){
+ if(!dom.querySelector(".obdev-report-statistiche"))return canvas;
+ const width=canvas.width,scale=width/dom.getBoundingClientRect().width;
+ const m=Number(opzioni.margin)||0;
+ const land=opzioni.jsPDF?.orientation==="landscape";
+ const paperW=land?297:210,paperH=land?210:297;
+ const pageHeight=Math.floor(width*(paperH-2*m)/(paperW-2*m));
+ if(pageHeight<100||canvas.height<=pageHeight)return canvas;
+ const root=dom.getBoundingClientRect();
+ const cards=[...dom.querySelectorAll(".obdev-report-statistiche .v18-metric-grid > *, .obdev-report-statistiche .obdev-report-body > .card, .obdev-report-statistiche .obdev-report-body > h2, .obdev-report-statistiche .obdev-report-body > h3")];
+ const starts=[];
+ const groups=new Map();
+ for(const el of cards){
+  const rect=el.getBoundingClientRect();
+  if(rect.height<5)continue;
+  const top=Math.max(0,Math.round((rect.top-root.top)*scale));
+  const bottom=Math.min(canvas.height,Math.round((rect.bottom-root.top)*scale));
+  if(bottom<=top)continue;
+  // Tutti i riquadri della stessa riga iniziano insieme nella nuova pagina.
+  const key=Math.round(top/8)*8;
+  const existing=groups.get(key);
+  groups.set(key,{top:Math.min(top,existing?.top??top),bottom:Math.max(bottom,existing?.bottom??bottom)});
+ }
+ for(const item of groups.values())starts.push(item);
+ starts.sort((a,b)=>a.top-b.top);
+ let sourceTop=0;
+ const sections=[];
+ while(sourceTop<canvas.height){
+  const limit=Math.min(canvas.height,sourceTop+pageHeight);
+  let end=limit;
+  // Se un riquadro attraversa il limite, la riga viene riportata tutta alla pagina successiva.
+  const crossing=starts.filter(x=>x.top>sourceTop+10&&x.top<limit-2&&x.bottom>limit+2);
+  if(crossing.length){
+   const first=Math.min(...crossing.map(x=>x.top));
+   if(first-sourceTop>pageHeight*.28)end=first;
+  }
+  if(end<=sourceTop+10)end=limit;
+  sections.push([sourceTop,end]);
+  sourceTop=end;
+ }
+ if(sections.length<=1)return canvas;
+ const out=document.createElement("canvas");
+ out.width=width;out.height=pageHeight*sections.length;
+ const ctx=out.getContext("2d");
+ if(!ctx)throw new Error("Impossibile impaginare le statistiche.");
+ ctx.fillStyle="#fff";ctx.fillRect(0,0,out.width,out.height);
+ sections.forEach(([from,to],idx)=>ctx.drawImage(canvas,0,from,width,to-from,0,idx*pageHeight,width,to-from));
+ return out;
+}
 async function obV34184SalvaPdfDaElemento(holder,opzioni){
  if(typeof html2pdf!=="function")throw new Error("Il modulo PDF non è disponibile.");
  if(typeof window.html2canvas!=="function")throw new Error("Motore di acquisizione PDF non disponibile: verifica la connessione e ricarica.");
@@ -9566,7 +9616,8 @@ async function obV34184SalvaPdfDaElemento(holder,opzioni){
    }finally{holder.style.cssText=previous;}
   }
   if(!obV34184CanvasNonVuota(canvas))throw new Error("La cattura del documento è bianca anche dopo il secondo tentativo. Nessun PDF vuoto è stato salvato.");
-  await html2pdf().set(opzioni).from(canvas,"canvas").toPdf().save();
+  const finalCanvas=obV34186PagineStatistiche(canvas,copy,opzioni);
+  await html2pdf().set(opzioni).from(finalCanvas,"canvas").toPdf().save();
  }finally{iframe?.remove();}
 }
 async function v185ScaricaPdf(titolo,html,orientamento="portrait"){
