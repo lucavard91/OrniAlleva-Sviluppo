@@ -18,6 +18,7 @@
 <title>OrniAlleva — Smart Aviculture Management</title><meta name="ornibreed-version" content="V34.18.3"><meta name="ornibreed-release-channel" content="development">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
  .autocomplete {
   position: relative;
@@ -2887,7 +2888,7 @@ const SUPABASE_URL="https://mddsmqwfufzebahemxcn.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kZHNtcXdmdWZ6ZWJhaGVteGNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzOTMyMTksImV4cCI6MjEwMTk2OTIxOX0.UXzR227VZ1EBwq4fuGapZQen3ekGvGIzezfvJZbXojY";
 const FOTO_BUCKET="myagari-fot";
 /* V34.15 — rilasci controllati via Supabase. Non cambia i dati degli allevatori. */
-const OB_APP_VERSION="34.18.4";
+const OB_APP_VERSION="34.18.5";
 const OB_RELEASE_CHANNEL=document.querySelector('meta[name="ornibreed-release-channel"]')?.content==="production"?"production":"development";
 const OB_RELEASE_POLL_MS=120000; // Realtime se disponibile, controllo di riserva ogni 2 minuti.
 let obReleaseTimer=null,obReleaseRealtime=null,obReleaseBusy=false,obReleaseSnoozedVersion="",obReleasePending=null,obReleaseLastCheckOk=false;
@@ -2963,9 +2964,9 @@ async function obV34161NotificaRelease(row){
 /* V34.18.1 — informazioni sulle versioni: provenienza Supabase, archivio locale e conferma reale.
    Gli esempi di specie e mutazioni NON sono pubblicati come novità: solo modifiche effettive. */
 const OB_CURRENT_RELEASE={
- version:"34.18.4",title:"OrniAlleva V34.18.4 — PDF e aggiornamenti",
+ version:"34.18.5",title:"OrniAlleva V34.18.5 — Esportazione PDF iPhone",
  notes:[
-  "Esportazione PDF con controllo dei contenuti prima del salvataggio.",
+  "Acquisizione PDF in un documento isolato per migliorare la resa su Safari iPhone.",
   "Corretto il controllo degli aggiornamenti installati e del badge notifiche.",
   "Migliorata la compatibilità di registri e report su iPhone."
  ],published_at:null
@@ -9525,19 +9526,48 @@ function obV34184CanvasNonVuota(canvas){
 }
 async function obV34184SalvaPdfDaElemento(holder,opzioni){
  if(typeof html2pdf!=="function")throw new Error("Il modulo PDF non è disponibile.");
+ if(typeof window.html2canvas!=="function")throw new Error("Motore di acquisizione PDF non disponibile: verifica la connessione e ricarica.");
  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
- // html2canvas diretto, quando disponibile, evita il clone fuori viewport di html2pdf.
- let canvas=null;
- if(typeof window.html2canvas==="function"){
-  canvas=await window.html2canvas(holder,{...opzioni.html2canvas,logging:false});
- }else{
-  const worker=html2pdf().set(opzioni).from(holder);
-  await worker.toCanvas();
-  canvas=await worker.get("canvas");
- }
- if(!obV34184CanvasNonVuota(canvas))throw new Error("Il documento risulta vuoto. PDF non salvato: riprova con Safari o verifica le immagini del modello.");
- // Conversione dal canvas già verificato: non eseguire una seconda cattura HTML.
- await html2pdf().set(opzioni).from(canvas,"canvas").toPdf().save();
+ const w=Math.ceil(holder.getBoundingClientRect().width),h=Math.ceil(holder.scrollHeight);
+ if(!w||!h)throw new Error("Il documento non ha dimensioni valide.");
+ let canvas=null,iframe=null;
+ const opt={...opzioni.html2canvas,logging:false,scrollX:0,scrollY:0,windowWidth:w,windowHeight:Math.max(800,h)};
+ try{
+  // Safari iOS: un iframe con viewport indipendente evita il clone html2pdf
+  // spostato fuori schermo, che sui dispositivi mobili può diventare bianco.
+  iframe=document.createElement("iframe");
+  iframe.setAttribute("title","Preparazione PDF OrniAlleva");
+  iframe.setAttribute("aria-hidden","true");
+  iframe.style.cssText="position:fixed;left:0;top:0;width:"+w+"px;height:"+Math.min(1200,Math.max(800,h))+"px;border:0;background:#fff;z-index:2147483001;pointer-events:none;opacity:1";
+  document.body.appendChild(iframe);
+  const doc=iframe.contentDocument;
+  const base=new URL(".",location.href).href;
+  doc.open();
+  doc.write('<!doctype html><html><head><meta charset="utf-8"><base href="'+base+'"><meta name="viewport" content="width='+w+'"></head><body style="margin:0;padding:0;background:#fff"></body></html>');
+  doc.close();
+  const copy=holder.cloneNode(true);
+  copy.removeAttribute("id");
+  copy.style.position="relative";copy.style.left="0";copy.style.top="0";copy.style.zIndex="auto";
+  copy.style.width=w+"px";copy.style.maxWidth="none";
+  doc.body.appendChild(copy);
+  await Promise.all([...doc.images].map(img=>img.complete?Promise.resolve():new Promise(resolve=>{img.addEventListener("load",resolve,{once:true});img.addEventListener("error",resolve,{once:true});})));
+  await Promise.all([...doc.images].map(img=>typeof img.decode==="function"?img.decode().catch(()=>{}):Promise.resolve()));
+  if(doc.fonts?.ready)await doc.fonts.ready;
+  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+  canvas=await window.html2canvas(copy,{...opt,window:iframe.contentWindow,scrollX:0,scrollY:0});
+  if(!obV34184CanvasNonVuota(canvas)){
+   // Seconda strategia: acquisizione del modello nell'area principale del browser.
+   const previous=holder.style.cssText;
+   try{
+    holder.style.position="absolute";holder.style.left="0";holder.style.top="0";
+    holder.style.transform="none";holder.style.opacity="1";
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    canvas=await window.html2canvas(holder,{...opt,windowWidth:w});
+   }finally{holder.style.cssText=previous;}
+  }
+  if(!obV34184CanvasNonVuota(canvas))throw new Error("La cattura del documento è bianca anche dopo il secondo tentativo. Nessun PDF vuoto è stato salvato.");
+  await html2pdf().set(opzioni).from(canvas,"canvas").toPdf().save();
+ }finally{iframe?.remove();}
 }
 async function v185ScaricaPdf(titolo,html,orientamento="portrait"){
  if(typeof html2pdf!=="function"){obAvviso("Il modulo PDF non è disponibile. Controlla la connessione.");return;}
