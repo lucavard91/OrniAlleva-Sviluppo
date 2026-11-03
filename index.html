@@ -2887,7 +2887,7 @@ const SUPABASE_URL="https://mddsmqwfufzebahemxcn.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kZHNtcXdmdWZ6ZWJhaGVteGNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzOTMyMTksImV4cCI6MjEwMTk2OTIxOX0.UXzR227VZ1EBwq4fuGapZQen3ekGvGIzezfvJZbXojY";
 const FOTO_BUCKET="myagari-fot";
 /* V34.15 — rilasci controllati via Supabase. Non cambia i dati degli allevatori. */
-const OB_APP_VERSION="34.18.3";
+const OB_APP_VERSION="34.18.4";
 const OB_RELEASE_CHANNEL=document.querySelector('meta[name="ornibreed-release-channel"]')?.content==="production"?"production":"development";
 const OB_RELEASE_POLL_MS=120000; // Realtime se disponibile, controllo di riserva ogni 2 minuti.
 let obReleaseTimer=null,obReleaseRealtime=null,obReleaseBusy=false,obReleaseSnoozedVersion="",obReleasePending=null,obReleaseLastCheckOk=false;
@@ -2963,12 +2963,11 @@ async function obV34161NotificaRelease(row){
 /* V34.18.1 — informazioni sulle versioni: provenienza Supabase, archivio locale e conferma reale.
    Gli esempi di specie e mutazioni NON sono pubblicati come novità: solo modifiche effettive. */
 const OB_CURRENT_RELEASE={
- version:"34.18.1",title:"OrniBreed V34.18.1 — Miglioramenti aggiornamenti",
+ version:"34.18.4",title:"OrniAlleva V34.18.4 — PDF e aggiornamenti",
  notes:[
-  "Corretto il badge: le notifiche di aggiornamenti già installati non rimangono nella campanella.",
-  "Aggiunta la schermata «OrniAlleva aggiornato con successo» con il riepilogo delle novità.",
-  "Le modifiche disponibili sono visibili prima dell'aggiornamento e dalle Impostazioni.",
-  "Aggiunta la cronologia degli aggiornamenti, consultabile in Informazioni app."
+  "Esportazione PDF con controllo dei contenuti prima del salvataggio.",
+  "Corretto il controllo degli aggiornamenti installati e del badge notifiche.",
+  "Migliorata la compatibilità di registri e report su iPhone."
  ],published_at:null
 };
 const OB_RELEASE_HISTORY_KEY="ornibreed_release_history_v1_"+OB_RELEASE_CHANNEL;
@@ -3065,6 +3064,8 @@ function obV34181MostraSuccessoPostAggiornamento(){
  const p=new URLSearchParams(location.search);
  const version=p.get("ob_release"),ts=Number(p.get("ob_refresh"));
  if(version!==OB_APP_VERSION||!Number.isFinite(ts)||Math.abs(Date.now()-ts)>86400000||!sessionUser?.id)return;
+ obReleasePending=null;obReleaseSnoozedVersion="";$("obReleaseNotice")?.classList.add("hidden");
+ obV34181PulisciNotificheReleaseInstallate();obV3416AggiornaImpostazioniRelease();
  const seen="ornibreed_release_success_"+OB_RELEASE_CHANNEL+"_"+sessionUser.id+"_"+OB_APP_VERSION;
  try{
   if(localStorage.getItem(seen)==="1")return;
@@ -3127,7 +3128,8 @@ async function obV3415ControllaRelease(manuale=false){
    obV3416AggiornaImpostazioniRelease();return;
   }
   obReleasePending=data;
-  await obV34161NotificaRelease(data);
+  // Le notifiche vengono generate soltanto per una versione successiva al codice in esecuzione.
+  if(obV3415VersioneNuova(data.version,OB_APP_VERSION))await obV34161NotificaRelease(data);
   obV3416AggiornaImpostazioniRelease();
   // Il controllo manuale aggiorna la scheda Impostazioni, senza riaprire il popup rinviato.
   if(!manuale&&data.version!==obReleaseSnoozedVersion)obV3415MostraRelease(data);
@@ -3163,7 +3165,7 @@ function obV3415SchedaAperta(){
 }
 async function obV3415AggiornaOra(origine="avviso"){
  const status=origine==="impostazioni"?$("obSettingsReleaseStatus"):$("obReleaseStatus");
- const r=obReleasePending;if(!r){if(status)status.textContent="Nessun aggiornamento disponibile.";return;}
+ const r=obReleasePending;if(!r||!obV3415VersioneNuova(r.version,OB_APP_VERSION)){obReleasePending=null;$("obReleaseNotice")?.classList.add("hidden");obV3416AggiornaImpostazioniRelease();if(status)status.textContent="La tua app è già aggiornata (V"+OB_APP_VERSION+").";return;}
  if(obV3415SchedaAperta()){
   if(status)status.textContent="Prima salva e chiudi le schede aperte, poi scegli Aggiorna ora.";
   return;
@@ -9507,40 +9509,62 @@ function v185StampaDocumentoCorrente(){
   w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(d.titolo)}</title><style>${v185PrintCss(d.orientamento)}</style></head><body>${v185DocumentoHtml(d.titolo,d.html)}<script>window.addEventListener('load',()=>setTimeout(()=>window.print(),120));<\/script></body></html>`);
   w.document.close();
 }
+/* V34.18.4: cattura verificata; un PDF bianco non viene più considerato un'esportazione riuscita. */
+function obV34184CanvasNonVuota(canvas){
+ if(!canvas||!canvas.width||!canvas.height)return false;
+ const ctx=canvas.getContext("2d",{willReadFrequently:true});if(!ctx)return false;
+ const sw=Math.min(64,canvas.width),sh=Math.min(64,canvas.height);
+ const probe=document.createElement("canvas");probe.width=sw;probe.height=sh;
+ const pctx=probe.getContext("2d",{willReadFrequently:true});if(!pctx)return false;
+ pctx.drawImage(canvas,0,0,sw,sh);
+ const d=pctx.getImageData(0,0,sw,sh).data;
+ for(let i=0;i<d.length;i+=4){
+  if(d[i+3]>16&&(d[i]<238||d[i+1]<238||d[i+2]<238))return true;
+ }
+ return false;
+}
+async function obV34184SalvaPdfDaElemento(holder,opzioni){
+ if(typeof html2pdf!=="function")throw new Error("Il modulo PDF non è disponibile.");
+ await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+ // html2canvas diretto, quando disponibile, evita il clone fuori viewport di html2pdf.
+ let canvas=null;
+ if(typeof window.html2canvas==="function"){
+  canvas=await window.html2canvas(holder,{...opzioni.html2canvas,logging:false});
+ }else{
+  const worker=html2pdf().set(opzioni).from(holder);
+  await worker.toCanvas();
+  canvas=await worker.get("canvas");
+ }
+ if(!obV34184CanvasNonVuota(canvas))throw new Error("Il documento risulta vuoto. PDF non salvato: riprova con Safari o verifica le immagini del modello.");
+ // Conversione dal canvas già verificato: non eseguire una seconda cattura HTML.
+ await html2pdf().set(opzioni).from(canvas,"canvas").toPdf().save();
+}
 async function v185ScaricaPdf(titolo,html,orientamento="portrait"){
-  // Safari iOS: render nel viewport, mai in un elemento posizionato fuori dallo schermo.
-  if(typeof html2pdf!=="function"){obAvviso("Il modulo PDF non è disponibile. Controlla la connessione.");return;}
-  let holder=null;
-  if(window.v248OpShow)window.v248OpShow("Preparazione PDF…");
-  try{
-    holder=document.createElement("div");
-    holder.className="ob-pdf-export";
-    const pageWidth=orientamento==="landscape"?1040:730;
-    holder.style.cssText="position:fixed;left:0;top:0;width:"+pageWidth+"px;max-width:none;box-sizing:border-box;padding:12px;background:#fff;color:#111;z-index:2147483000;pointer-events:none;opacity:1;font-family:Arial,sans-serif;overflow:visible";
-    holder.innerHTML=`<style>${v185PrintCss(orientamento)}.ob-pdf-export .obdev-report-meta{grid-template-columns:repeat(4,minmax(0,1fr))!important}.ob-pdf-export .obdev-report-hero{grid-template-columns:92px minmax(0,1fr)!important;min-height:112px!important}.ob-pdf-export .obdev-report-identity{width:88px!important;height:88px!important}.ob-pdf-export .obdev-report-body table{font-size:10px!important}.ob-pdf-export .obdev-report-body th,.ob-pdf-export .obdev-report-body td{padding:5px 3px!important}.ob-pdf-export .obdev-report-riproduzione .v18-table-wrap{overflow:visible!important}.ob-pdf-export .obdev-report-riproduzione table{width:100%!important;min-width:0!important;font-size:8px!important}.ob-pdf-export .obdev-report-statistiche select,.ob-pdf-export .obdev-report-statistiche button,.ob-pdf-export .obdev-report-statistiche .actions,.ob-pdf-export .obdev-report-statistiche [role="button"]{display:none!important}</style>${v185DocumentoHtml(titolo,html)}`;
-    document.body.appendChild(holder);
-    await Promise.all([...holder.querySelectorAll("img")].map(img=>{
-      if(img.complete)return Promise.resolve();
-      return new Promise(resolve=>{img.addEventListener("load",resolve,{once:true});img.addEventListener("error",resolve,{once:true});});
-    }));
-    if(document.fonts?.ready)await document.fonts.ready;
-    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-    if(!holder.getBoundingClientRect().width||!holder.querySelector(".obdev-report"))throw new Error("Il documento non è pronto per l'esportazione.");
-    await html2pdf().set({
-      margin:7,filename:v185NomeFile(titolo),
-      image:{type:"jpeg",quality:.96},
-      html2canvas:{scale:1.35,useCORS:true,allowTaint:false,backgroundColor:"#ffffff",scrollX:0,scrollY:0,windowWidth:pageWidth},
-      jsPDF:{unit:"mm",format:"a4",orientation:orientamento},
-      pagebreak:{mode:["css","legacy"]}
-    }).from(holder).save();
-    if(window.v248OpDone)window.v248OpDone("PDF generato");
-  }catch(e){
-    console.error("OrniAlleva PDF report",e);
-    if(window.v248OpHide)window.v248OpHide();
-    obAvviso("Non è stato possibile creare il PDF: "+(e?.message||e));
-  }finally{
-    holder?.remove();
-  }
+ if(typeof html2pdf!=="function"){obAvviso("Il modulo PDF non è disponibile. Controlla la connessione.");return;}
+ let holder=null;
+ if(window.v248OpShow)window.v248OpShow("Preparazione PDF…");
+ try{
+  const pageWidth=orientamento==="landscape"?1040:730;
+  holder=document.createElement("div");
+  holder.className="ob-pdf-export";
+  // L'elemento sorgente deve essere realmente visibile al renderer Safari.
+  holder.style.cssText="position:fixed;left:0;top:0;width:"+pageWidth+"px;max-width:none;box-sizing:border-box;padding:12px;background:#fff;color:#111;z-index:2147483000;pointer-events:none;opacity:1;font-family:Arial,sans-serif;overflow:visible";
+  holder.innerHTML=`<style>${v185PrintCss(orientamento)}.ob-pdf-export .obdev-report-meta{grid-template-columns:repeat(4,minmax(0,1fr))!important}.ob-pdf-export .obdev-report-hero{grid-template-columns:92px minmax(0,1fr)!important;min-height:112px!important}.ob-pdf-export .obdev-report-identity{width:88px!important;height:88px!important}.ob-pdf-export .obdev-report-body table{font-size:10px!important}.ob-pdf-export .obdev-report-body th,.ob-pdf-export .obdev-report-body td{padding:5px 3px!important}.ob-pdf-export .obdev-report-riproduzione .v18-table-wrap{overflow:visible!important}.ob-pdf-export .obdev-report-riproduzione table{width:100%!important;min-width:0!important;font-size:8px!important}.ob-pdf-export .obdev-report-statistiche select,.ob-pdf-export .obdev-report-statistiche button,.ob-pdf-export .obdev-report-statistiche .actions,.ob-pdf-export .obdev-report-statistiche [role="button"]{display:none!important}</style>${v185DocumentoHtml(titolo,html)}`;
+  document.body.appendChild(holder);
+  await Promise.all([...holder.querySelectorAll("img")].map(img=>img.complete?Promise.resolve():new Promise(resolve=>{img.addEventListener("load",resolve,{once:true});img.addEventListener("error",resolve,{once:true});})));
+  if(document.fonts?.ready)await document.fonts.ready;
+  if(!holder.getBoundingClientRect().width||!holder.textContent.trim())throw new Error("Il documento non è pronto per l'esportazione.");
+  await obV34184SalvaPdfDaElemento(holder,{
+   margin:7,filename:v185NomeFile(titolo),image:{type:"jpeg",quality:.96},
+   html2canvas:{scale:1.3,useCORS:true,allowTaint:false,backgroundColor:"#fff",scrollX:0,scrollY:0,windowWidth:pageWidth},
+   jsPDF:{unit:"mm",format:"a4",orientation:orientamento},pagebreak:{mode:["css","legacy"]}
+  });
+  if(window.v248OpDone)window.v248OpDone("PDF generato");
+ }catch(e){
+  console.error("OrniAlleva PDF report",e);
+  if(window.v248OpHide)window.v248OpHide();
+  obAvviso("Non è stato possibile creare il PDF: "+(e?.message||e));
+ }finally{holder?.remove();}
 }
 async function v185ScaricaDocumentoCorrente(){
   const d=v185DocumentoCorrente;
@@ -12093,36 +12117,31 @@ function v263Print(titolo,tipo){
   w.focus();
 }
 async function v263Pdf(titolo,tipo){
-  // Esporta una copia A4 a grandezza reale: non usare l'anteprima ridimensionata.
-  if(typeof html2pdf!=="function"){obAvviso("Il modulo PDF non è disponibile.");return;}
-  let holder=null;
-  if(window.v248OpShow)window.v248OpShow("Preparazione PDF…");
-  try{
-    const cova=tipo==="cova";
-    const width=cova?794:1122,height=cova?1122:794;
-    holder=document.createElement("div");
-    holder.style.cssText="position:fixed;left:0;top:0;width:"+width+"px;height:"+height+"px;max-width:none;background:#fff;z-index:2147483000;pointer-events:none;opacity:1;overflow:hidden";
-    holder.innerHTML=`<style>${v263ApprovedCss(tipo,"preview")}.ob-pdf-sheet .ob-approved-page{width:${width}px!important;height:${height}px!important;aspect-ratio:auto!important}.ob-pdf-sheet .ob-approved-field{font-size:${cova?12:tipo==="coppie"?11:14}px!important}</style><div class="ob-pdf-sheet">${v263ApprovedSheet(tipo)}</div>`;
-    document.body.appendChild(holder);
-    const imgs=[...holder.querySelectorAll("img")];
-    await Promise.all(imgs.map(img=>img.complete&&img.naturalWidth?Promise.resolve():new Promise((resolve,reject)=>{
-      img.addEventListener("load",resolve,{once:true});
-      img.addEventListener("error",()=>reject(new Error("Immagine del registro non disponibile: "+img.src)),{once:true});
-    })));
-    if(imgs.some(img=>!img.naturalWidth))throw new Error("Immagine del registro non caricata.");
-    v263FitFields(holder);
-    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-    await html2pdf().set({
-      margin:0,filename:v185NomeFile(titolo),image:{type:"jpeg",quality:.98},
-      html2canvas:{scale:1.5,useCORS:true,backgroundColor:"#fff",scrollX:0,scrollY:0,windowWidth:width},
-      jsPDF:{unit:"mm",format:"a4",orientation:cova?"portrait":"landscape"},pagebreak:{mode:["avoid-all"]}
-    }).from(holder).save();
-    if(window.v248OpDone)window.v248OpDone("PDF generato");
-  }catch(e){
-    if(window.v248OpHide)window.v248OpHide();
-    console.error("OrniAlleva PDF registro",e);
-    errore(new Error("Non è stato possibile creare il PDF: "+(e?.message||e)));
-  }finally{holder?.remove();}
+ if(typeof html2pdf!=="function"){obAvviso("Il modulo PDF non è disponibile.");return;}
+ let holder=null;
+ if(window.v248OpShow)window.v248OpShow("Preparazione PDF…");
+ try{
+  const cova=tipo==="cova",width=cova?794:1122,height=cova?1122:794;
+  holder=document.createElement("div");
+  holder.style.cssText="position:fixed;left:0;top:0;width:"+width+"px;height:"+height+"px;max-width:none;background:#fff;z-index:2147483000;pointer-events:none;opacity:1;overflow:hidden";
+  holder.innerHTML=`<style>${v263ApprovedCss(tipo,"preview")}.ob-pdf-sheet .ob-approved-page{width:${width}px!important;height:${height}px!important;aspect-ratio:auto!important}.ob-pdf-sheet .ob-approved-field{font-size:${cova?12:tipo==="coppie"?11:14}px!important}</style><div class="ob-pdf-sheet">${v263ApprovedSheet(tipo)}</div>`;
+  document.body.appendChild(holder);
+  const imgs=[...holder.querySelectorAll("img")];
+  await Promise.all(imgs.map(img=>img.complete?Promise.resolve():new Promise(resolve=>{img.addEventListener("load",resolve,{once:true});img.addEventListener("error",resolve,{once:true});})));
+  if(imgs.some(img=>!img.naturalWidth))throw new Error("Immagine del registro non caricata.");
+  if(document.fonts?.ready)await document.fonts.ready;
+  v263FitFields(holder);
+  await obV34184SalvaPdfDaElemento(holder,{
+   margin:0,filename:v185NomeFile(titolo),image:{type:"jpeg",quality:.98},
+   html2canvas:{scale:1.3,useCORS:true,backgroundColor:"#fff",scrollX:0,scrollY:0,windowWidth:width},
+   jsPDF:{unit:"mm",format:"a4",orientation:cova?"portrait":"landscape"},pagebreak:{mode:["avoid-all"]}
+  });
+  if(window.v248OpDone)window.v248OpDone("PDF generato");
+ }catch(e){
+  if(window.v248OpHide)window.v248OpHide();
+  console.error("OrniAlleva PDF registro",e);
+  errore(new Error("Non è stato possibile creare il PDF: "+(e?.message||e)));
+ }finally{holder?.remove();}
 }
 window.addEventListener("DOMContentLoaded",()=>{
   document.querySelectorAll("img[data-approved-type]").forEach(img=>{img.onerror=()=>{img.alt="Immagine non disponibile: verifica il file PNG nel repository";};img.src=OB_APPROVED_PRINT_ASSETS[img.dataset.approvedType]||"";});
