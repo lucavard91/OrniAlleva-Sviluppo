@@ -8241,8 +8241,8 @@ async function init(){
    if(event==="PASSWORD_RECOVERY"){toggle("loginScreen",false);toggle("app",false);toggle("resetScreen",true);return;}
    if(session && (event==="INITIAL_SESSION" || event==="SIGNED_IN" || event==="TOKEN_REFRESHED" || event==="USER_UPDATED")){
      if(window.__obGuestBooting)return;
-     if(session.user?.is_anonymous){void obGuestResume(session);return;}
-     void avviaMostraApp(session);
+     if(session.user?.is_anonymous){setTimeout(()=>{void obGuestResume(session);},0);return;}
+     setTimeout(()=>{void avviaMostraApp(session);},0);
    }
    if(event==="SIGNED_OUT"){toggle("app",false);toggle("loginScreen",true);}
   });
