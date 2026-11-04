@@ -9723,9 +9723,7 @@ async function v18StampaRegistro(){v18PrintDoc("Registro allevamento / riproduzi
 async function v18StampaContabilita(){v18PrintDoc("Entrate e uscite",await v18ContabilitaHtml(),"landscape");}
 async function v185SoggettiHtml(){
   const soggetti=await leggi("soggetti");
-  // Il progressivo è solo l'indice del registro: non è il numero dell'anello.
-  const righe=soggetti.map((soggetto,indice)=>`<tr>
-    <td>${indice+1}</td>
+  const righe=soggetti.map(soggetto=>`<tr>
     <td>${esc(soggetto.rna||"")}</td>
     <td>${esc(soggetto.numero||"")}</td>
     <td>${esc(soggetto.anno||"")}</td>
@@ -9734,11 +9732,10 @@ async function v185SoggettiHtml(){
     <td>${esc(soggetto.razza||"")}</td>
     <td>${esc(soggetto.mutazione||"")}</td>
   </tr>`).join("");
-  // Le larghezze sono definite qui nella tabella originale, non con CSS aggiuntivo.
   return `<p class="small" style="margin:0 0 8px;font-weight:700">Totale soggetti elencati: ${soggetti.length}</p>
   <table>
-    <colgroup><col width="4%"><col width="9%"><col width="13%"><col width="9%"><col width="12%"><col width="12%"><col width="16%"><col width="25%"></colgroup>
-    <thead><tr><th scope="col" aria-label="Progressivo"></th><th scope="col">RNA</th><th scope="col">Numero anello</th><th scope="col">Anno</th><th scope="col">Sesso</th><th scope="col">Specie</th><th scope="col">Razza</th><th scope="col">Colore / Mutazione</th></tr></thead>
+    <colgroup><col width="10%"><col width="13%"><col width="10%"><col width="12%"><col width="14%"><col width="17%"><col width="24%"></colgroup>
+    <thead><tr><th>RNA</th><th>Numero anello</th><th>Anno</th><th>Sesso</th><th>Specie</th><th>Razza</th><th>Mutazione</th></tr></thead>
     <tbody>${righe}</tbody>
   </table>`;
 }
