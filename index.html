@@ -9473,13 +9473,17 @@ function obDevReportDinamicoCss(){
  .obdev-report-statistiche .obdev-report-body .v18-metric b,.obdev-report-statistiche .obdev-report-body [class*="metric"] strong{color:#085938!important}
  .obdev-report-statistiche .obdev-report-body select{display:block!important;max-width:100%;min-width:0;padding:8px;border:1px solid #bc9540;border-radius:7px;background:#fff;color:#164d35}.obdev-report-statistiche .obdev-report-body button{display:inline-flex!important;align-items:center;justify-content:center;background:#08613b;color:#fff;border:1px solid #bc9540;border-radius:8px;padding:9px 15px;cursor:pointer}.obdev-report-statistiche .obdev-report-body .actions{display:flex!important;gap:10px;flex-wrap:wrap;margin:10px 0}.obdev-report-statistiche .obdev-report-body [role="button"]{cursor:pointer!important}
  @media(max-width:650px){.obdev-report-statistiche .obdev-report-body .v18-metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
- .obdev-report-soggetti .obdev-report-body th:nth-child(1){width:9%}
- .obdev-report-soggetti .obdev-report-body th:nth-child(2){width:11%}
- .obdev-report-soggetti .obdev-report-body th:nth-child(3){width:9%}
- .obdev-report-soggetti .obdev-report-body th:nth-child(4){width:13%}
- .obdev-report-soggetti .obdev-report-body th:nth-child(5){width:14%}
- .obdev-report-soggetti .obdev-report-body th:nth-child(6){width:17%}
- .obdev-report-soggetti .obdev-report-body th:nth-child(7){width:27%}
+ /* Registro soggetti: otto colonne calibrate per anteprima, stampa e PDF A4. */
+ .obdev-report-soggetti .obdev-report-body table{width:100%!important;table-layout:fixed!important;font-size:10px!important}
+ .obdev-report-soggetti .obdev-report-body th,.obdev-report-soggetti .obdev-report-body td{padding:5px 3px!important;word-break:normal!important;overflow-wrap:break-word!important;white-space:normal!important}
+ .obdev-report-soggetti .obdev-report-body th:nth-child(1){width:4%}
+ .obdev-report-soggetti .obdev-report-body th:nth-child(2){width:9%}
+ .obdev-report-soggetti .obdev-report-body th:nth-child(3){width:13%}
+ .obdev-report-soggetti .obdev-report-body th:nth-child(4){width:9%}
+ .obdev-report-soggetti .obdev-report-body th:nth-child(5){width:12%}
+ .obdev-report-soggetti .obdev-report-body th:nth-child(6){width:12%}
+ .obdev-report-soggetti .obdev-report-body th:nth-child(7){width:16%}
+ .obdev-report-soggetti .obdev-report-body th:nth-child(8){width:25%}
  .obdev-report-riproduzione .obdev-report-body .v18-table-wrap{max-width:100%;overflow-x:auto}
  @media print{.obdev-report-riproduzione .obdev-report-body .v18-table-wrap{overflow:visible!important}.obdev-report-riproduzione .obdev-report-body table{min-width:0!important;width:100%!important;font-size:8px!important}.obdev-report-riproduzione .obdev-report-body th,.obdev-report-riproduzione .obdev-report-body td{font-size:8px!important;padding:3px 2px!important;overflow-wrap:anywhere}}
  .obdev-report-riproduzione .obdev-report-body th:nth-child(1){width:13%}
@@ -9731,7 +9735,7 @@ async function v18StampaContabilita(){v18PrintDoc("Entrate e uscite",await v18Co
 async function v185SoggettiHtml(){
   const d=await leggi("soggetti");
   const rows=d.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x.rna||"")}</td><td>${esc(x.numero||"")}</td><td>${esc(x.anno||"")}</td><td>${esc(x.sesso||"")}</td><td>${esc(x.specie||"")}</td><td>${esc(x.razza||"")}</td><td>${esc(x.mutazione||"")}</td></tr>`).join("");
-  return `<p class="small" style="margin:0 0 8px;font-weight:700">Totale soggetti elencati: ${d.length}</p><table><thead><tr><th>Soggetto n°</th><th>RNA</th><th>Numero</th><th>Anno</th><th>Sesso</th><th>Specie</th><th>Razza</th><th>Mutazione</th></tr></thead><tbody>${rows}</tbody></table>`;
+  return `<p class="small" style="margin:0 0 8px;font-weight:700">Totale soggetti elencati: ${d.length}</p><table><thead><tr><th aria-label="Progressivo"></th><th>RNA</th><th>Numero<br>anello</th><th>Anno</th><th>Sesso</th><th>Specie</th><th>Razza</th><th>Colore /<br>Mutazione</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 async function v18StampaSoggetti(){v18PrintDoc("Registro soggetti",await v185SoggettiHtml(),"landscape");}
 const V1812_DOC_T={
