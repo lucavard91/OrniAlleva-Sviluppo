@@ -4119,12 +4119,12 @@ function obMostraSceltaUscita(){
   document.body.appendChild(screen);
   screen.querySelector("[data-cancel-exit]").onclick=()=>screen.remove();
   screen.querySelector("[data-exit-app]").onclick=()=>{
-    screen.querySelector("div").innerHTML='<div style="font-size:42px;color:#c8a13e" aria-hidden="true">♛</div><h2 style="color:#17432f">OrniAlleva</h2><p>Puoi chiudere l’app dal telefono. Il tuo account resterà collegato.</p><button type="button" data-close-app style="width:100%;padding:13px;border-radius:12px;background:#14563f;color:white;border:2px solid #d7ad4b">Esci</button>';
+    screen.querySelector("div").innerHTML='<img src="logo_ornialleva_con_emblema_dorato.png" alt="Logo ufficiale OrniAlleva" style="display:block;width:min(65%,230px);height:auto;max-height:225px;object-fit:contain;margin:0 auto 12px" onerror="this.style.display='none'"><h2 style="color:#17432f">OrniAlleva</h2><p>Puoi chiudere l’app dal telefono. Il tuo account resterà collegato.</p><button type="button" data-close-app style="width:100%;padding:13px;border-radius:12px;background:#14563f;color:white;border:2px solid #d7ad4b">Esci</button>';
     screen.querySelector("[data-close-app]").onclick=()=>{
       try{window.close();}catch(_){}
       // Le PWA installate su iOS non possono essere chiuse programmaticamente.
       // Mostriamo una schermata di uscita anziché riportare l'utente nell'app.
-      screen.querySelector("div").innerHTML='<h2 style="color:#17432f">OrniAlleva</h2><p>Hai lasciato la schermata dell’app. Il tuo account resta collegato.</p><p style="font-size:13px">Su iPhone, scorri verso l’alto per tornare alla schermata Home.</p>';
+      screen.querySelector("div").innerHTML='<img src="logo_ornialleva_con_emblema_dorato.png" alt="Logo ufficiale OrniAlleva" style="display:block;width:min(65%,230px);height:auto;max-height:225px;object-fit:contain;margin:0 auto 12px"><h2 style="color:#17432f">OrniAlleva</h2><p>Hai lasciato la schermata dell’app. Il tuo account resta collegato.</p><p style="font-size:13px">Su iPhone, scorri verso l’alto per tornare alla schermata Home.</p>';
     };
   };
   screen.querySelector("[data-exit-account]").onclick=async()=>{
