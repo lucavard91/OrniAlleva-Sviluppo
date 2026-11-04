@@ -2824,7 +2824,6 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
     <p>Scopri mutazioni, genetica e genealogie. La valutazione AI gratuita con foto e video di 30–50 secondi (5 al giorno) ti aiuta a osservare i soggetti; l’assistenza AI alla formazione delle coppie mira a confrontare punti forti e punti deboli dei riproduttori per individuare abbinamenti complementari e aiutarti nella selezione del tuo ceppo. La scelta finale resta sempre tua.</p>
     <p><b>Un solo posto per le informazioni, più tempo per ciò che ami.</b></p>
     <p><b>Il tuo allevamento cresce. OrniAlleva cresce con te.</b></p>
-    <label style="display:flex;gap:9px;align-items:center;justify-content:center;margin:16px 0;cursor:pointer;font-size:14px"><input type="checkbox" id="obIntroDontShow" style="width:18px;height:18px">Non mostrare più automaticamente</label>
     <button type="button" id="obIntroExploreBtn" class="success" style="width:100%;margin-bottom:7px">✨ Scopri OrniAlleva</button>
     <button type="button" id="obIntroStartBtn" class="secondary" style="width:100%">Inizia a utilizzare l'app</button>
   </div>
@@ -2838,16 +2837,14 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
   function closeIntro(){
     const dlg=document.getElementById("obIntroWelcome");
     if(!dlg)return;
-    if(document.getElementById("obIntroDontShow")?.checked){
-      try{localStorage.setItem(introKey(),"1");}catch(_){}
-    }
+    // Il benvenuto viene mostrato una sola volta per account su questo dispositivo.
+    try{localStorage.setItem(introKey(),"1");}catch(_){}
     dlg.classList.add("hidden");
   }
   window.obIntroMaybeShow=function(){
     try{if(localStorage.getItem(introKey())==="1")return;}catch(_){}
     const dlg=document.getElementById("obIntroWelcome");
     if(!dlg||document.getElementById("app")?.classList.contains("hidden"))return;
-    document.getElementById("obIntroDontShow").checked=false;
     dlg.classList.remove("hidden");
   };
   document.addEventListener("DOMContentLoaded",function(){
