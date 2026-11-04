@@ -9532,14 +9532,65 @@ function v185ChiudiDocumento(){
 function v185PrintCss(orientamento="portrait"){
   return `body{font-family:Arial,sans-serif;padding:8mm;color:#17372e;background:#fff}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #9aab9f;padding:5px;text-align:left;vertical-align:top}th{background:#14513f;color:#fff;font-weight:700}tbody tr:nth-child(even){background:#f5f8f5}.v18-metric-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.v18-metric{border:1px solid #c7d2ca;padding:10px;border-radius:8px;background:#f8faf8}.v18-metric b{display:block;font-size:20px;color:#14513f}.card{margin:12px 0}.owner-head{display:none!important}.blank td{height:28px}.blank-lg td{height:40px}.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}.meta-box{border:1px solid #b8c5bd;min-height:32px;padding:7px;border-radius:7px}.section-title{margin-top:18px;margin-bottom:7px;font-size:16px;font-weight:bold;color:#14513f}.ob-report-head{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;border:1px solid #c7a448;border-radius:12px;padding:10px 12px;margin:0 0 14px;background:linear-gradient(90deg,#eff6f0,#fffaf0)}.ob-report-brand{display:flex;flex-direction:column;line-height:1}.ob-report-brand b{font-size:20px;color:#14513f}.ob-report-brand span{font-size:9px;letter-spacing:2px;color:#a77d20;margin-top:3px}.ob-report-title{display:flex;flex-direction:column;text-align:center}.ob-report-title strong{font-size:19px;color:#17372e}.ob-report-title small{font-size:9px;color:#6f7c75;margin-top:3px}.ob-report-meta{display:grid;grid-template-columns:1fr 1fr;gap:3px 10px;font-size:9px;max-width:290px}.ob-report-meta b{color:#14513f}@page{size:A4 ${orientamento};margin:7mm}`;
 }
+function obStampaDentroApp(titolo,contenuto,css,formato="A4 portrait",approvato=false){
+  // La pagina di stampa resta nella PWA: la X torna alla schermata precedente.
+  document.getElementById("obPrintInApp")?.remove();
+  document.getElementById("obPrintInAppStyle")?.remove();
+  const overlay=document.createElement("section");
+  overlay.id="obPrintInApp";
+  overlay.setAttribute("role","dialog");
+  overlay.setAttribute("aria-modal","true");
+  overlay.setAttribute("aria-label","Anteprima stampa: "+titolo);
+  const sheet=document.createElement("div");
+  sheet.className="ob-print-inapp-sheet";
+  sheet.innerHTML=contenuto;
+  const toolbar=document.createElement("div");
+  toolbar.className="ob-print-inapp-toolbar";
+  const back=document.createElement("button");
+  back.type="button";
+  back.textContent="✕";
+  back.setAttribute("aria-label","Chiudi stampa e torna alla pagina precedente");
+  const label=document.createElement("strong");
+  label.textContent=titolo;
+  const print=document.createElement("button");
+  print.type="button";
+  print.textContent="Stampa ora";
+  toolbar.append(back,label,print);
+  overlay.append(toolbar,sheet);
+  const style=document.createElement("style");
+  style.id="obPrintInAppStyle";
+  style.textContent=`@page{size:${formato};margin:0}
+  #obPrintInApp{position:fixed;inset:0;z-index:2147483000;overflow:auto;background:#edf2ee;color:#163c2d;font-family:Arial,sans-serif}
+  #obPrintInApp .ob-print-inapp-toolbar{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border-bottom:1px solid #c8d9ca}
+  #obPrintInApp .ob-print-inapp-toolbar strong{flex:1;min-width:0;font-size:15px}
+  #obPrintInApp .ob-print-inapp-toolbar button{border:1px solid #146344;border-radius:9px;padding:9px 14px;font-size:16px;font-weight:bold;background:#146344;color:#fff;cursor:pointer}
+  #obPrintInApp .ob-print-inapp-toolbar button:first-child{background:#fff;color:#146344}
+  #obPrintInApp .ob-print-inapp-sheet{box-sizing:border-box;width:min(1100px,calc(100% - 24px));margin:14px auto;padding:12px;background:#fff;overflow-x:auto}
+  #obPrintInApp .ob-approved-page{max-width:100%;height:auto!important;aspect-ratio:${formato.includes("landscape")?"297 / 210":"210 / 297"};margin:0 auto}
+  #obPrintInApp .ob-approved-page>img{width:100%!important;height:100%!important}
+  @media print{
+    body>*:not(#obPrintInApp){display:none!important}
+    html,body{margin:0!important;padding:0!important;background:#fff!important}
+    #obPrintInApp{position:static!important;inset:auto!important;overflow:visible!important;background:#fff!important}
+    #obPrintInApp .ob-print-inapp-toolbar{display:none!important}
+    #obPrintInApp .ob-print-inapp-sheet{width:100%!important;max-width:none!important;overflow:visible!important;margin:0!important;padding:0!important}
+    #obPrintInApp .ob-approved-page{width:${formato.includes("landscape")?"297mm":"210mm"}!important;height:${formato.includes("landscape")?"210mm":"297mm"}!important;max-width:none!important;aspect-ratio:auto!important}
+  }`+(css||"");
+  const oldOverflow=document.documentElement.style.overflow;
+  const close=()=>{overlay.remove();style.remove();document.documentElement.style.overflow=oldOverflow;};
+  back.addEventListener("click",close);
+  print.addEventListener("click",()=>{if(approvato&&typeof v263FitFields==="function")v263FitFields(sheet);window.print();});
+  document.head.appendChild(style);
+  document.body.appendChild(overlay);
+  document.documentElement.style.overflow="hidden";
+  back.focus();
+  overlay.scrollTop=0;
+}
 function v185StampaDocumentoCorrente(){
   const d=v185DocumentoCorrente;
   if(!d?.titolo)return;
   if(d.approvedType){v263Print(d.titolo,d.approvedType);return;}
-  const w=window.open("","_blank");
-  if(!w){obAvviso("Il browser non ha aperto la finestra di stampa. Riprova premendo di nuovo “Stampa”.");return;}
-  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(d.titolo)}</title><style>${v185PrintCss(d.orientamento)}</style></head><body>${v185DocumentoHtml(d.titolo,d.html)}<script>window.addEventListener('load',()=>setTimeout(()=>window.print(),120));<\/script></body></html>`);
-  w.document.close();
+  obStampaDentroApp(d.titolo,v185DocumentoHtml(d.titolo,d.html),v185PrintCss(d.orientamento),"A4 "+d.orientamento);
 }
 /* V34.18.4: cattura verificata; un PDF bianco non viene più considerato un'esportazione riuscita. */
 function obV34184CanvasNonVuota(canvas){
@@ -10025,12 +10076,9 @@ function v186RegistroHtml(verticale=false){
 }
 function v186StampaDiretta(titolo,html,orientamento="portrait",formato="A4"){
   v185DocumentoCorrente={titolo,html,orientamento,formato};
-  const w=window.open("","_blank");
-  if(!w){obAvviso("Il browser non ha aperto la finestra di stampa.");return;}
-  const size=formato==="15x10"?"150mm 100mm":`A4 ${orientamento}`;
-  const css=v185PrintCss(orientamento).replace(/@page\{[^}]*\}/,`@page{size:${size};margin:${formato==="15x10"?"5mm":"9mm"}}`);
-  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(titolo)}</title><style>${css}</style></head><body>${v185DocumentoHtml(titolo,html)}</body></html>`);
-  w.document.close();w.focus();w.print();
+  const size=formato==="15x10"?"150mm 100mm":"A4 "+orientamento;
+  const css=v185PrintCss(orientamento).replace(/@page\{[^}]*\}/,"");
+  obStampaDentroApp(titolo,v185DocumentoHtml(titolo,html),css,size);
 }
 async function v186PdfFormato(titolo,html,orientamento="portrait",formato="A4"){
   if(formato!=="15x10")return v185ScaricaPdf(titolo,html,orientamento);
@@ -12253,19 +12301,9 @@ function v263RimuoviPrintRoot(){
   document.getElementById("obApprovedPrintStyle")?.remove();
 }
 function v263Print(titolo,tipo){
-  /* iOS/Safari: nessuna stampa automatica. Si apre il foglio isolato e la stampa parte
-     esclusivamente dal secondo gesto esplicito dell'utente sul pulsante "Stampa ora". */
-  const cova=tipo==="cova",size=cova?"210mm 297mm":"297mm 210mm";
-  const w=window.open("","_blank");
-  if(!w){obAvviso("Safari ha bloccato l'apertura del foglio di stampa. Consenti i popup per OrniAlleva e riprova.");return;}
-  const sheet=v263ApprovedSheet(tipo);
-  const css=v263ApprovedCss(tipo,"print");
-  w.document.open();
-  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(titolo)}</title><style>@page{size:${size};margin:0}html,body{margin:0;padding:0;background:#eef3ef;font-family:Arial,sans-serif}.ob-print-toolbar{position:sticky;top:0;z-index:99;display:flex;gap:10px;justify-content:center;align-items:center;padding:12px;background:#fff;border-bottom:1px solid #ccd7d0}.ob-print-toolbar button{font:700 16px Arial;padding:11px 18px;border-radius:10px;border:1px solid #1f6b4f;background:#1f6b4f;color:#fff}.ob-print-toolbar button.secondary{background:#fff;color:#1f6b4f}.ob-print-wrap{display:flex;justify-content:center;padding:14px;overflow:auto}.ob-approved-page{box-shadow:0 2px 16px #0002}${css}@media screen{.ob-approved-page{width:${cova?"min(calc(100vw - 28px),794px)":"min(calc(100vw - 28px),1122px)"}!important;height:auto!important;aspect-ratio:${cova?"210/297":"297/210"}!important;flex:0 0 auto!important}.ob-approved-page>img{width:100%!important;height:100%!important}}@media print{html,body{background:#fff!important}.ob-print-toolbar{display:none!important}.ob-print-wrap{padding:0!important;display:block!important;overflow:visible!important}.ob-approved-page{width:${cova?"210mm":"297mm"}!important;height:${cova?"297mm":"210mm"}!important;aspect-ratio:auto!important;box-shadow:none!important}}</style>\n<style id="ob-v26374397242-style">\n.ob-v442-non-present{color:#786b55;font-weight:800;letter-spacing:.02em}.ob-v436-historic-state.ob-state-sold{color:#176b46!important}.ob-v436-historic-state.ob-state-dead{color:#9a3f27!important}.ob-v442-nonpresent-info{display:grid;gap:7px;padding:12px 14px;margin-bottom:14px;border:1px solid #d9caa8;border-radius:14px;background:#fffaf0}.ob-v442-nonpresent-info b{color:#4d654d}.ob-v442-nonpresent-info span{font-size:14px;line-height:1.4}.ob-v442-nonpresent-info button{justify-self:start;margin:0}.ob-v442-manage-list{display:grid;gap:12px}.ob-v442-manage-card{background:#fffdf8;border:1px solid #dfd3b9;border-radius:18px;padding:14px;box-shadow:0 5px 16px rgba(57,75,49,.08)}.ob-v442-manage-main{display:flex;gap:12px;align-items:center}.ob-v442-manage-icon{width:54px;height:54px;flex:0 0 54px;display:grid;place-items:center}.ob-v442-manage-icon .ob-v263743975-trash-icon{width:48px!important;height:48px!important;border-radius:12px!important}.ob-v442-manage-data{min-width:0;flex:1}.ob-v442-manage-kicker{display:block;font-size:11px;font-weight:900;letter-spacing:.08em;color:#756b58;margin-bottom:3px}.ob-v442-manage-data h3{margin:0 0 4px;font-size:18px;color:#31543a}.ob-v442-manage-data p,.ob-v442-manage-data small{margin:0;color:#665f54}.ob-v442-manage-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}.ob-v442-manage-actions button{margin:0;flex:1 1 180px}.ob-v442-season-dialog{max-width:520px}.ob-v442-season-dialog input{font-size:20px;font-weight:800;text-align:center}.ob-v442-season-note{margin:10px 0 14px;padding:11px 12px;border-radius:12px;background:#f6f1e4;color:#5d574b;line-height:1.4}.ob-v442-season-empty{text-align:center}.ob-v442-season-empty button{margin-top:12px}@media(max-width:600px){.ob-v442-manage-card{padding:12px}.ob-v442-manage-main{align-items:flex-start}.ob-v442-manage-data h3{font-size:16px}.ob-v442-manage-actions{display:grid;grid-template-columns:1fr}.ob-v442-manage-actions button{width:100%}}.ob-trash-categories{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:10px;margin:14px 0}.ob-trash-category{margin:0!important;min-height:104px;padding:10px 8px!important;border:1px solid #d8d2c3!important;border-radius:14px!important;background:#fffdf8!important;color:#31543a!important;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:5px;box-shadow:0 3px 10px rgba(57,75,49,.07)}.ob-trash-category:not(.is-disabled):hover{border-color:#6f9a7e!important}.ob-trash-category.is-disabled{opacity:.45;cursor:not-allowed}.ob-trash-category-icon{width:38px;height:38px;display:grid;place-items:center}.ob-trash-category-icon img{width:38px!important;height:38px!important;object-fit:cover;border-radius:9px}.ob-trash-category-label{font-weight:800;font-size:13px}.ob-trash-category-count{min-width:24px;height:24px;padding:0 7px;border-radius:999px;background:#e5ebe6;color:#31543a;display:grid;place-items:center;font-weight:900;font-size:12px}@media(max-width:600px){.ob-trash-categories{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.ob-trash-category{min-height:86px;padding:7px 4px!important}.ob-trash-category-icon,.ob-trash-category-icon img{width:30px!important;height:30px!important}.ob-trash-category-label{font-size:10px}.ob-trash-category-count{min-width:20px;height:20px;font-size:10px}}\n</style>\n
-
-</head><body><div class="ob-print-toolbar"><button id="obPrintNow" type="button">Stampa ora</button><button id="obPrintClose" class="secondary" type="button">Chiudi</button></div><div class="ob-print-wrap">${sheet}</div><script>${v263FitFields.toString()};window.addEventListener('load',function(){v263FitFields(document);});window.addEventListener('beforeprint',function(){v263FitFields(document);});document.getElementById('obPrintNow').addEventListener('click',function(){v263FitFields(document);window.print();});document.getElementById('obPrintClose').addEventListener('click',function(){window.close();});<\/script></body></html>`);
-  w.document.close();
-  w.focus();
+  const cova=tipo==="cova";
+  const size="A4 "+(cova?"portrait":"landscape");
+  obStampaDentroApp(titolo,v263ApprovedSheet(tipo),v263ApprovedCss(tipo,"print"),size,true);
 }
 async function v263Pdf(titolo,tipo){
  if(typeof html2pdf!=="function"){obAvviso("Il modulo PDF non è disponibile.");return;}
@@ -12653,7 +12691,7 @@ table{max-width:100%}
           <button class="ob2633-refresh" id="obV2633PhaseRefresh" type="button" aria-label="Aggiorna fase" title="Aggiorna fase">↻</button>
         </div>
         <div class="ob2633-item ob2633-week" id="obV2633WeekItem" role="button" tabindex="0" aria-label="Apri controlli di questa settimana">
-          <div class="ob2633-image" id="obV2633WeekImg" style="background-image:url('assets_embedded/assets_embedded/ob_asset_055_8ed122ae8e.jpg')"></div>
+          <div class="ob2633-image" id="obV2633WeekImg" style="background-image:url('assets_embedded/assets_embedded/ob_asset_055_8ed122ae8e.jpg');transform:translateY(-2px)"></div>
           <div class="ob2633-content">
             <div class="ob2633-main">Questa settimana</div>
             <div class="ob2633-sub">Da controllare</div>
