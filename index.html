@@ -9722,22 +9722,9 @@ async function v18StampaStatistiche(){v18PrintDoc("Statistiche allevamento",awai
 async function v18StampaRegistro(){v18PrintDoc("Registro allevamento / riproduzione",await v18RegistroHtml(),"portrait");}
 async function v18StampaContabilita(){v18PrintDoc("Entrate e uscite",await v18ContabilitaHtml(),"landscape");}
 async function v185SoggettiHtml(){
-  const soggetti=await leggi("soggetti");
-  const righe=soggetti.map(soggetto=>`<tr>
-    <td>${esc(soggetto.rna||"")}</td>
-    <td>${esc(soggetto.numero||"")}</td>
-    <td>${esc(soggetto.anno||"")}</td>
-    <td>${esc(soggetto.sesso||"")}</td>
-    <td>${esc(soggetto.specie||"")}</td>
-    <td>${esc(soggetto.razza||"")}</td>
-    <td>${esc(soggetto.mutazione||"")}</td>
-  </tr>`).join("");
-  return `<p class="small" style="margin:0 0 8px;font-weight:700">Totale soggetti elencati: ${soggetti.length}</p>
-  <table>
-    <colgroup><col width="10%"><col width="13%"><col width="10%"><col width="12%"><col width="14%"><col width="17%"><col width="24%"></colgroup>
-    <thead><tr><th>RNA</th><th>Numero anello</th><th>Anno</th><th>Sesso</th><th>Specie</th><th>Razza</th><th>Mutazione</th></tr></thead>
-    <tbody>${righe}</tbody>
-  </table>`;
+  const d=await leggi("soggetti");
+  const rows=d.map(x=>`<tr><td>${esc(x.anno||"")}</td><td>${esc(x.numero||"")}</td><td>${esc(x.rna||"")}</td><td>${esc(x.sesso||"")}</td><td>${esc(x.specie||"")}</td><td>${esc(x.razza||"")}</td><td>${esc(x.mutazione||"")}</td></tr>`).join("");
+  return `<p class="small" style="margin:0 0 8px;font-weight:700">Totale soggetti elencati: ${d.length}</p><table><thead><tr><th>Anno</th><th>Numero</th><th>RNA</th><th>Sesso</th><th>Specie</th><th>Razza</th><th>Mutazione</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 async function v18StampaSoggetti(){v18PrintDoc("Registro soggetti",await v185SoggettiHtml(),"landscape");}
 const V1812_DOC_T={
