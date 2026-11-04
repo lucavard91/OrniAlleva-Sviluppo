@@ -827,12 +827,12 @@ html:has(body.ob-catalog-locked){overflow:hidden!important}body.ob-catalog-locke
 @keyframes v264BgIn{0%{opacity:0;transform:scale(1.16)}100%{opacity:1;transform:scale(1.08)}}
 @keyframes v264ImageReveal{0%{opacity:0;transform:scale(.16)}28%{opacity:.56}100%{opacity:1;transform:scale(1)}}
 @media(min-width:701px){
-  /* Intro orizzontale originale desktop. L'immagine resta intera, non deformata. */
+  /* Intro desktop rettangolare: soggetto intero al centro e lati riempiti dalla stessa immagine sfumata. */
   #v255BrandIntro{background:#082b1c!important}
   #v255BrandIntro::before{display:none!important;animation:none!important;filter:none!important}
-  .v261-intro-bg{display:block!important;inset:-3%!important;background-image:url("OrniAlleva_Intro_Desktop.jpg?v=20261103")!important;background-position:center!important;background-size:cover!important;filter:blur(12px) brightness(.7)!important;opacity:1!important;animation:none!important}
+  .v261-intro-bg{display:block!important;inset:-3%!important;background-image:url("OrniAlleva_Intro_Desktop.jpg?v=20261104")!important;background-position:center!important;background-size:cover!important;filter:blur(12px) brightness(.7)!important;opacity:1!important;animation:none!important}
   .v256-intro-picture{display:contents}
-  .v256-intro-image{width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important;object-fit:contain!important;object-position:center!important;filter:none!important;will-change:transform,opacity;animation:v3019DesktopIntro 4.55s cubic-bezier(.18,.72,.22,1) both!important}
+  .v256-intro-image{width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important;object-fit:contain!important;object-position:center center!important;filter:none!important;will-change:transform,opacity;animation:v3019DesktopIntro 4.55s cubic-bezier(.18,.72,.22,1) both!important}
   @keyframes v3019DesktopIntro{0%{opacity:0;transform:scale(.92)}28%{opacity:.58}100%{opacity:1;transform:scale(1)}}
 }
 #loginScreen,#registerScreen,#phoneAuthScreen,#recoverAccountScreen,#resetScreen{position:fixed!important;inset:0!important;z-index:900000!important;max-width:none!important;width:100%!important;min-height:100dvh!important;margin:0!important;padding:clamp(130px,25dvh,250px) 16px max(24px,env(safe-area-inset-bottom))!important;box-sizing:border-box!important;overflow:auto!important;border-radius:0!important;box-shadow:none!important;display:flex;align-items:flex-start;justify-content:center;background:linear-gradient(180deg,rgba(3,24,18,.02) 0%,rgba(3,24,18,.10) 40%,rgba(2,21,16,.76) 66%,rgba(2,18,14,.94) 100%),var(--v264-auth-bg) center center/cover no-repeat fixed!important}
@@ -1618,7 +1618,7 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
 </style></head>
 <body>
 <div id="obAdminReturnTransition" aria-live="polite" aria-label="OrniAlleva — Caricamento"><div class="ob-return-card"><div class="ob-return-mark" aria-hidden="true"></div><b>OrniAlleva</b><span>Caricamento…</span></div></div>
-<div id="v255BrandIntro" aria-label="OrniAlleva — Smart Aviculture Management"><div class="v261-intro-bg" aria-hidden="true"></div><picture class="v256-intro-picture"><source media="(min-width:701px)" srcset="OrniAlleva_Intro_Desktop.jpg?v=20261103"><img class="v256-intro-image" alt="OrniAlleva — La tua passione. Il tuo allevamento." src="ob_asset_051_3aefa10cbb.jpg?oa=20261028"></picture></div></div>
+<div id="v255BrandIntro" aria-label="OrniAlleva — Smart Aviculture Management"><div class="v261-intro-bg" aria-hidden="true"></div><picture class="v256-intro-picture"><source media="(min-width:701px)" srcset="OrniAlleva_Intro_Desktop.jpg?v=20261104"><img class="v256-intro-image" alt="OrniAlleva — La tua passione. Il tuo allevamento." src="ob_asset_051_3aefa10cbb.jpg?oa=20261028"></picture></div></div>
 <div id="allevamentoLoading" aria-live="polite" aria-busy="true"><div class="loading-card"><div class="spinner" aria-hidden="true"></div><p id="allevamentoLoadingTitle">Cambio allevamento…</p><div class="small" style="margin-top:6px;">Caricamento dei dati in corso</div></div></div>
 <div id="loginScreen">
   <div class="v264-auth-card">
@@ -3920,7 +3920,11 @@ async function loginSupabase(){
     }
     obSetStaySignedIn(!!$("obStaySignedIn")?.checked);
     await avviaMostraApp();
-  }catch(e){msg("Errore durante l'accesso: "+(e?.message||e));}
+  }catch(e){
+    window.__MYAGARI_FRESH_LOGIN=false;
+    try{obV2630AzzeraRuntimeAutenticato();}catch(_){}
+    msg("Errore durante l'accesso: "+(e?.message||e));
+  }
 }
 function mostraAccessoTelefono(){
   toggle("loginScreen",false);toggle("registerScreen",false);toggle("recoverAccountScreen",false);toggle("resetScreen",false);toggle("phoneAuthScreen",true);
@@ -11542,7 +11546,8 @@ document.addEventListener("DOMContentLoaded",()=>{
     try{await mostraRecupero();}catch(e){console.error("[OrniAlleva V24.2 RECOVERY]",e);try{msg(e?.message||String(e));}catch(_){}}
   }
   function bindAuthHardening(){
-    if(!authReady())return;
+    // Associa i pulsanti anche quando la libreria Supabase termina il caricamento dopo il DOM.
+    // La disponibilità di Supabase viene controllata al clic da safeLogin.
     const login=document.getElementById("btnLogin");
     const recovery=document.getElementById("btnRecovery");
     const register=document.getElementById("btnRegister");
