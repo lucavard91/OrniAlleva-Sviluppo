@@ -1591,6 +1591,9 @@ html.ob-return-from-admin #resetScreen{display:none!important}
 html.ob-return-from-admin,html.ob-return-from-admin body{background:#08291f!important}
 html.ob-return-from-admin #v255BrandIntro{display:none!important}
 #obAdminReturnTransition{display:none;position:fixed;inset:0;z-index:1000001;background:#08291f url("ob_asset_051_3aefa10cbb.jpg?oa=20261028-admin-return") center center/contain no-repeat;color:#fff;font-family:Arial,sans-serif;overflow:hidden}
+@media(min-width:701px){
+  #obAdminReturnTransition{background-image:url("OrniAlleva_Intro_Desktop.jpg?v=20261104")!important;background-size:contain!important;background-position:center!important}
+}
 #obAdminReturnTransition::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,24,18,.02),rgba(3,24,18,.10));pointer-events:none}
 html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-transition-visible{display:block}
 #obAdminReturnTransition .ob-return-card{position:absolute;inset:0;z-index:1;display:flex;align-items:flex-end;justify-content:center;padding:0 20px max(4.5vh,24px);text-align:center;pointer-events:none}
@@ -4128,8 +4131,22 @@ function obMostraSceltaUscita(){
     card.innerHTML='<button type="button" data-dismiss-exit aria-label="Annulla uscita e torna all app" title="Torna all app" style="position:absolute;top:10px;right:10px;width:34px;height:34px;border:2px solid #d7ad4b;border-radius:50%;background:#fffdf8;color:#17432f;font-size:22px;line-height:26px;cursor:pointer;padding:0">×</button><img src="logo_ornialleva_con_emblema_dorato.png" alt="Logo ufficiale OrniAlleva" style="display:block;width:min(65%,230px);height:auto;max-height:225px;object-fit:contain;margin:10px auto 12px"><h2 style="color:#17432f">OrniAlleva</h2><p>Puoi chiudere la schermata. Il tuo account resterà collegato.</p><button type="button" data-close-app style="width:100%;padding:13px;border-radius:12px;background:#14563f;color:white;border:2px solid #d7ad4b">Esci</button>';
     screen.querySelector("[data-dismiss-exit]").onclick=()=>screen.remove();
     screen.querySelector("[data-close-app]").onclick=()=>{
-      card.innerHTML='<img src="logo_ornialleva_con_emblema_dorato.png" alt="Logo ufficiale OrniAlleva" style="display:block;width:min(65%,230px);height:auto;max-height:225px;object-fit:contain;margin:10px auto 12px">';
+      // Il browser iOS non garantisce window.close() per una PWA.
+      // Salva Home come destinazione e non lasciare mai il logo bloccato.
+      try{
+        localStorage.removeItem(chiaveStatoNavigazione());
+        sessionStorage.setItem("ob_exit_go_home","1");
+      }catch(_){}
+      window.__obExitAppRequested=true;
       try{window.close();}catch(_){}
+      window.setTimeout(()=>{
+        // Se Safari non consente la chiusura, ritorna a una Home funzionante.
+        if(screen.isConnected && !document.hidden){
+          window.__obExitAppRequested=false;
+          screen.remove();
+          void apriPagina("home");
+        }
+      },300);
     };
   };
   screen.querySelector("[data-exit-account]").onclick=async()=>{
@@ -4138,6 +4155,17 @@ function obMostraSceltaUscita(){
     try{await obEseguiDisconnessioneAccount();}catch(e){b.disabled=false;b.textContent="Esci dall’account";if(typeof obAvviso==="function")obAvviso("Impossibile disconnettersi: "+(e?.message||e));}
   };
 }
+function obRiprendiDopoUscita(){
+  if(!window.__obExitAppRequested)return;
+  window.__obExitAppRequested=false;
+  document.getElementById("obAccountExitScreen")?.remove();
+  try{localStorage.removeItem(chiaveStatoNavigazione());sessionStorage.removeItem("ob_exit_go_home");}catch(_){}
+  if(document.getElementById("app") && !document.getElementById("app").classList.contains("hidden")){
+    void apriPagina("home");
+  }
+}
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)obRiprendiDopoUscita();});
+window.addEventListener("pageshow",obRiprendiDopoUscita);
 function logout(){obMostraSceltaUscita();}
 async function avviaMostraApp(sessionOverride=null){
   if(mostraAppPromise)return mostraAppPromise;
@@ -4227,15 +4255,13 @@ async function mostraApp(){
       }
     }
     await aggiornaNotificheAdmin();
-    let obForceHome=false;
-    try{obForceHome=localStorage.getItem("ornibreed_force_home_after_logout")==="1";}catch(e){}
-    if(obForceHome || window.__MYAGARI_FRESH_LOGIN===true){
-      window.__MYAGARI_FRESH_LOGIN=false;
-      try{localStorage.removeItem("ornibreed_force_home_after_logout");localStorage.removeItem(chiaveStatoNavigazione());}catch(e){}
-      await apriPagina("home");
-    }else{
-      await ripristinaUltimaSchermata();
-    }
+    window.__MYAGARI_FRESH_LOGIN=false;
+    try{
+      localStorage.removeItem("ornibreed_force_home_after_logout");
+      localStorage.removeItem(chiaveStatoNavigazione());
+      sessionStorage.removeItem("ob_exit_go_home");
+    }catch(e){}
+    await apriPagina("home");
     if(!window.__obGuestMode){
       obV3415AvviaAggiornamenti();
       void obV34181CaricaCronologiaRemota();
@@ -9703,8 +9729,8 @@ async function v18StampaRegistro(){v18PrintDoc("Registro allevamento / riproduzi
 async function v18StampaContabilita(){v18PrintDoc("Entrate e uscite",await v18ContabilitaHtml(),"landscape");}
 async function v185SoggettiHtml(){
   const d=await leggi("soggetti");
-  const rows=d.map(x=>`<tr><td>${esc(x.anno||"")}</td><td>${esc(x.numero||"")}</td><td>${esc(x.rna||"")}</td><td>${esc(x.sesso||"")}</td><td>${esc(x.specie||"")}</td><td>${esc(x.razza||"")}</td><td>${esc(x.mutazione||"")}</td></tr>`).join("");
-  return `<table><thead><tr><th>Anno</th><th>Numero</th><th>RNA</th><th>Sesso</th><th>Specie</th><th>Razza</th><th>Mutazione</th></tr></thead><tbody>${rows}</tbody></table>`;
+  const rows=d.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x.rna||"")}</td><td>${esc(x.numero||"")}</td><td>${esc(x.anno||"")}</td><td>${esc(x.sesso||"")}</td><td>${esc(x.specie||"")}</td><td>${esc(x.razza||"")}</td><td>${esc(x.mutazione||"")}</td></tr>`).join("");
+  return `<p class="small" style="margin:0 0 8px;font-weight:700">Totale soggetti elencati: ${d.length}</p><table><thead><tr><th>Soggetto n°</th><th>RNA</th><th>Numero</th><th>Anno</th><th>Sesso</th><th>Specie</th><th>Razza</th><th>Mutazione</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 async function v18StampaSoggetti(){v18PrintDoc("Registro soggetti",await v185SoggettiHtml(),"landscape");}
 const V1812_DOC_T={
