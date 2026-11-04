@@ -12200,10 +12200,35 @@ function v263OpenPreview(titolo,tipo){
   v185DocumentoCorrente={titolo,html:v263ApprovedSheet(tipo),orientamento,origine:"materiale_allevamento",approvedType:tipo};
   const modal=$("v185DocModal"),preview=$("v185DocPreview"),title=$("v185DocTitle"),back=$("v185DocClose");
   if(!modal||!preview)return;
-  if(title)title.textContent=titolo;if(back)back.textContent="← Torna a Materiale da stampare";
-  preview.innerHTML=`<style>${v263ApprovedCss(tipo,"preview")}</style>${v263ApprovedSheet(tipo)}`;
-  requestAnimationFrame(()=>v263FitFields(preview));
+  if(title)title.textContent=titolo;
+  if(back)back.textContent="← Torna a Materiale da stampare";
+  // Anteprima in scala dell'A4: stesso foglio virtuale 1122×794 usato nel PDF,
+  // mai layout fluido dipendente dall'iPhone o dalla dimensione del PC.
+  const cova=tipo==="cova",w=cova?794:1122,h=cova?1122:794;
+  preview.innerHTML=`<style>${v263ApprovedCss(tipo,"preview")}
+    #v185DocPreview .ob-approved-preview-frame{position:relative;width:100%;aspect-ratio:${w}/${h};overflow:hidden;margin:0 auto}
+    #v185DocPreview .ob-approved-preview-frame>.ob-approved-page{position:absolute!important;left:0;top:0;width:${w}px!important;height:${h}px!important;aspect-ratio:auto!important;max-width:none!important;transform-origin:top left}
+    #v185DocPreview .ob-approved-preview-frame>.ob-approved-page>img{max-width:none!important}
+  </style><div class="ob-approved-preview-frame">${v263ApprovedSheet(tipo)}</div>`;
   modal.classList.add("open");modal.setAttribute("aria-hidden","false");obBloccaScroll();
+  const frame=preview.querySelector(".ob-approved-preview-frame");
+  const page=frame?.querySelector(".ob-approved-page");
+  const scalePage=()=>{
+    if(!frame||!page||!frame.isConnected)return;
+    const scale=frame.clientWidth/w;
+    page.style.transform="scale("+scale+")";
+    // Le misure del testo sono calcolate sul foglio non trasformato,
+    // esattamente come avviene durante l'esportazione PDF.
+    v263FitFields(frame);
+  };
+  requestAnimationFrame(()=>requestAnimationFrame(scalePage));
+  const image=page?.querySelector("img");
+  image?.addEventListener("load",scalePage,{once:true});
+  if(typeof ResizeObserver!=="undefined"){
+    if(window.obApprovedPreviewResize)window.obApprovedPreviewResize.disconnect();
+    window.obApprovedPreviewResize=new ResizeObserver(scalePage);
+    window.obApprovedPreviewResize.observe(frame);
+  }
   try{modal.scrollTo(0,0);preview.scrollTop=0;}catch(_){}
 }
 function v263RimuoviPrintRoot(){
