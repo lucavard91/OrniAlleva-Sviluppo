@@ -4131,22 +4131,23 @@ function obMostraSceltaUscita(){
     card.innerHTML='<button type="button" data-dismiss-exit aria-label="Annulla uscita e torna all app" title="Torna all app" style="position:absolute;top:10px;right:10px;width:34px;height:34px;border:2px solid #d7ad4b;border-radius:50%;background:#fffdf8;color:#17432f;font-size:22px;line-height:26px;cursor:pointer;padding:0">×</button><img src="logo_ornialleva_con_emblema_dorato.png" alt="Logo ufficiale OrniAlleva" style="display:block;width:min(65%,230px);height:auto;max-height:225px;object-fit:contain;margin:10px auto 12px"><h2 style="color:#17432f">OrniAlleva</h2><p>Puoi chiudere la schermata. Il tuo account resterà collegato.</p><button type="button" data-close-app style="width:100%;padding:13px;border-radius:12px;background:#14563f;color:white;border:2px solid #d7ad4b">Esci</button>';
     screen.querySelector("[data-dismiss-exit]").onclick=()=>screen.remove();
     screen.querySelector("[data-close-app]").onclick=()=>{
-      // Il browser iOS non garantisce window.close() per una PWA.
-      // Salva Home come destinazione e non lasciare mai il logo bloccato.
+      // iOS non consente alle PWA di terminare forzatamente il processo.
+      // Prepara subito la Home PRIMA del tentativo di chiusura: evita
+      // schermate di uscita bloccate e vecchi moduli al riavvio.
       try{
         localStorage.removeItem(chiaveStatoNavigazione());
         sessionStorage.setItem("ob_exit_go_home","1");
       }catch(_){}
       window.__obExitAppRequested=true;
+      screen.remove();
+      try{
+        const goHome=apriPagina("home",{daCronologia:true,scroll:0});
+        if(goHome&&typeof goHome.catch==="function")goHome.catch(e=>console.warn("Ripristino Home dopo uscita",e));
+      }catch(e){console.warn("Ripristino Home dopo uscita",e);}
+      try{window.scrollTo(0,0);}catch(_){}
       try{window.close();}catch(_){}
-      window.setTimeout(()=>{
-        // Se Safari non consente la chiusura, ritorna a una Home funzionante.
-        if(screen.isConnected && !document.hidden){
-          window.__obExitAppRequested=false;
-          screen.remove();
-          void apriPagina("home");
-        }
-      },300);
+      // Se la PWA resta aperta per restrizione iOS, rimane sulla Home.
+      // Al successivo pageshow/visibilitychange il flag viene resettato.
     };
   };
   screen.querySelector("[data-exit-account]").onclick=async()=>{
