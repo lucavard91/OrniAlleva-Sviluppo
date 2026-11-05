@@ -9517,9 +9517,10 @@ function v185ApriDocumento(titolo,html,orientamento="portrait"){
     const tabella=preview.querySelector(".obdev-report-riproduzione .v18-table-wrap");
     if(tabella){tabella.setAttribute("aria-label","Tabella riproduzione: scorri orizzontalmente per vedere tutte le colonne");tabella.setAttribute("tabindex","0");const nota=document.createElement("p");nota.textContent="Scorri la tabella verso destra per leggere tutte le colonne.";nota.className="small";nota.style.cssText="color:#14513f;padding:5px 9px;margin:0;background:#f4f6ed";tabella.parentNode.insertBefore(nota,tabella);}
   }
+  const giaAperta=modal.classList.contains("open");
   modal.classList.add("open");
   modal.setAttribute("aria-hidden","false");
-  obBloccaScroll();
+  if(!giaAperta)obBloccaScroll();
   try{modal.scrollTo(0,0);preview.scrollTop=0;}catch(_){}
 }
 function v185ChiudiDocumento(){
@@ -9527,7 +9528,9 @@ function v185ChiudiDocumento(){
   if(!modal?.classList.contains("open"))return;
   modal.classList.remove("open");
   modal.setAttribute("aria-hidden","true");
+  if(window.obApprovedPreviewResize){window.obApprovedPreviewResize.disconnect();window.obApprovedPreviewResize=null;}
   obSbloccaScroll();
+  if(obScrollLockDepth===0)document.documentElement.style.removeProperty("overflow");
 }
 function v185PrintCss(orientamento="portrait"){
   return `body{font-family:Arial,sans-serif;padding:8mm;color:#17372e;background:#fff}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #9aab9f;padding:5px;text-align:left;vertical-align:top}th{background:#14513f;color:#fff;font-weight:700}tbody tr:nth-child(even){background:#f5f8f5}.v18-metric-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.v18-metric{border:1px solid #c7d2ca;padding:10px;border-radius:8px;background:#f8faf8}.v18-metric b{display:block;font-size:20px;color:#14513f}.card{margin:12px 0}.owner-head{display:none!important}.blank td{height:28px}.blank-lg td{height:40px}.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}.meta-box{border:1px solid #b8c5bd;min-height:32px;padding:7px;border-radius:7px}.section-title{margin-top:18px;margin-bottom:7px;font-size:16px;font-weight:bold;color:#14513f}.ob-report-head{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;border:1px solid #c7a448;border-radius:12px;padding:10px 12px;margin:0 0 14px;background:linear-gradient(90deg,#eff6f0,#fffaf0)}.ob-report-brand{display:flex;flex-direction:column;line-height:1}.ob-report-brand b{font-size:20px;color:#14513f}.ob-report-brand span{font-size:9px;letter-spacing:2px;color:#a77d20;margin-top:3px}.ob-report-title{display:flex;flex-direction:column;text-align:center}.ob-report-title strong{font-size:19px;color:#17372e}.ob-report-title small{font-size:9px;color:#6f7c75;margin-top:3px}.ob-report-meta{display:grid;grid-template-columns:1fr 1fr;gap:3px 10px;font-size:9px;max-width:290px}.ob-report-meta b{color:#14513f}@page{size:A4 ${orientamento};margin:7mm}`;
@@ -9577,7 +9580,11 @@ function obStampaDentroApp(titolo,contenuto,css,formato="A4 portrait",approvato=
     #obPrintInApp .ob-approved-page{width:${formato.includes("landscape")?"297mm":"210mm"}!important;height:${formato.includes("landscape")?"210mm":"297mm"}!important;max-width:none!important;aspect-ratio:auto!important}
   }`+(css||"");
   const oldOverflow=document.documentElement.style.overflow;
-  const close=()=>{overlay.remove();style.remove();document.documentElement.style.overflow=oldOverflow;};
+  const close=()=>{
+    overlay.remove();style.remove();
+    document.documentElement.style.overflow=oldOverflow;
+    if(obScrollLockDepth===0 && document.body.classList.contains("ob-form-open"))obSbloccaScroll(true);
+  };
   back.addEventListener("click",close);
   print.addEventListener("click",()=>{if(approvato&&typeof v263FitFields==="function")v263FitFields(sheet);window.print();});
   document.head.appendChild(style);
@@ -12275,7 +12282,9 @@ function v263OpenPreview(titolo,tipo){
     #v185DocPreview .ob-approved-preview-frame>.ob-approved-page{position:absolute!important;left:0;top:0;width:${w}px!important;height:${h}px!important;aspect-ratio:auto!important;max-width:none!important;transform-origin:top left}
     #v185DocPreview .ob-approved-preview-frame>.ob-approved-page>img{max-width:none!important}
   </style><div class="ob-approved-preview-frame">${v263ApprovedSheet(tipo)}</div>`;
-  modal.classList.add("open");modal.setAttribute("aria-hidden","false");obBloccaScroll();
+  const giaAperta=modal.classList.contains("open");
+  modal.classList.add("open");modal.setAttribute("aria-hidden","false");
+  if(!giaAperta)obBloccaScroll();
   const frame=preview.querySelector(".ob-approved-preview-frame");
   const page=frame?.querySelector(".ob-approved-page");
   const scalePage=()=>{
