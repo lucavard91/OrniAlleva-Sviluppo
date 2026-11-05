@@ -15,7 +15,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-<title>OrniAlleva — Smart Aviculture Management</title><meta name="ornibreed-version" content="V34.18.3"><meta name="ornibreed-release-channel" content="development">
+<title>OrniAlleva — Smart Aviculture Management</title><meta name="ornibreed-version" content="V34.18.7"><meta name="ornibreed-release-channel" content="development">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -2893,7 +2893,7 @@ const SUPABASE_URL="https://mddsmqwfufzebahemxcn.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kZHNtcXdmdWZ6ZWJhaGVteGNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzOTMyMTksImV4cCI6MjEwMTk2OTIxOX0.UXzR227VZ1EBwq4fuGapZQen3ekGvGIzezfvJZbXojY";
 const FOTO_BUCKET="myagari-fot";
 /* V34.15 — rilasci controllati via Supabase. Non cambia i dati degli allevatori. */
-const OB_APP_VERSION="34.18.6";
+const OB_APP_VERSION="34.18.7";
 const OB_RELEASE_CHANNEL=document.querySelector('meta[name="ornibreed-release-channel"]')?.content==="production"?"production":"development";
 const OB_RELEASE_POLL_MS=120000; // Realtime se disponibile, controllo di riserva ogni 2 minuti.
 let obReleaseTimer=null,obReleaseRealtime=null,obReleaseBusy=false,obReleaseSnoozedVersion="",obReleasePending=null,obReleaseLastCheckOk=false;
@@ -2969,11 +2969,12 @@ async function obV34161NotificaRelease(row){
 /* V34.18.1 — informazioni sulle versioni: provenienza Supabase, archivio locale e conferma reale.
    Gli esempi di specie e mutazioni NON sono pubblicati come novità: solo modifiche effettive. */
 const OB_CURRENT_RELEASE={
- version:"34.18.6",title:"OrniAlleva V34.18.6 — Statistiche PDF A4",
+ version:"34.18.7",title:"OrniAlleva V34.18.7 — Catalogo genetico e stabilità",
  notes:[
-  "Statistiche PDF in pagine A4: riquadri interi, senza tagli tra una pagina e l’altra.",
-  "Corretto il controllo degli aggiornamenti installati e del badge notifiche.",
-  "Migliorata la compatibilità di registri e report su iPhone."
+  "Catalogo genetico: 802 combinazioni sottoposte a controllo strutturale; ereditarietà non verificate restano escluse dalle previsioni.",
+  "Registrata la fonte FOI per il riconoscimento espositivo del canarino Mogano, distinta dall’ereditarietà ancora da verificare.",
+  "Confermate le correzioni della stampa su iPhone e dell’icona Questa settimana.",
+  "Allineato il sistema di aggiornamento della PWA."
  ],published_at:null
 };
 const OB_RELEASE_HISTORY_KEY="ornibreed_release_history_v1_"+OB_RELEASE_CHANNEL;
@@ -10103,7 +10104,7 @@ async function v186PdfFormato(titolo,html,orientamento="portrait",formato="A4"){
 let v18InstallPrompt=null;
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();v18InstallPrompt=e;$("v18InstallBtn")?.classList.remove("hidden");});
 async function v18Installa(){if(!v18InstallPrompt){obAvviso("Se l'installazione non viene proposta automaticamente, usa il menu del browser e scegli “Aggiungi a schermata Home” / “Installa app”.");return;}v18InstallPrompt.prompt();await v18InstallPrompt.userChoice;v18InstallPrompt=null;$("v18InstallBtn")?.classList.add("hidden");}
-if("serviceWorker" in navigator){window.addEventListener("load",async()=>{try{const reg=await navigator.serviceWorker.register("service-worker.js?v=ornialleva-dev-34-18-3-icons1",{scope:"./",updateViaCache:"none"});reg.update().catch(()=>{});}catch(e){console.warn("Service worker",e);}});}
+if("serviceWorker" in navigator){window.addEventListener("load",async()=>{try{const reg=await navigator.serviceWorker.register("service-worker.js?v=ornialleva-dev-34-18-7-genetics1",{scope:"./",updateViaCache:"none"});reg.update().catch(()=>{});}catch(e){console.warn("Service worker",e);}});}
 function v18Init(){
   v1811InitLingua();
   $("v18MenuBtn")?.addEventListener("click",v18ApriDrawer);$("v18DrawerClose")?.addEventListener("click",v18ChiudiDrawer);$("v18DrawerBackdrop")?.addEventListener("click",v18ChiudiDrawer);$("v18PremiumClose")?.addEventListener("click",v18ChiudiPremium);$("v18InstallBtn")?.addEventListener("click",v18Installa);
