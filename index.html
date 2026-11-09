@@ -7912,11 +7912,16 @@ box.innerHTML = `
   const updateDisplay=()=>{
     const el=$id("obV34FullName");if(!el)return;
     const values=[$id("s_razza")?.value,$id("s_mutazione")?.value].filter(Boolean);
+    const sex=norm($id("s_sesso")?.value||""),mutation=norm($id("s_mutazione")?.value||"");
+    if(selectedTaxa().some(isCanary)&&mutation.includes("mosaico")){
+      if(sex==="femmina")values.push("Tipo 1");
+      else if(sex==="maschio")values.push("Tipo 2");
+    }
     el.textContent=values.length?"Denominazione: "+values.join(" · "):"";
   };
   $id("s_specie")?.addEventListener("change",()=>{$id("s_razza").value="";$id("s_mutazione").value="";$id("s_colore").value="";updateCategory();updateDisplay();refreshCarrierSuggestions()});
   $id("s_categoria_specie")?.addEventListener("change",()=>{$id("s_razza").value="";updateCategory();updateDisplay()});
-  ["s_razza","s_mutazione","s_colore","s_categoria_piumaggio"].forEach(id=>{const el=$id(id);el?.addEventListener("input",updateDisplay);el?.addEventListener("change",()=>{if(id==="s_mutazione")updateCategory();updateDisplay()})});
+  ["s_razza","s_mutazione","s_colore","s_categoria_piumaggio","s_sesso"].forEach(id=>{const el=$id(id);el?.addEventListener("input",updateDisplay);el?.addEventListener("change",()=>{if(id==="s_mutazione")updateCategory();updateDisplay()})});
   $id("newSoggetto")?.addEventListener("click",()=>{obV34ResetDetails();updateCategory();document.querySelector('[data-ob-hints="colore"]')?.classList.add("hidden")});
   updateCategory();
   const canaryMutationItems=()=>{
@@ -8012,33 +8017,49 @@ box.innerHTML = `
   const mutationExplanation=label=>{
     if(currentType!=="mutazione")return "";
     const species=norm($id("s_specie")?.value||"");
-    const name=norm(label);
+    const name=norm(label),ids=taxIds();
     if(name==="ancestrale"){
       const isGoldfinch=species.includes("cardell")||species.includes("carduelis carduelis");
       return isGoldfinch
-        ?"Ancestrale (FOI): fenotipo naturale non mutato del Cardellino. E una nomenclatura ufficiale, non una mutazione genetica."
-        :"Ancestrale: fenotipo naturale/non mutato della specie; indica che non e selezionata alcuna mutazione genetica.";
+        ?"Ancestrale (FOI): fenotipo naturale non mutato del Cardellino; è una nomenclatura ufficiale e non una mutazione genetica."
+        :"Ancestrale (wild type): fenotipo naturale/non mutato della specie; non è una mutazione genetica e non indica portatori.";
     }
     const typeMatch=name.match(/\b(?:tipo|type)\s*([0-9]+)\b/);
-    if(!typeMatch)return "";
-    const type=Number(typeMatch[1]);
-    const ids=taxIds();
-    const row=C.mutations.find(m=>m.taxon_id&&ids.has(String(m.taxon_id))&&norm(mutLabel(m))===name);
-    const documented=String(meta(row).ui_explanation_it||"").trim();
+    const type=typeMatch?Number(typeMatch[1]):null;
     const isBudgie=species.includes("ondulat")||species.includes("melopsittacus");
-    if(isBudgie&&name.includes("faccia gialla")){
-      if(type===1)return "Faccia Gialla Mutante 1 (WBO): maschera giallo limone; la diffusione gialla nel colore di fondo deve essere assente o minima. Il doppio fattore puo risultare a faccia bianca.";
-      if(type===2)return "Faccia Gialla Mutante 2 (WBO): nel singolo fattore la diffusione gialla nel corpo puo essere marcata e modificare il blu verso verde/blu; nello standard espositivo WBO e preferita la forma doppio fattore, con diffusione minima vicino alla maschera.";
-    }
-    if((species.includes("roseicollis")||species.includes("inseparabile faccia rosa"))&&name.includes("violet")&&type===2){
-      return "Violet Tipo 2 / American Violet (AGASSCOM): fattore V2 distinto dal Violet danese; ereditarieta a dominanza intermedia.";
-    }
+    const row=C.mutations.find(m=>m.taxon_id&&ids.has(String(m.taxon_id))&&norm(mutLabel(m))===name);
+    const md=row?meta(row):{};
+    const documented=String(md.ui_explanation_it||"").trim();
+
+    if(isBudgie&&name.includes("faccia gialla")&&type===1)
+      return documented||"Faccia Gialla Mutante 1 (WBO/OMJ): maschera giallo limone; nella serie blu la diffusione gialla nel corpo deve essere assente o minima. Il doppio fattore è visivamente faccia bianca.";
+    if(isBudgie&&name.includes("faccia gialla")&&type===2)
+      return documented||"Faccia Gialla Mutante 2 (WBO/OMJ): giallo più intenso; il singolo fattore può mostrare forte suffusione gialla nel corpo. Per l’esposizione è preferita la forma doppio fattore.";
+    if((species.includes("roseicollis")||species.includes("inseparabile faccia rosa"))&&name.includes("violet")&&type===2)
+      return documented||"Violet Tipo 2 / American Violet (AGASSCOM): fattore V2 distinto dal Violet danese; ereditarietà a dominanza intermedia.";
+
     if(selectedTaxa().some(isCanary)&&name.includes("mosaico")){
-      if(type===1)return "Mosaico Tipo 1 - linea femminile (FOI): zone di elezione tipiche con ciliare, spalline e codione; e una distinzione fenotipico-espositiva della categoria Mosaico, non una mutazione genetica separata.";
-      if(type===2)return "Mosaico Tipo 2 - linea maschile (FOI): maschera facciale ben definita con spalline e codione marcati; e una distinzione fenotipico-espositiva della categoria Mosaico, non una mutazione genetica separata.";
+      if(type===1)return "Mosaico Tipo 1 (COM/OMJ): categoria femminile; linea oculare sottile, spalline e codione ben delimitati. È una distinzione fenotipico-espositiva, non una mutazione genetica separata.";
+      if(type===2)return "Mosaico Tipo 2 (COM/OMJ): categoria maschile; maschera facciale più estesa, spalline e codione marcati. È una distinzione fenotipico-espositiva, non una mutazione genetica separata.";
+      return "Mosaico (COM/OMJ): lo standard distingue Tipo 1 per la femmina e Tipo 2 per il maschio; sono categorie fenotipico-espositive, non mutazioni genetiche separate.";
     }
+
     if(documented)return documented;
-    return "Tipo "+type+": voce presente nel catalogo; la descrizione scientifica specifica per questa specie non e ancora validata.";
+    if(row){
+      const modes={
+        AUTOSOMAL_RECESSIVE:"autosomica recessiva",
+        AUTOSOMAL_DOMINANT:"autosomica dominante",
+        AUTOSOMAL_INCOMPLETE_DOMINANT:"autosomica a dominanza intermedia",
+        SEX_LINKED_RECESSIVE:"recessiva legata al sesso"
+      };
+      const mode=modes[String(row.inheritance_mode||"").toUpperCase()];
+      if(mode){
+        const verified=String(row.status||"").toUpperCase()==="VERIFIED"||md.inheritance_verified===true||md.inheritance_mode_verified===true;
+        return (verified?"Ereditarietà verificata: ":"Ereditarietà indicata, ancora da completare: ")+mode+".";
+      }
+    }
+    if(type)return "Tipo "+type+": denominazione presente nel catalogo, ma senza una spiegazione specie-specifica verificata; non viene equiparata automaticamente ai tipi di altre specie.";
+    return "";
   };
   const render=()=>{if(!list)return;const q=norm(search?.value||"");const rank=x=>{const n=norm(x);return n===q?0:n.startsWith(q)?1:obMatchCommonName(x,q)?2:3};const data=dataFor(currentType).filter(x=>searchable(x,q)).sort((a,b)=>q?rank(a)-rank(b)||a.localeCompare(b,"it"):a.localeCompare(b,"it"));list.innerHTML="";data.forEach(label=>{const b=document.createElement("button");b.type="button";b.className="ob-catalog-item";b.textContent=currentType==="specie"?speciesDisplayLabel(label):label;const explanation=mutationExplanation(label);if(explanation){const small=document.createElement("span");small.className="ob-catalog-scientific";small.textContent=explanation;b.appendChild(small)}b.addEventListener("click",()=>pick(label));list.appendChild(b)});empty?.classList.toggle("hidden",data.length!==0)};
   const close=()=>{if(!dialog||dialog.classList.contains("hidden"))return;document.activeElement===search&&search.blur();dialog.classList.add("hidden");document.body.classList.remove("ob-catalog-locked");document.documentElement.style.overflow="";document.body.style.overflow="";window.scrollTo(0,savedScroll);currentInput=null;currentType="";if(search)search.value=""};
