@@ -8005,7 +8005,24 @@ box.innerHTML = `
   const titleFor=type=>type==="specie"?"Seleziona specie":type==="razza"?"Seleziona razza":type==="colore"?"Seleziona colore":"Seleziona mutazione";
   const contextFor=type=>{if(type==="specie")return "Scegli la specie.";const sp=$id("s_specie")?.value||"";if(type==="razza")return sp?"Specie: "+sp:"Scegli prima la specie.";return [sp&&("Specie: "+sp),$id("s_razza")?.value&&("Razza: "+$id("s_razza").value)].filter(Boolean).join(" · ")||(type==="colore"?"Scegli colore.":"Scegli mutazione.")};
   const searchable=(label,q)=>{if(!q)return true;const nq=norm(q);if(obMatchCommonName(label,nq))return true;if(currentType==="specie"&&(C.taxa.length?validSpecies():OB_APPROVED_SPECIES_20261102).some(t=>norm(taxLabel(t))===norm(label)&&names(t).some(name=>norm(name).includes(nq))))return true;if(currentType==="mutazione"&&synonymsMatch(label,nq))return true;if(currentType==="razza"&&formSynonymsMatch(label,nq))return true;if(currentType==="razza"&&label==="Gloster Fancy"&&norm("Gloucester").includes(nq))return true;if(currentType==="razza"&&label==="Razza Spagnola"&&norm("Spagnola").includes(nq))return true;return false};
-  const mutationExplanation=label=>{if(currentType!=="mutazione")return "";const species=norm($id("s_specie")?.value||"");const name=norm(label);if((species.includes("ondulat")||species.includes("melopsittacus"))&&name==="faccia gialla tipo 1")return "Giallo prevalentemente sulla maschera; diffusione sul corpo generalmente limitata.";if((species.includes("ondulat")||species.includes("melopsittacus"))&&name==="faccia gialla tipo 2")return "Giallo della maschera che può diffondersi anche al piumaggio del corpo.";if(species.includes("canarin")&&/rosso mosaico.*(?:tipo |\b)1\b|mosaico rosso.*(?:tipo |\b)1\b/.test(name))return "Tipo 1: linea femminile, con zone di colore più contenute.";if(species.includes("canarin")&&/rosso mosaico.*(?:tipo |\b)2\b|mosaico rosso.*(?:tipo |\b)2\b/.test(name))return "Tipo 2: linea maschile, con maschera facciale più estesa.";if(/(?:tipo|type)\s*[1-9]\d*\b/.test(name))return "Variante numerata: descrizione scientifica specifica ancora da verificare.";return ""};
+  const mutationExplanation=label=>{
+    if(currentType!=="mutazione")return "";
+    const species=norm($id("s_specie")?.value||"");
+    const name=norm(label);
+    const typeMatch=name.match(/\\b(?:tipo|type)\\s*([0-9]+)\\b/);
+    if(!typeMatch)return "";
+    const type=Number(typeMatch[1]);
+    const isBudgie=species.includes("ondulat")||species.includes("melopsittacus");
+    if(isBudgie&&name.includes("faccia gialla")){
+      if(type===1)return "Tipo 1: giallo prevalentemente sulla maschera; diffusione sul corpo generalmente limitata.";
+      if(type===2)return "Tipo 2: giallo della maschera che può diffondersi al piumaggio del corpo.";
+    }
+    if(selectedTaxa().some(isCanary)&&name.includes("mosaico")){
+      if(type===1)return "Tipo 1 (linea femminile): pigmentazione localizzata, maschera ridotta.";
+      if(type===2)return "Tipo 2 (linea maschile): maschera facciale più estesa e zone di colore più marcate.";
+    }
+    return "Tipo "+type+": variante distinta; significato fenotipico specifico non ancora verificato per questa specie.";
+  };
   const render=()=>{if(!list)return;const q=norm(search?.value||"");const rank=x=>{const n=norm(x);return n===q?0:n.startsWith(q)?1:obMatchCommonName(x,q)?2:3};const data=dataFor(currentType).filter(x=>searchable(x,q)).sort((a,b)=>q?rank(a)-rank(b)||a.localeCompare(b,"it"):a.localeCompare(b,"it"));list.innerHTML="";data.forEach(label=>{const b=document.createElement("button");b.type="button";b.className="ob-catalog-item";b.textContent=currentType==="specie"?speciesDisplayLabel(label):label;const explanation=mutationExplanation(label);if(explanation){const small=document.createElement("span");small.className="ob-catalog-scientific";small.textContent=explanation;b.appendChild(small)}b.addEventListener("click",()=>pick(label));list.appendChild(b)});empty?.classList.toggle("hidden",data.length!==0)};
   const close=()=>{if(!dialog||dialog.classList.contains("hidden"))return;document.activeElement===search&&search.blur();dialog.classList.add("hidden");document.body.classList.remove("ob-catalog-locked");document.documentElement.style.overflow="";document.body.style.overflow="";window.scrollTo(0,savedScroll);currentInput=null;currentType="";if(search)search.value=""};
   const pick=label=>{if(!currentInput)return;currentInput.value=label;currentInput.dispatchEvent(new Event("change",{bubbles:true}));if(currentType==="specie"){$id("s_razza").value="";$id("s_mutazione").value="";updateCategory()}else if(currentType==="razza"){$id("s_mutazione").value=""}close()};
