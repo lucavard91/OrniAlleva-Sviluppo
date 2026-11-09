@@ -7926,16 +7926,20 @@ box.innerHTML = `
     const phenotypes=C.phenotypes.filter(p=>ids.has(String(p.taxon_id))&&meta(p).catalog_usage==="SEARCH_DISPLAY").map(mutLabel);
     const variants=C.variants.filter(v=>ids.has(String(v.taxon_id))&&
       ["MUTATION_EXPRESSION","COMBINATION","ANCESTRAL","PHENOTYPE"].includes(String(v.variant_type||"").toUpperCase())).map(v=>String(v.name||""));
-    return uniq([...mutations,...catalog,...phenotypes,...variants,...C.canaryColors]);
+    const ancestral=ids.size?["Ancestrale"]:[];
+    return uniq([...ancestral,...mutations,...catalog,...phenotypes,...variants,...C.canaryColors]);
   };
   const mutationItems=()=>{
     const s=norm($id("s_specie")?.value||""),ids=taxIds();
     if(selectedTaxa().some(isCanary))return canaryMutationItems();
-    
+
     if(s&&!ids.size)return [];
+    // "Ancestrale" e una scelta fenotipica esplicita: significa soggetto non mutato
+    // e non viene associata ad alcun mutation_id genetico.
+    const rows=ids.size?["Ancestrale"]:[];
     // Mutazione = mutazioni reali del taxon; i componenti fenotipici e le varianti
     // espositive restano archivi distinti, non diventano automaticamente geni.
-    const rows=C.mutations.filter(m=>m.taxon_id&&ids.has(String(m.taxon_id))).map(mutLabel);
+    rows.push(...C.mutations.filter(m=>m.taxon_id&&ids.has(String(m.taxon_id))).map(mutLabel));
     rows.push(...C.globalCatalog.filter(g=>g.mutation_id&&ids.has(String(g.taxon_id))).map(g=>mutLabel({name:g.mutazione})));
     // Espressioni, combinazioni e ancestrali sono voci descrittive, non nuovi geni.
     rows.push(...C.variants.filter(v=>ids.has(String(v.taxon_id))&&
@@ -8009,22 +8013,32 @@ box.innerHTML = `
     if(currentType!=="mutazione")return "";
     const species=norm($id("s_specie")?.value||"");
     const name=norm(label);
+    if(name==="ancestrale"){
+      const isGoldfinch=species.includes("cardell")||species.includes("carduelis carduelis");
+      return isGoldfinch
+        ?"Ancestrale (FOI): fenotipo naturale non mutato del Cardellino. E una nomenclatura ufficiale, non una mutazione genetica."
+        :"Ancestrale: fenotipo naturale/non mutato della specie; indica che non e selezionata alcuna mutazione genetica.";
+    }
     const typeMatch=name.match(/\b(?:tipo|type)\s*([0-9]+)\b/);
     if(!typeMatch)return "";
     const type=Number(typeMatch[1]);
+    const ids=taxIds();
+    const row=C.mutations.find(m=>m.taxon_id&&ids.has(String(m.taxon_id))&&norm(mutLabel(m))===name);
+    const documented=String(meta(row).ui_explanation_it||"").trim();
     const isBudgie=species.includes("ondulat")||species.includes("melopsittacus");
     if(isBudgie&&name.includes("faccia gialla")){
-      if(type===1)return "Faccia Gialla Mutante 1 (WBO): maschera giallo limone, corpo della serie blu normalmente senza diffusione gialla; il doppio fattore può apparire a faccia bianca.";
-      if(type===2)return "Faccia Gialla Mutante 2 (WBO): giallo più intenso; nel singolo fattore può diffondersi al corpo alterando il blu verso il verde-turchese, mentre nel doppio fattore la diffusione è molto più limitata.";
+      if(type===1)return "Faccia Gialla Mutante 1 (WBO): maschera giallo limone; la diffusione gialla nel colore di fondo deve essere assente o minima. Il doppio fattore puo risultare a faccia bianca.";
+      if(type===2)return "Faccia Gialla Mutante 2 (WBO): nel singolo fattore la diffusione gialla nel corpo puo essere marcata e modificare il blu verso verde/blu; nello standard espositivo WBO e preferita la forma doppio fattore, con diffusione minima vicino alla maschera.";
     }
     if((species.includes("roseicollis")||species.includes("inseparabile faccia rosa"))&&name.includes("violet")&&type===2){
-      return "Violet Tipo 2 (violetto americano): fattore violetto distinto dal Violet danese; AGASSCOM lo indica come V2, a dominanza intermedia.";
+      return "Violet Tipo 2 / American Violet (AGASSCOM): fattore V2 distinto dal Violet danese; ereditarieta a dominanza intermedia.";
     }
     if(selectedTaxa().some(isCanary)&&name.includes("mosaico")){
-      if(type===1)return "Mosaico Tipo 1 (linea femminile, standard COM/OMJ): sottile linea colorata presso l'occhio, spalline e codione definiti; maschera facciale assente o molto ridotta.";
-      if(type===2)return "Mosaico Tipo 2 (linea maschile, standard COM/OMJ): maschera facciale colorata estesa, spalline e codione marcati; è un tipo espositivo, non una mutazione genetica separata.";
+      if(type===1)return "Mosaico Tipo 1 - linea femminile (FOI): zone di elezione tipiche con ciliare, spalline e codione; e una distinzione fenotipico-espositiva della categoria Mosaico, non una mutazione genetica separata.";
+      if(type===2)return "Mosaico Tipo 2 - linea maschile (FOI): maschera facciale ben definita con spalline e codione marcati; e una distinzione fenotipico-espositiva della categoria Mosaico, non una mutazione genetica separata.";
     }
-    return "Tipo "+type+": variante distinta; significato fenotipico specifico non ancora verificato per questa specie.";
+    if(documented)return documented;
+    return "Tipo "+type+": voce presente nel catalogo; la descrizione scientifica specifica per questa specie non e ancora validata.";
   };
   const render=()=>{if(!list)return;const q=norm(search?.value||"");const rank=x=>{const n=norm(x);return n===q?0:n.startsWith(q)?1:obMatchCommonName(x,q)?2:3};const data=dataFor(currentType).filter(x=>searchable(x,q)).sort((a,b)=>q?rank(a)-rank(b)||a.localeCompare(b,"it"):a.localeCompare(b,"it"));list.innerHTML="";data.forEach(label=>{const b=document.createElement("button");b.type="button";b.className="ob-catalog-item";b.textContent=currentType==="specie"?speciesDisplayLabel(label):label;const explanation=mutationExplanation(label);if(explanation){const small=document.createElement("span");small.className="ob-catalog-scientific";small.textContent=explanation;b.appendChild(small)}b.addEventListener("click",()=>pick(label));list.appendChild(b)});empty?.classList.toggle("hidden",data.length!==0)};
   const close=()=>{if(!dialog||dialog.classList.contains("hidden"))return;document.activeElement===search&&search.blur();dialog.classList.add("hidden");document.body.classList.remove("ob-catalog-locked");document.documentElement.style.overflow="";document.body.style.overflow="";window.scrollTo(0,savedScroll);currentInput=null;currentType="";if(search)search.value=""};
@@ -10124,7 +10138,7 @@ async function v186PdfFormato(titolo,html,orientamento="portrait",formato="A4"){
 let v18InstallPrompt=null;
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();v18InstallPrompt=e;$("v18InstallBtn")?.classList.remove("hidden");});
 async function v18Installa(){if(!v18InstallPrompt){obAvviso("Se l'installazione non viene proposta automaticamente, usa il menu del browser e scegli “Aggiungi a schermata Home” / “Installa app”.");return;}v18InstallPrompt.prompt();await v18InstallPrompt.userChoice;v18InstallPrompt=null;$("v18InstallBtn")?.classList.add("hidden");}
-if("serviceWorker" in navigator){window.addEventListener("load",async()=>{try{const reg=await navigator.serviceWorker.register("service-worker.js?v=ornialleva-dev-34-18-7-genetics1",{scope:"./",updateViaCache:"none"});reg.update().catch(()=>{});}catch(e){console.warn("Service worker",e);}});}
+if("serviceWorker" in navigator){window.addEventListener("load",async()=>{try{const reg=await navigator.serviceWorker.register("service-worker.js?v=ornialleva-dev-34-18-12-genetics2",{scope:"./",updateViaCache:"none"});reg.update().catch(()=>{});}catch(e){console.warn("Service worker",e);}});}
 function v18Init(){
   v1811InitLingua();
   $("v18MenuBtn")?.addEventListener("click",v18ApriDrawer);$("v18DrawerClose")?.addEventListener("click",v18ChiudiDrawer);$("v18DrawerBackdrop")?.addEventListener("click",v18ChiudiDrawer);$("v18PremiumClose")?.addEventListener("click",v18ChiudiPremium);$("v18InstallBtn")?.addEventListener("click",v18Installa);
