@@ -8014,15 +8014,15 @@ box.innerHTML = `
     const type=Number(typeMatch[1]);
     const isBudgie=species.includes("ondulat")||species.includes("melopsittacus");
     if(isBudgie&&name.includes("faccia gialla")){
-      if(type===1)return "Tipo 1: giallo prevalentemente sulla maschera; diffusione sul corpo generalmente limitata.";
-      if(type===2)return "Tipo 2: giallo della maschera che può diffondersi al piumaggio del corpo.";
+      if(type===1)return "Faccia Gialla Mutante 1 (WBO): maschera giallo limone, corpo della serie blu normalmente senza diffusione gialla; il doppio fattore può apparire a faccia bianca.";
+      if(type===2)return "Faccia Gialla Mutante 2 (WBO): giallo più intenso; nel singolo fattore può diffondersi al corpo alterando il blu verso il verde-turchese, mentre nel doppio fattore la diffusione è molto più limitata.";
     }
     if((species.includes("roseicollis")||species.includes("inseparabile faccia rosa"))&&name.includes("violet")&&type===2){
       return "Violet Tipo 2 (violetto americano): fattore violetto distinto dal Violet danese; AGASSCOM lo indica come V2, a dominanza intermedia.";
     }
     if(selectedTaxa().some(isCanary)&&name.includes("mosaico")){
-      if(type===1)return "Tipo 1 (linea femminile): pigmentazione localizzata, maschera ridotta.";
-      if(type===2)return "Tipo 2 (linea maschile): maschera facciale più estesa e zone di colore più marcate.";
+      if(type===1)return "Mosaico Tipo 1 (linea femminile, standard COM/OMJ): sottile linea colorata presso l'occhio, spalline e codione definiti; maschera facciale assente o molto ridotta.";
+      if(type===2)return "Mosaico Tipo 2 (linea maschile, standard COM/OMJ): maschera facciale colorata estesa, spalline e codione marcati; è un tipo espositivo, non una mutazione genetica separata.";
     }
     return "Tipo "+type+": variante distinta; significato fenotipico specifico non ancora verificato per questa specie.";
   };
