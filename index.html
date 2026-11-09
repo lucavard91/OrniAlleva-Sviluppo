@@ -8009,7 +8009,7 @@ box.innerHTML = `
     if(currentType!=="mutazione")return "";
     const species=norm($id("s_specie")?.value||"");
     const name=norm(label);
-    const typeMatch=name.match(/\\b(?:tipo|type)\\s*([0-9]+)\\b/);
+    const typeMatch=name.match(/\b(?:tipo|type)\s*([0-9]+)\b/);
     if(!typeMatch)return "";
     const type=Number(typeMatch[1]);
     const isBudgie=species.includes("ondulat")||species.includes("melopsittacus");
