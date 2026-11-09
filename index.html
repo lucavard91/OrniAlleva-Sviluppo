@@ -588,8 +588,8 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .ob-catalog-dialog{position:fixed!important;inset:0!important;z-index:2147483000;background:rgba(0,0,0,.28);display:flex;align-items:center;justify-content:center;padding:18px}
 .ob-catalog-dialog.hidden{display:none!important}
 .ob-catalog-sheet{width:min(680px,100%);height:min(760px,88dvh);background:#fff;border-radius:18px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 18px 60px rgba(0,0,0,.25)}
-.ob-catalog-head{height:58px;flex:0 0 58px;display:grid;grid-template-columns:52px 1fr 52px;align-items:center;border-bottom:1px solid #e7e7e7}
-.ob-catalog-close{border:0!important;background:transparent!important;color:#222!important;font-size:26px!important;padding:0!important;margin:0 0 0 12px!important;box-shadow:none!important;min-width:40px;min-height:48px;display:flex!important;align-items:center;justify-content:center}
+.ob-catalog-head{height:58px;flex:0 0 58px;display:grid;grid-template-columns:72px minmax(0,1fr) 72px;align-items:center;border-bottom:1px solid #e7e7e7}
+.ob-catalog-close{border:0!important;background:transparent!important;color:#222!important;font-size:26px!important;padding:0!important;margin:0 0 0 22px!important;box-shadow:none!important;min-width:44px;min-height:48px;display:flex!important;align-items:center;justify-content:center}
 .ob-catalog-title{text-align:center;font-weight:800;font-size:18px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ob-catalog-search-wrap{padding:12px 14px 8px;flex:0 0 auto}
 .ob-catalog-search-wrap input{width:100%;font-size:16px!important;border:1px solid #cfcfcf!important;border-radius:12px!important;padding:12px 14px!important;background:#fff!important}
@@ -608,9 +608,8 @@ html:has(body.ob-catalog-locked){overflow:hidden!important}body.ob-catalog-locke
 .ob-catalog-sheet{display:flex!important;flex-direction:column!important;min-height:0!important}
 .ob-catalog-head,.ob-catalog-search-wrap,.ob-catalog-context{flex-shrink:0!important;position:relative!important;touch-action:none!important}
 .ob-catalog-dialog:not(.hidden){overflow:hidden!important}
-.ob-catalog-close{justify-content:center!important;width:40px!important;margin-left:12px!important}
-.ob-catalog-dialog[data-catalog-type="razza"] .ob-catalog-close{transform:translateX(12px)!important}
-.ob-catalog-head-spacer{width:52px}
+.ob-catalog-close{justify-content:center!important;width:44px!important;margin-left:22px!important;transform:none!important}
+.ob-catalog-head-spacer{width:72px}
 [id="obV34BreedField"][hidden],[id="obV34BreedLabel"][hidden]{display:none!important}
 /* Safari iOS: tastiera e zoom non devono spostare la testata fuori dal viewport. */
 .ob-catalog-dialog:not(.hidden){top:var(--ob-view-top,0px)!important;height:var(--ob-view-height,100dvh)!important;max-height:var(--ob-view-height,100dvh)!important}
