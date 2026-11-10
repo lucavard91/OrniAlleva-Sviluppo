@@ -770,7 +770,7 @@ html:has(body.ob-catalog-locked){overflow:hidden!important}body.ob-catalog-locke
 .v261-intro-bg{position:absolute;inset:-12%;z-index:0;background-position:center;background-size:cover;background-repeat:no-repeat;filter:blur(22px) saturate(1.18) brightness(.72);transform:scale(1.12);opacity:0;animation:v261NatureIn 1.25s ease forwards}
 #v255BrandIntro::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(circle at 18% 12%,rgba(255,222,134,.34),transparent 32%),radial-gradient(circle at 82% 76%,rgba(52,116,74,.24),transparent 38%),linear-gradient(180deg,rgba(5,32,22,.08),rgba(4,24,18,.28))}
 .v256-intro-picture{display:contents}
-.v256-intro-image{position:relative;z-index:1;display:block;width:auto;height:auto;max-width:92vw;max-height:94vh;object-fit:contain;object-position:center;opacity:0;transform:scale(.08);filter:blur(12px) drop-shadow(0 18px 44px rgba(0,0,0,.34));animation:v261LogoReveal 4.25s cubic-bezier(.16,.78,.18,1) forwards;will-change:transform,opacity,filter}
+.v256-intro-image{position:relative;z-index:1;display:block;width:auto;height:auto;max-width:92vw;max-height:94vh;object-fit:contain;object-position:center;opacity:0;transform:scale(.08);filter:blur(12px) drop-shadow(0 18px 44px rgba(0,0,0,.34));animation:v261LogoReveal 2.4s cubic-bezier(.16,.78,.18,1) forwards;will-change:transform,opacity,filter}
 @keyframes v261NatureIn{0%{opacity:0;transform:scale(1.2)}100%{opacity:1;transform:scale(1.12)}}
 @keyframes v261LogoReveal{0%{opacity:0;transform:scale(.08);filter:blur(14px) drop-shadow(0 18px 44px rgba(0,0,0,.22))}18%{opacity:.22;transform:scale(.18);filter:blur(8px) drop-shadow(0 18px 44px rgba(0,0,0,.25))}58%{opacity:.9;transform:scale(.78);filter:blur(1.5px) drop-shadow(0 18px 44px rgba(0,0,0,.31))}82%{opacity:1;transform:scale(1.015);filter:blur(0) drop-shadow(0 18px 44px rgba(0,0,0,.34))}100%{opacity:1;transform:scale(1);filter:blur(0) drop-shadow(0 18px 44px rgba(0,0,0,.34))}}
 @media (max-width:600px){.v256-intro-image{max-width:96vw;max-height:92vh}.v261-intro-bg{filter:blur(18px) saturate(1.16) brightness(.74)}}
@@ -12279,9 +12279,9 @@ section:not(#home) > .v254-home-fixed{
   }
   prepareV264Intro();
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',prepareV264Intro,{once:true});
-  if(document.readyState==='complete')window.setTimeout(dismissV255Intro,5000);
-  else window.addEventListener('load',function(){window.setTimeout(dismissV255Intro,5000);},{once:true});
-  window.setTimeout(dismissV255Intro,7200);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){window.setTimeout(dismissV255Intro,2700);},{once:true});
+  else window.setTimeout(dismissV255Intro,2700);
+  window.setTimeout(dismissV255Intro,4500);
 })();
 </script>
 <script>
