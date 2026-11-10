@@ -1,4 +1,4 @@
-const OB_CACHE = "ornialleva-development-20261110-assets";
+const OB_CACHE = "ornialleva-development-20261110-banner";
 const OB_STATIC = [
   "./",
   "./manifest.webmanifest",
@@ -9,6 +9,7 @@ const OB_STATIC = [
   "./favicon-16.png",
   "./ob_asset_051_3aefa10cbb.jpg",
   "./ornibreed_home_banner_v2.png",
+  "./OrniAlleva_Banner_Interno.png?v=20261101",
   "./ornibreed_impostazioni_v2.png?v=20261110-icons",
   "./mostra_di_uccelli_ornamentali.png?v=20261110-icons",
   "./ob_asset_051_3aefa10cbb.jpg?oa=20261028-admin-return",
