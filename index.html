@@ -15,6 +15,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="preload" as="image" href="OrniAlleva_Banner_Interno.png?v=20261101" fetchpriority="high">
 <title>OrniAlleva — Smart Aviculture Management</title><meta name="ornibreed-version" content="V34.18.7"><meta name="ornibreed-release-channel" content="development">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -8024,7 +8025,7 @@ box.innerHTML = `
         ?"Ancestrale (FOI): fenotipo naturale non mutato del Cardellino; è una nomenclatura ufficiale e non una mutazione genetica."
         :"Ancestrale (wild type): fenotipo naturale/non mutato della specie; non è una mutazione genetica e non indica portatori.";
     }
-    const typeMatch=name.match(/\b(?:tipo|type)\s*([0-9]+)\b/);
+    const typeMatch=name.match(/\b(?:tipo|type|blu|blue)\s*([12])\b/);
     const type=typeMatch?Number(typeMatch[1]):null;
     const isBudgie=species.includes("ondulat")||species.includes("melopsittacus");
     const row=C.mutations.find(m=>m.taxon_id&&ids.has(String(m.taxon_id))&&norm(mutLabel(m))===name);
@@ -8058,7 +8059,7 @@ box.innerHTML = `
         return (verified?"Ereditarietà verificata: ":"Ereditarietà indicata: ")+mode+".";
       }
     }
-    if(type)return "Tipo "+type+": denominazione presente nel catalogo, ma senza una spiegazione specie-specifica verificata; non viene equiparata automaticamente ai tipi di altre specie.";
+    if(type)return "Variante "+type+" del catalogo: il significato genetico dipende dalla specie selezionata. La distinzione tra linea maschile e femminile viene indicata soltanto quando documentata.";
     return "";
   };
   const render=()=>{if(!list)return;const q=norm(search?.value||"");const rank=x=>{const n=norm(x);return n===q?0:n.startsWith(q)?1:obMatchCommonName(x,q)?2:3};const data=dataFor(currentType).filter(x=>searchable(x,q)).sort((a,b)=>q?rank(a)-rank(b)||a.localeCompare(b,"it"):a.localeCompare(b,"it"));list.innerHTML="";data.forEach(label=>{const b=document.createElement("button");b.type="button";b.className="ob-catalog-item";b.textContent=currentType==="specie"?speciesDisplayLabel(label):label;const explanation=mutationExplanation(label);if(explanation){const small=document.createElement("span");small.className="ob-catalog-scientific";small.textContent=explanation;b.appendChild(small)}b.addEventListener("click",()=>pick(label));list.appendChild(b)});empty?.classList.toggle("hidden",data.length!==0)};
