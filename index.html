@@ -10160,7 +10160,7 @@ async function v186PdfFormato(titolo,html,orientamento="portrait",formato="A4"){
 let v18InstallPrompt=null;
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();v18InstallPrompt=e;$("v18InstallBtn")?.classList.remove("hidden");});
 async function v18Installa(){if(!v18InstallPrompt){obAvviso("Se l'installazione non viene proposta automaticamente, usa il menu del browser e scegli “Aggiungi a schermata Home” / “Installa app”.");return;}v18InstallPrompt.prompt();await v18InstallPrompt.userChoice;v18InstallPrompt=null;$("v18InstallBtn")?.classList.add("hidden");}
-if("serviceWorker" in navigator){window.addEventListener("load",async()=>{try{const reg=await navigator.serviceWorker.register("service-worker.js?v=ornialleva-dev-20261110-assets",{scope:"./",updateViaCache:"none"});reg.update().catch(()=>{});}catch(e){console.warn("Service worker",e);}});}
+if("serviceWorker" in navigator){window.addEventListener("load",async()=>{try{const reg=await navigator.serviceWorker.register("service-worker.js?v=ornialleva-dev-20261110-banner",{scope:"./",updateViaCache:"none"});reg.update().catch(()=>{});}catch(e){console.warn("Service worker",e);}});}
 function v18Init(){
   v1811InitLingua();
   $("v18MenuBtn")?.addEventListener("click",v18ApriDrawer);$("v18DrawerClose")?.addEventListener("click",v18ChiudiDrawer);$("v18DrawerBackdrop")?.addEventListener("click",v18ChiudiDrawer);$("v18PremiumClose")?.addEventListener("click",v18ChiudiPremium);$("v18InstallBtn")?.addEventListener("click",v18Installa);
