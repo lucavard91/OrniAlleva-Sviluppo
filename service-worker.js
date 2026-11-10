@@ -1,4 +1,4 @@
-const OB_CACHE = "ornialleva-development-v34-18-12-genetics2";
+const OB_CACHE = "ornialleva-development-20261110-assets";
 const OB_STATIC = [
   "./",
   "./manifest.webmanifest",
@@ -9,6 +9,9 @@ const OB_STATIC = [
   "./favicon-16.png",
   "./ob_asset_051_3aefa10cbb.jpg",
   "./ornibreed_home_banner_v2.png",
+  "./ornibreed_impostazioni_v2.png?v=20261110-icons",
+  "./mostra_di_uccelli_ornamentali.png?v=20261110-icons",
+  "./ob_asset_051_3aefa10cbb.jpg?oa=20261028-admin-return",
   "./ornialleva_icona_guida.png?v=20261102-icons1",
   "./ornialleva_icona_moduli_stampa.png?v=20261102-icons1"
 ];
