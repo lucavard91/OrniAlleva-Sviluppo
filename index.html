@@ -1842,6 +1842,7 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
  <div id="obChatConversation" class="hidden">
   <h3 id="obChatTitle"></h3>
   <div id="obChatMessages" role="log" aria-live="polite"></div>
+  <div id="obChatPersonActions" class="hidden"><p>Azioni allevatore</p><button type="button" id="obChatPersonAgenda">📒 Aggiungi all’Agenda</button> <button type="button" id="obChatPersonPrivate">✉️ Chat privata</button> <button type="button" id="obChatPersonCancel">Chiudi</button></div>
   <form id="obChatSendForm"><textarea id="obChatBody" maxlength="4000" rows="2" placeholder="Scrivi un messaggio..." required></textarea><button type="submit" class="primary">Invia</button></form>
  </div>
  <p id="obChatError" class="small" role="status"></p>
@@ -3782,7 +3783,7 @@ async function obChatLoad(){
  const list=$("obChatMessages");list.replaceChildren();
  for(const m of data||[]){
   const div=document.createElement("div");div.className="ob-chat-line"+(m.sender_id===t.me?" ob-chat-mine":"");
-  const who=document.createElement("strong");who.textContent=m.sender_id===t.me?"Tu":"Allevatore";
+  const who=document.createElement("button");who.type="button";who.textContent=m.sender_id===t.me?"Tu":"Allevatore";who.disabled=m.sender_id===t.me;who.dataset.obChatPerson=m.sender_id;who.title="Apri azioni allevatore";
   const body=document.createElement("div");body.textContent=m.body;
   const date=document.createElement("small");date.textContent=new Date(m.created_at).toLocaleString("it-IT");
   div.append(who,body,date);list.append(div);
@@ -3821,8 +3822,27 @@ async function obChatChoose(kind){
   }
  }catch(e){obChatError(e.message||"Errore caricamento stanze.");}
 }
+let obChatSelectedPerson=null;
+function obChatSelectPerson(id){
+ if(!id||id===obChatTarget?.me)return;
+ obChatSelectedPerson=id;
+ toggle("obChatPersonActions",true);
+}
+function obChatAgendaPerson(){
+ if(!obChatSelectedPerson)return;
+ apriPagina("agenda_allevatori");
+ if(typeof obV2612CaricaAgenda==="function")void obV2612CaricaAgenda();
+ if(typeof obV2612NuovoContatto==="function"){
+  obV2612NuovoContatto();
+  $("obAgendaNome").value="Allevatore";
+ }
+}
 function obChatInit(){
  $("btnObChat")?.addEventListener("click",obChatOpen);
+ $("obChatMessages")?.addEventListener("click",e=>{const b=e.target.closest("[data-ob-chat-person]");if(b)obChatSelectPerson(b.dataset.obChatPerson);});
+ $("obChatPersonPrivate")?.addEventListener("click",()=>{if(obChatSelectedPerson)void obChatRoom("direct",null,null,obChatSelectedPerson,"Chat privata");toggle("obChatPersonActions",false);});
+ $("obChatPersonAgenda")?.addEventListener("click",obChatAgendaPerson);
+ $("obChatPersonCancel")?.addEventListener("click",()=>toggle("obChatPersonActions",false));
  $("obChatBack")?.addEventListener("click",()=>{if(obChatTarget||!$("obChatRooms").classList.contains("hidden"))obChatShowMenu();else apriPagina("home");});
  $("obChatMenu")?.addEventListener("click",e=>{const b=e.target.closest("[data-ob-chat-kind]");if(b)void obChatChoose(b.dataset.obChatKind);});
  $("obChatSendForm")?.addEventListener("submit",async e=>{
