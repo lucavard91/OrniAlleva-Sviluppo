@@ -11174,7 +11174,7 @@ async function v21LoadCatalogChoices(){
     if(!sp)return;
     const old=sp.value;
     const names=[...new Set([...V21_GENETIC_RULES.map(r=>r.species),...v21CatalogTaxa.map(t=>t.common_name||t.scientific_name).filter(Boolean)])].filter(x=>x!=="Canarino").sort((a,b)=>a.localeCompare(b,"it"));
-    sp.innerHTML=names.map(x=>'<option value="'+esc(x)+'">'+esc(v222OrnithoName(x))+'</option>').join("");
+    sp.innerHTML=names.map(x=>'<option value="'+esc(x)+'">'+esc(x==="Canarino domestico"?"Canarino":v222OrnithoName(x))+'</option>').join("");
     if(names.includes(old))sp.value=old;
     v21RefreshGeneticMutation();
     v21SearchChoices("species",false);
