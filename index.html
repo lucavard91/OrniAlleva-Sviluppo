@@ -1626,6 +1626,20 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
 #listaSoggetti .item .actions.ob-subject-four-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
 #listaSoggetti .item .actions.ob-subject-four-actions>button{box-sizing:border-box;width:100%!important;min-width:0!important;max-width:none!important;grid-column:auto!important;margin:0!important}
 #listaSoggetti .item .actions.ob-subject-four-actions>.ob-act-elimina{grid-column:2!important}
+
+/* Chat OrniAlleva: stile integrato nella pagina principale */
+#obChat .ob-chat-card{max-width:760px;margin:0 auto}
+#obChat .ob-chat-heading{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#obChat .ob-chat-banner{display:block;width:148px;max-width:40%;height:auto;margin:12px auto;border-radius:18px}
+#obChatMenu,#obChatRooms{display:grid;gap:10px}
+#obChatMenu button,#obChatRooms button{padding:14px;text-align:left;border:1px solid #c6a85d;border-radius:13px;background:#f8f7ee;color:#174b36;font-weight:700}
+#obChatMessages{min-height:220px;max-height:52vh;overflow:auto;background:#f8f8f2;border-radius:12px;padding:12px}
+#obChatMessages .ob-chat-line{margin:8px 0;padding:10px;border-radius:10px;background:#fff;overflow-wrap:anywhere}
+#obChatMessages .ob-chat-mine{background:#d9f2e4}
+#obChatSendForm{display:flex;gap:8px;margin-top:12px}
+#obChatBody{flex:1;min-width:0}
+#btnObChat img{width:100%;height:100%;object-fit:contain}
+
 </style></head>
 <body>
 <div id="obAdminReturnTransition" aria-live="polite" aria-label="OrniAlleva — Caricamento"><div class="ob-return-card"><div class="ob-return-mark" aria-hidden="true"></div><b>OrniAlleva</b><span>Caricamento…</span></div></div>
@@ -1731,6 +1745,7 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
   </div>
   <div class="ob-v263727-actions-wrap">
     <div class="v1820-home-actions">
+        <button id="btnObChat" class="secondary ob-photo-action" type="button" title="Chat OrniAlleva" aria-label="Chat OrniAlleva"><img src="OrniAlleva_Chat_Icona_Ufficiale.png" alt=""><span class="ob-v263727-label">Chat</span></button>
         <button id="btnUserNotifications" class="secondary ob-photo-action" type="button" title="Notifiche personali" aria-label="Notifiche personali"><img src="03_icon_notifiche.png?v=263731" alt=""><span id="userNotificationBadge"></span></button>
         <button id="btnAdminNotifications" class="secondary hidden ob-photo-action" type="button" title="Amministrazione" aria-label="Amministrazione"><img src="04_icon_notifiche_admin.png?v=263731" alt=""><span id="adminNotificationBadge" aria-label="Richieste amministrative in attesa"></span></button>
         <button id="btnLogout" class="secondary"><img src="05_icon_esci.png?v=263731" alt=""><span class="ob-v263727-label">Esci</span></button>
@@ -1813,6 +1828,27 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
   <div id="userNotificationsList"></div>
 </div>
 <div class="container">
+<section id="obChat" class="hidden">
+<div class="card ob-chat-card">
+ <div class="ob-chat-heading"><button type="button" id="obChatBack" class="secondary">← Indietro</button><h2>Chat OrniAlleva</h2></div>
+ <img class="ob-chat-banner" src="OrniAlleva_Chat_Icona_Ufficiale.png" alt="Chat OrniAlleva — La Passione che ci Unisce">
+ <p class="small">Comunità • Condivisione • Supporto</p>
+ <div id="obChatMenu">
+  <button type="button" data-ob-chat-kind="support">💬 Supporto OrniAlleva — Scrivi all'amministratore</button>
+  <button type="button" data-ob-chat-kind="general">🌍 Chat generale</button>
+  <button type="button" data-ob-chat-kind="groups">🐦 Gruppi di allevamento</button>
+  <button type="button" data-ob-chat-kind="species">🪶 Stanze per specie</button>
+  <button type="button" data-ob-chat-kind="direct">✉️ Messaggi privati</button>
+ </div>
+ <div id="obChatRooms" class="hidden"></div>
+ <div id="obChatConversation" class="hidden">
+  <h3 id="obChatTitle"></h3>
+  <div id="obChatMessages" role="log" aria-live="polite"></div>
+  <form id="obChatSendForm"><textarea id="obChatBody" maxlength="4000" rows="2" placeholder="Scrivi un messaggio..." required></textarea><button type="submit" class="primary">Invia</button></form>
+ </div>
+ <p id="obChatError" class="small" role="status"></p>
+</div>
+</section>
 <section id="home">
   <div class="card" id="obWelcomeCard">
     <div id="obWelcomeBannerWrap">
@@ -3212,7 +3248,7 @@ function obV3415CollegaPulsanti(){
  obV34181CollegaNovita();
 }
 
-const sezioni=["home","profilo","soggetti","coppie","riproduzione","genealogia","gabbie","alimentazione","calendario","salute","statistiche","registro","report","materiale_allevamento","guida","consigli_mostre","notifiche","contabilita","admin","standardFOI","aiValutazione"];
+const sezioni=["obChat","home","profilo","soggetti","coppie","riproduzione","genealogia","gabbie","alimentazione","calendario","salute","statistiche","registro","report","materiale_allevamento","guida","consigli_mostre","notifiche","contabilita","admin","standardFOI","aiValutazione"];
 let sb=null;
 let profilo=null;
 let allevamentoAttivo=null;
@@ -3722,7 +3758,92 @@ async function obNavigateBack(){
   if(cur&&cur!=="home")await apriPagina("home",{daCronologia:true,scroll:0});
 }
 window.obNavigateBack=obNavigateBack;
-async function apriPagina(nome,opzioni={}){
+async 
+let obChatTarget=null,obChatRefreshTimer=null;
+function obChatError(message){const e=$("obChatError");if(e)e.textContent=message||"";}
+function obChatShowMenu(){obChatTarget=null;toggle("obChatMenu",true);toggle("obChatRooms",false);toggle("obChatConversation",false);obChatError("");}
+function obChatOpen(){apriPagina("obChat");obChatShowMenu();}
+async function obChatRoom(kind,groupCode=null,taxonId=null,recipientId=null,title="Conversazione"){
+ try{
+  const me=await utenteCorrente();
+  if(kind==="direct"&&recipientId===me.id){obChatError("Non puoi scrivere a te stesso.");return;}
+  obChatTarget={kind,groupCode,taxonId,recipientId,me:me.id};
+  $("obChatTitle").textContent=title;
+  toggle("obChatMenu",false);toggle("obChatRooms",false);toggle("obChatConversation",true);
+  await obChatLoad();
+ }catch(e){obChatError(e.message||"Impossibile aprire la chat.");}
+}
+async function obChatLoad(){
+ if(!obChatTarget||$("obChat")?.classList.contains("hidden"))return;
+ const t=obChatTarget;
+ let query=sb.from("ob_chat_messages").select("id,sender_id,recipient_id,body,created_at").eq("room_kind",t.kind).is("deleted_at",null);
+ if(t.kind==="group")query=query.eq("group_code",t.groupCode);
+ if(t.kind==="species")query=query.eq("taxon_id",t.taxonId);
+ if(t.kind==="direct")query=query.or("and(sender_id.eq."+t.me+",recipient_id.eq."+t.recipientId+"),and(sender_id.eq."+t.recipientId+",recipient_id.eq."+t.me+")");
+ const {data,error}=await query.order("created_at",{ascending:true}).limit(150);
+ if(error)throw error;
+ const list=$("obChatMessages");list.replaceChildren();
+ for(const m of data||[]){
+  const div=document.createElement("div");div.className="ob-chat-line"+(m.sender_id===t.me?" ob-chat-mine":"");
+  const who=document.createElement("strong");who.textContent=m.sender_id===t.me?"Tu":"Allevatore";
+  const body=document.createElement("div");body.textContent=m.body;
+  const date=document.createElement("small");date.textContent=new Date(m.created_at).toLocaleString("it-IT");
+  div.append(who,body,date);list.append(div);
+ }
+}
+async function obChatChoose(kind){
+ obChatError("");
+ try{
+  if(kind==="support"){
+   const {data,error}=await sb.from("ob_chat_support_config").select("admin_user_id").eq("singleton",true).single();
+   if(error)throw error;
+   const me=await utenteCorrente();
+   if(data.admin_user_id===me.id){obChatError("Sei l'amministratore: per ricevere richieste serve almeno un altro allevatore registrato.");return;}
+   return obChatRoom("direct",null,null,data.admin_user_id,"Supporto OrniAlleva");
+  }
+  if(kind==="general")return obChatRoom("general",null,null,null,"Chat generale");
+  const rooms=$("obChatRooms");rooms.replaceChildren();toggle("obChatMenu",false);toggle("obChatRooms",true);
+  const add=(label,fn)=>{const b=document.createElement("button");b.type="button";b.textContent=label;b.addEventListener("click",fn);rooms.append(b);};
+  add("← Torna alle chat",obChatShowMenu);
+  if(kind==="groups"){
+   for(const [code,label] of [["CANARINI","Canarini"],["CANTO","Canarini da canto"],["EFI","Esotici"],["PSITTACIFORMI","Psittaciformi"]])add(label,()=>obChatRoom("group",code,null,null,label));
+  }else if(kind==="species"){
+   const search=document.createElement("input");search.placeholder="Cerca una specie";rooms.append(search);
+   const {data,error}=await sb.from("ob_taxa").select("id,nome_comune").limit(500);
+   if(error)throw error;
+   const entries=(data||[]).filter(x=>x.nome_comune);
+   const render=()=>{rooms.querySelectorAll("button[data-taxon]").forEach(x=>x.remove());for(const t of entries.filter(x=>x.nome_comune.toLowerCase().includes(search.value.toLowerCase())).slice(0,35)){const b=document.createElement("button");b.type="button";b.dataset.taxon=t.id;b.textContent=t.nome_comune;b.addEventListener("click",()=>obChatRoom("species",null,t.id,null,t.nome_comune));rooms.append(b);}};
+   search.addEventListener("input",render);render();
+  }else if(kind==="direct"){
+   const me=await utenteCorrente();
+   const {data,error}=await sb.from("ob_chat_messages").select("sender_id,recipient_id").eq("room_kind","direct").order("created_at",{ascending:false}).limit(150);
+   if(error)throw error;
+   const ids=[...new Set((data||[]).map(x=>x.sender_id===me.id?x.recipient_id:x.sender_id).filter(x=>x&&x!==me.id))];
+   if(!ids.length){const p=document.createElement("p");p.textContent="Non hai ancora conversazioni private.";rooms.append(p);}
+   ids.forEach((id,i)=>add("Conversazione "+(i+1),()=>obChatRoom("direct",null,null,id,"Messaggi privati")));
+  }
+ }catch(e){obChatError(e.message||"Errore caricamento stanze.");}
+}
+function obChatInit(){
+ $("btnObChat")?.addEventListener("click",obChatOpen);
+ $("obChatBack")?.addEventListener("click",()=>{if(obChatTarget||!$("obChatRooms").classList.contains("hidden"))obChatShowMenu();else apriPagina("home");});
+ $("obChatMenu")?.addEventListener("click",e=>{const b=e.target.closest("[data-ob-chat-kind]");if(b)void obChatChoose(b.dataset.obChatKind);});
+ $("obChatSendForm")?.addEventListener("submit",async e=>{
+  e.preventDefault();if(!obChatTarget)return;
+  const body=$("obChatBody").value.trim();if(!body)return;
+  const t=obChatTarget,record={sender_id:t.me,room_kind:t.kind,body};
+  if(t.kind==="group")record.group_code=t.groupCode;
+  if(t.kind==="species")record.taxon_id=t.taxonId;
+  if(t.kind==="direct")record.recipient_id=t.recipientId;
+  const {error}=await sb.from("ob_chat_messages").insert(record);
+  if(error){obChatError(error.message);return;}
+  $("obChatBody").value="";obChatError("");await obChatLoad();
+ });
+ obChatRefreshTimer=setInterval(()=>{if(obChatTarget&&!$("obChat")?.classList.contains("hidden"))obChatLoad().catch(e=>obChatError(e.message));},12000);
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",obChatInit,{once:true});else obChatInit();
+
+function apriPagina(nome,opzioni={}){
   if(nome==="admin"){ window.location.assign(new URL("./admin.html?v=ornialleva-admin-rewrite-20261029",window.location.href).href); return; }
   const precedente=obPaginaVisibile();
   if(!opzioni.daCronologia&&precedente&&precedente!==nome){
