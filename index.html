@@ -4259,13 +4259,22 @@ async function mostraApp(){
       }
     }
     await aggiornaNotificheAdmin();
+    // Su iOS il passaggio fra app può ricreare la pagina e richiamare mostraApp().
+    // Conserva la sezione attiva nei ripristini; Home solo dopo accesso/uscita espliciti.
+    const obNuovoAccesso=window.__MYAGARI_FRESH_LOGIN===true;
+    let obRitornoDaUscita=false;
+    try{obRitornoDaUscita=sessionStorage.getItem("ob_exit_go_home")==="1"||localStorage.getItem("ornibreed_force_home_after_logout")==="1";}catch(_){}
     window.__MYAGARI_FRESH_LOGIN=false;
-    try{
-      localStorage.removeItem("ornibreed_force_home_after_logout");
-      localStorage.removeItem(chiaveStatoNavigazione());
-      sessionStorage.removeItem("ob_exit_go_home");
-    }catch(e){}
-    await apriPagina("home");
+    if(obNuovoAccesso||obRitornoDaUscita){
+      try{
+        localStorage.removeItem("ornibreed_force_home_after_logout");
+        localStorage.removeItem(chiaveStatoNavigazione());
+        sessionStorage.removeItem("ob_exit_go_home");
+      }catch(e){}
+      await apriPagina("home");
+    }else{
+      await ripristinaUltimaSchermata();
+    }
     if(!window.__obGuestMode){
       obV3415AvviaAggiornamenti();
       void obV34181CaricaCronologiaRemota();
