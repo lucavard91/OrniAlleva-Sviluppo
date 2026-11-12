@@ -3816,11 +3816,27 @@ async function obChatChoose(kind){
    search.addEventListener("input",render);render();
   }else if(kind==="direct"){
    const me=await utenteCorrente();
-   const {data,error}=await sb.from("ob_chat_messages").select("sender_id,recipient_id").eq("room_kind","direct").order("created_at",{ascending:false}).limit(150);
+   const {data,error}=await sb.from("ob_chat_messages").select("sender_id,recipient_id,body,created_at").eq("room_kind","direct").is("deleted_at",null).order("created_at",{ascending:false}).limit(150);
    if(error)throw error;
-   const ids=[...new Set((data||[]).map(x=>x.sender_id===me.id?x.recipient_id:x.sender_id).filter(x=>x&&x!==me.id))];
-   if(!ids.length){const p=document.createElement("p");p.textContent="Non hai ancora conversazioni private.";rooms.append(p);}
-   ids.forEach((id,i)=>add("Conversazione "+(i+1),()=>obChatRoom("direct",null,null,id,"Messaggi privati")));
+   const recent=new Map();
+   for(const m of data||[]){
+    if(m.sender_id!==me.id&&m.recipient_id!==me.id)continue;
+    const id=m.sender_id===me.id?m.recipient_id:m.sender_id;
+    if(id&&id!==me.id&&!recent.has(id))recent.set(id,m);
+   }
+   if(!recent.size){const p=document.createElement("p");p.textContent="Non hai ancora conversazioni private.";rooms.append(p);}
+   for(const [id,m] of recent){
+    const {data:profiles}=await sb.rpc("ob_chat_public_identity",{p_user_id:id});
+    const profile=profiles?.[0];
+    const name=[profile?.nome,profile?.cognome].filter(Boolean).join(" ")||"Allevatore";
+    const btn=document.createElement("button");btn.type="button";
+    const title=document.createElement("strong");title.textContent=name;
+    const preview=document.createElement("small");preview.textContent=(m.sender_id===me.id?"Tu: ":"")+(m.body||"").slice(0,90);
+    const when=document.createElement("small");when.textContent=new Date(m.created_at).toLocaleString("it-IT");
+    btn.append(title,document.createElement("br"),preview,document.createElement("br"),when);
+    btn.addEventListener("click",()=>obChatRoom("direct",null,null,id,name));
+    rooms.append(btn);
+   }
   }
  }catch(e){obChatError(e.message||"Errore caricamento stanze.");}
 }
