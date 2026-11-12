@@ -2119,9 +2119,13 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
     <h3>🧪 Calcolo accoppiamento genetico</h3>
     <p class="small">Il calcolatore usa esclusivamente regole ereditarie presenti nel registro genetico verificato. Le percentuali sono probabilità teoriche mendeliane, non una garanzia sul singolo nido.</p>
     <label>Specie / gruppo</label>
-    <select id="v21GenSpecie"></select>
+    <input id="v21GenSpecieSearch" type="search" autocomplete="off" placeholder="Cerca o scegli una specie" aria-label="Cerca specie">
+    <div id="v21GenSpecieSuggestions" role="listbox" style="max-height:180px;overflow-y:auto;border:1px solid #b8c9bd;border-radius:8px;padding:4px;margin:4px 0 10px"></div>
+    <select id="v21GenSpecie" style="display:none" aria-hidden="true"></select>
     <label>Mutazione / carattere</label>
-    <select id="v21GenMutazione"></select>
+    <input id="v21GenMutazioneSearch" type="search" autocomplete="off" placeholder="Cerca o scegli una mutazione" aria-label="Cerca mutazione">
+    <div id="v21GenMutazioneSuggestions" role="listbox" style="max-height:180px;overflow-y:auto;border:1px solid #b8c9bd;border-radius:8px;padding:4px;margin:4px 0 10px"></div>
+    <select id="v21GenMutazione" style="display:none" aria-hidden="true"></select>
     <div id="v21GenRegolaInfo" class="small" style="margin:8px 0 12px"></div>
     <div class="card" style="margin:10px 0">
       <h4>🐦 Usa soggetti registrati (facoltativo)</h4>
@@ -11200,11 +11204,48 @@ function v21RenderCalc(rows,rule){
     '<p class="small"><b>'+esc(v221gt("Regola"))+':</b> '+esc(v221gt(rule.inheritance==="AR"?"Autosomica recessiva":rule.inheritance==="AD"?"Autosomica dominante":"Recessiva legata al sesso"))+' · <b>'+esc(v221gt("Fonte"))+':</b> '+esc(rule.source)+' · <b>'+esc(v221gt("Stato"))+':</b> '+esc(rule.status)+'</p>'+warn+
     '<p class="small">'+esc(v221gt("Le percentuali descrivono probabilità genetiche teoriche su un numero elevato di nati; una singola covata può avere proporzioni differenti."))+'</p>';
 }
+function v21SearchChoices(kind){
+  const isSpecies=kind==="species", select=document.getElementById(isSpecies?"v21GenSpecie":"v21GenMutazione");
+  const input=document.getElementById(isSpecies?"v21GenSpecieSearch":"v21GenMutazioneSearch");
+  const list=document.getElementById(isSpecies?"v21GenSpecieSuggestions":"v21GenMutazioneSuggestions");
+  if(!select||!input||!list)return;
+  const norm=x=>String(x||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase();
+  const q=norm(input.value.trim());
+  const opts=Array.from(select.options).filter(o=>o.value && norm(o.textContent+" "+o.value).includes(q));
+  list.replaceChildren();
+  if(!opts.length){const msg=document.createElement("div");msg.className="small";msg.textContent="Nessun risultato";list.append(msg);return;}
+  opts.forEach(o=>{
+    const btn=document.createElement("button");btn.type="button";btn.setAttribute("role","option");
+    btn.style.cssText="display:block;width:100%;text-align:left;padding:9px;margin:2px 0;border:0;border-radius:6px;background:transparent;color:inherit;cursor:pointer";
+    btn.textContent=o.textContent;
+    btn.setAttribute("aria-selected",String(select.value===o.value));
+    btn.addEventListener("click",()=>{
+      select.value=o.value;input.value=o.textContent;
+      select.dispatchEvent(new Event("change",{bubbles:true}));
+      v21SearchChoices(kind);
+      if(isSpecies){const mu=document.getElementById("v21GenMutazioneSearch");if(mu){mu.value="";v21SearchChoices("mutation");}}
+    });
+    list.append(btn);
+  });
+}
+function v21InitSearchChoices(){
+  for(const kind of ["species","mutation"]){
+    const id=kind==="species"?"v21GenSpecieSearch":"v21GenMutazioneSearch";
+    const el=document.getElementById(id);
+    if(!el||el.dataset.searchBound)return;
+    el.dataset.searchBound="1";
+    el.addEventListener("input",()=>v21SearchChoices(kind));
+    el.addEventListener("focus",()=>v21SearchChoices(kind));
+    v21SearchChoices(kind);
+  }
+}
 function v21RefreshGeneticMutation(){
   const sp=document.getElementById("v21GenSpecie"), mu=document.getElementById("v21GenMutazione"); if(!sp||!mu)return;
   const rules=V21_GENETIC_RULES.filter(r=>r.species===sp.value);
   mu.innerHTML=rules.map(r=>'<option value="'+esc(r.mutation)+'">'+esc(v222OrnithoName(r.mutation))+'</option>').join("");
   v21RefreshGeneticParents();
+  const search=document.getElementById("v21GenMutazioneSearch");if(search)search.value="";
+  v21SearchChoices("mutation");
 }
 function v21RefreshGeneticParents(){
   const r=v21GenRule(); if(!r)return;
@@ -11219,6 +11260,7 @@ function v21InitGeneticEngine(){
   const species=[...new Set(V21_GENETIC_RULES.map(r=>r.species))];
   sp.innerHTML=species.map(x=>'<option value="'+esc(x)+'">'+esc(v222OrnithoName(x))+'</option>').join("");
   v21RefreshGeneticMutation();
+  v21InitSearchChoices();
 }
 document.addEventListener("DOMContentLoaded",()=>{
   v21InitGeneticEngine();
