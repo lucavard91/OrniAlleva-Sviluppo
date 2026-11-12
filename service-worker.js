@@ -1,4 +1,4 @@
-const OB_CACHE = "ornialleva-development-20261110-banner";
+const OB_CACHE = "ornialleva-development-20261112-fresh-pages";
 const OB_STATIC = [
   "./",
   "./manifest.webmanifest",
@@ -42,16 +42,23 @@ self.addEventListener("fetch", event => {
       try{
         const fresh=await fetch(req);
         const cache=await caches.open(OB_CACHE);
-        cache.put("./",fresh.clone()).catch(()=>{});
+        if(url.pathname.endsWith("/") || url.pathname.endsWith("/index.html")) cache.put("./",fresh.clone()).catch(()=>{});
         return fresh;
       }catch(e){
-        return (await caches.match("./")) || Response.error();
+        if(url.pathname.endsWith("/") || url.pathname.endsWith("/index.html")) return (await caches.match("./")) || Response.error();
+        return Response.error();
       }
     })());
     return;
   }
 
-  // Static same-origin assets and CDN libraries: cache-first after first successful load.
+  // HTML pages must always be fetched fresh, including admin.html.
+  if(url.origin===self.location.origin && /\.html$/i.test(url.pathname)){
+    event.respondWith(fetch(req,{cache:"no-store"}));
+    return;
+  }
+
+  // Versioned static assets and CDN libraries: cache-first.
   if(url.origin===self.location.origin || url.hostname==="cdn.jsdelivr.net" || url.hostname==="cdnjs.cloudflare.com"){
     event.respondWith((async()=>{
       const cached=await caches.match(req);
