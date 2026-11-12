@@ -3758,7 +3758,6 @@ async function obNavigateBack(){
   if(cur&&cur!=="home")await apriPagina("home",{daCronologia:true,scroll:0});
 }
 window.obNavigateBack=obNavigateBack;
-async 
 let obChatTarget=null,obChatRefreshTimer=null;
 function obChatError(message){const e=$("obChatError");if(e)e.textContent=message||"";}
 function obChatShowMenu(){obChatTarget=null;toggle("obChatMenu",true);toggle("obChatRooms",false);toggle("obChatConversation",false);obChatError("");}
@@ -3843,7 +3842,7 @@ function obChatInit(){
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",obChatInit,{once:true});else obChatInit();
 
-function apriPagina(nome,opzioni={}){
+async function apriPagina(nome,opzioni={}){
   if(nome==="admin"){ window.location.assign(new URL("./admin.html?v=ornialleva-admin-rewrite-20261029",window.location.href).href); return; }
   const precedente=obPaginaVisibile();
   if(!opzioni.daCronologia&&precedente&&precedente!==nome){
