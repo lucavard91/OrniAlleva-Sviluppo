@@ -11151,6 +11151,26 @@ document.addEventListener("click",e=>{
   if(e.target?.closest?.('[data-page="genetica"],[data-v18-page="genetica"]'))setTimeout(v232RenderRegistry,60);
 });
 function v21GenRule(){return V21_GENETIC_RULES.find(r=>r.species===document.getElementById("v21GenSpecie")?.value && r.mutation===document.getElementById("v21GenMutazione")?.value);}
+let v21CatalogTaxa=[],v21CatalogMutations=[];
+async function v21LoadCatalogChoices(){
+  try{
+    const [taxa,mutations]=await Promise.all([
+      sb.from("ob_taxa").select("id,common_name,scientific_name,active").range(0,999),
+      sb.from("ob_mutations").select("id,taxon_id,name").range(0,999)
+    ]);
+    if(taxa.error||mutations.error)throw taxa.error||mutations.error;
+    v21CatalogTaxa=(taxa.data||[]).filter(t=>t.active!==false);
+    v21CatalogMutations=mutations.data||[];
+    const sp=document.getElementById("v21GenSpecie");
+    if(!sp)return;
+    const old=sp.value;
+    const names=[...new Set([...V21_GENETIC_RULES.map(r=>r.species),...v21CatalogTaxa.map(t=>t.common_name||t.scientific_name).filter(Boolean)])].sort((a,b)=>a.localeCompare(b,"it"));
+    sp.innerHTML=names.map(x=>'<option value="'+esc(x)+'">'+esc(v222OrnithoName(x))+'</option>').join("");
+    if(names.includes(old))sp.value=old;
+    v21RefreshGeneticMutation();
+    v21SearchChoices("species");
+  }catch(e){console.warn("Catalogo genetico consultazione non disponibile",e);}
+}
 function v21Pct(n){return (Math.round(n*1000)/10).toLocaleString("it-IT")+"%";}
 function v21Options(inh, sex){
   const u={v:"?",t:"Stato genetico non determinabile"};
@@ -11259,13 +11279,22 @@ function v21InitSearchChoices(){
 function v21RefreshGeneticMutation(){
   const sp=document.getElementById("v21GenSpecie"), mu=document.getElementById("v21GenMutazione"); if(!sp||!mu)return;
   const rules=V21_GENETIC_RULES.filter(r=>r.species===sp.value);
-  mu.innerHTML=rules.map(r=>'<option value="'+esc(r.mutation)+'">'+esc(v222OrnithoName(r.mutation))+'</option>').join("");
+  const taxa=v21CatalogTaxa.filter(t=>(t.common_name||t.scientific_name)===sp.value);
+  const taxonIds=new Set(taxa.map(t=>String(t.id)));
+  const names=[...new Set([...rules.map(r=>r.mutation),...v21CatalogMutations.filter(m=>taxonIds.has(String(m.taxon_id))).map(m=>m.name).filter(Boolean)])].sort((a,b)=>a.localeCompare(b,"it"));
+  mu.innerHTML=names.map(name=>'<option value="'+esc(name)+'">'+esc(v222OrnithoName(name))+'</option>').join("");
   v21RefreshGeneticParents();
   const search=document.getElementById("v21GenMutazioneSearch");if(search)search.value="";
   v21SearchChoices("mutation");
 }
 function v21RefreshGeneticParents(){
-  const r=v21GenRule(); if(!r)return;
+  const r=v21GenRule();
+  if(!r){
+    const info=document.getElementById("v21GenRegolaInfo");
+    if(info)info.textContent="Mutazione presente nel catalogo; calcolo non disponibile finché il motore non supporta una regola verificata.";
+    const result=document.getElementById("v21GenRisultato");if(result)result.textContent="";
+    return;
+  }
   v21FillSelect(document.getElementById("v21GenMaschio"),v21Options(r.inheritance,"M"));
   v21FillSelect(document.getElementById("v21GenFemmina"),v21Options(r.inheritance,"F"));
   const info=document.getElementById("v21GenRegolaInfo");
@@ -11278,6 +11307,7 @@ function v21InitGeneticEngine(){
   sp.innerHTML=species.map(x=>'<option value="'+esc(x)+'">'+esc(v222OrnithoName(x))+'</option>').join("");
   v21RefreshGeneticMutation();
   v21InitSearchChoices();
+  void v21LoadCatalogChoices();
 }
 document.addEventListener("DOMContentLoaded",()=>{
   v21InitGeneticEngine();
