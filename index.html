@@ -4263,13 +4263,17 @@ async function mostraApp(){
       }
     }
     await aggiornaNotificheAdmin();
-    // Su iOS il passaggio fra app può ricreare la pagina e richiamare mostraApp().
-    // Conserva la sezione attiva nei ripristini; Home solo dopo accesso/uscita espliciti.
+    // Nuovo avvio del documento PWA: Home. Passare ad altre app senza
+    // terminare questa istanza non avvia mostraApp e conserva la pagina visibile.
+    // Se iOS termina la PWA in background, non è tecnicamente distinguibile
+    // da una chiusura definitiva: il nuovo documento riparte dalla Home.
+    const obPrimaAperturaDocumento=window.__obAppDocumentStarted!==true;
     const obNuovoAccesso=window.__MYAGARI_FRESH_LOGIN===true;
     let obRitornoDaUscita=false;
     try{obRitornoDaUscita=sessionStorage.getItem("ob_exit_go_home")==="1"||localStorage.getItem("ornibreed_force_home_after_logout")==="1";}catch(_){}
     window.__MYAGARI_FRESH_LOGIN=false;
-    if(obNuovoAccesso||obRitornoDaUscita){
+    window.__obAppDocumentStarted=true;
+    if(obPrimaAperturaDocumento||obNuovoAccesso||obRitornoDaUscita){
       try{
         localStorage.removeItem("ornibreed_force_home_after_logout");
         localStorage.removeItem(chiaveStatoNavigazione());
