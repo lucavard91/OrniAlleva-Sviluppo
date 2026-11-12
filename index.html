@@ -3809,10 +3809,10 @@ async function obChatChoose(kind){
    for(const [code,label] of [["CANARINI","Canarini"],["CANTO","Canarini da canto"],["EFI","Esotici"],["PSITTACIFORMI","Psittaciformi"]])add(label,()=>obChatRoom("group",code,null,null,label));
   }else if(kind==="species"){
    const search=document.createElement("input");search.placeholder="Cerca una specie";rooms.append(search);
-   const {data,error}=await sb.from("ob_taxa").select("id,nome_comune").limit(500);
+   const {data,error}=await sb.from("ob_taxa").select("id,common_name").eq("active",true).limit(500);
    if(error)throw error;
-   const entries=(data||[]).filter(x=>x.nome_comune);
-   const render=()=>{rooms.querySelectorAll("button[data-taxon]").forEach(x=>x.remove());for(const t of entries.filter(x=>x.nome_comune.toLowerCase().includes(search.value.toLowerCase())).slice(0,35)){const b=document.createElement("button");b.type="button";b.dataset.taxon=t.id;b.textContent=t.nome_comune;b.addEventListener("click",()=>obChatRoom("species",null,t.id,null,t.nome_comune));rooms.append(b);}};
+   const entries=(data||[]).filter(x=>x.common_name);
+   const render=()=>{rooms.querySelectorAll("button[data-taxon]").forEach(x=>x.remove());for(const t of entries.filter(x=>x.common_name.toLowerCase().includes(search.value.toLowerCase())).slice(0,35)){const b=document.createElement("button");b.type="button";b.dataset.taxon=t.id;b.textContent=t.common_name;b.addEventListener("click",()=>obChatRoom("species",null,t.id,null,t.common_name));rooms.append(b);}};
    search.addEventListener("input",render);render();
   }else if(kind==="direct"){
    const me=await utenteCorrente();
