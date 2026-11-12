@@ -2169,7 +2169,8 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
     </div>
   </div>
   <div class="card">
-    <h3>📊 Copertura del motore genetico</h3>
+    <details>
+      <summary style="cursor:pointer;padding:8px 0;font-weight:700;font-size:1.12em">📊 Copertura del motore genetico — tocca per vedere le regole</summary>
     <p class="small">Mostra quali specie e mutazioni dispongono già di una regola verificata utilizzabile dal calcolatore. Una mutazione assente dal registro non viene calcolata per supposizione.</p><p class="small">Le regole genetiche storiche restano tracciate alla fonte utilizzata; la loro presenza nel motore non equivale automaticamente a una regola espositiva FOI vigente.</p><p class="small"><b>Regole complesse:</b> combinazioni come Isabella (Bruno + Agata) e caratteri con singolo/doppio fattore non vengono ridotti artificialmente a una regola semplice: saranno gestiti solo con un modello genetico adeguato.</p><p class="small"><b>Combinazioni:</b> anche quando due mutazioni sono entrambe verificate (es. Bruno + Pastello nel Ciuffolotto), il motore attuale le calcola singolarmente e non trasforma la combinazione in un falso locus unico.</p>
     <div id="v238CoverageSummary" class="small" style="margin:8px 0"></div><div class="small" style="margin:6px 0"><b>Supportata</b> = calcolo disponibile per il singolo carattere. <b>Solo stesso carattere</b> = relazione allelica nota: incroci tra alleli differenti restano esclusi finché non sarà attivo il modello allelico.</div>
     <div id="v238CoverageBox" class="v18-table-wrap"></div>
@@ -2178,9 +2179,11 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
       <p class="small">Queste voci non sono errori o dati mancanti: sono volutamente bloccate perché il motore semplice potrebbe produrre risultati genetici sbagliati.</p>
       <div id="v239ComplexBox" class="v18-table-wrap"></div>
     </details>
+    </details>
   </div>
   <div class="card">
-    <h3>📚 Registro genetico verificato</h3>
+    <details>
+      <summary style="cursor:pointer;padding:8px 0;font-weight:700;font-size:1.12em">📚 Registro genetico verificato — tocca per consultare</summary>
     <p class="small">Qui puoi vedere quali regole OrniAlleva è autorizzato a usare nei calcoli. Se una mutazione non è presente nel registro, il programma non deve inventarne l'ereditarietà.</p>
     <div class="grid">
       <div>
@@ -2203,6 +2206,7 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
     <div id="v232RegistrySummary" class="small" style="margin:10px 0"></div>
     <div id="v232RegistryTable" class="v18-table-wrap"></div>
     <p class="small"><b>Legenda:</b> AR = autosomica recessiva · AD = autosomica dominante · SLR = recessiva legata al sesso. Le fonti morfologiche FOI vengono usate geneticamente solo quando dichiarano esplicitamente il tipo di trasmissione.</p>
+    </details>
   </div>
 </section>
 <section id="mostra_soggetti" class="hidden">
