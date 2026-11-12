@@ -46,6 +46,13 @@
 .suggerimento-item:hover {
   background: #f0f0f0;
 }
+.v21-gen-picker{position:relative;width:100%;margin-bottom:12px}
+.v21-gen-picker input{width:100%;padding-right:48px}
+.v21-gen-picker>button{position:absolute;right:3px;top:3px;bottom:3px;width:42px;padding:0;margin:0;border:0;background:transparent;color:inherit;font-size:23px;cursor:pointer}
+.v21-gen-picker>[role="listbox"]{position:absolute;left:0;right:0;top:100%;z-index:100;background:#fff;color:#222;border:1px solid #ccd4d0;border-radius:8px;max-height:240px;overflow-y:auto;box-shadow:0 5px 16px #0002}
+.v21-gen-picker>[role="listbox"][hidden]{display:none}
+.v21-gen-picker>[role="listbox"]>button{display:block;width:100%;padding:11px 14px;margin:0;border:0;border-bottom:1px solid #edf0ee;border-radius:0;background:transparent;color:#222;text-align:left;font-size:inherit;font-weight:400;cursor:pointer}
+.v21-gen-picker>[role="listbox"]>button:hover,.v21-gen-picker>[role="listbox"]>button:focus{background:#f2f5f3}
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,sans-serif;background:#f4f6f8;color:#222}
 header{background:#1f2937;color:#fff;padding:20px;text-align:center}
@@ -2119,12 +2126,10 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
     <h3>🧪 Calcolo accoppiamento genetico</h3>
     <p class="small">Il calcolatore usa esclusivamente regole ereditarie presenti nel registro genetico verificato. Le percentuali sono probabilità teoriche mendeliane, non una garanzia sul singolo nido.</p>
     <label>Specie / gruppo</label>
-    <div class="grid"><input id="v21GenSpecieSearch" type="search" autocomplete="off" placeholder="Cerca o scegli una specie" aria-label="Cerca specie"><button id="v21GenSpecieToggle" class="secondary" type="button" aria-label="Apri elenco specie" aria-expanded="false">⌄</button></div>
-    <div id="v21GenSpecieSuggestions" role="listbox" class="v18-table-wrap" hidden></div>
+    <div class="v21-gen-picker"><input id="v21GenSpecieSearch" type="search" autocomplete="off" placeholder="Cerca o scegli una specie" aria-label="Cerca specie"><button id="v21GenSpecieToggle" type="button" aria-label="Apri elenco specie" aria-expanded="false">⌄</button><div id="v21GenSpecieSuggestions" role="listbox" hidden></div></div>
     <select id="v21GenSpecie" style="display:none" aria-hidden="true"></select>
     <label>Mutazione / carattere</label>
-    <div class="grid"><input id="v21GenMutazioneSearch" type="search" autocomplete="off" placeholder="Cerca o scegli una mutazione" aria-label="Cerca mutazione"><button id="v21GenMutazioneToggle" class="secondary" type="button" aria-label="Apri elenco mutazione" aria-expanded="false">⌄</button></div>
-    <div id="v21GenMutazioneSuggestions" role="listbox" class="v18-table-wrap" hidden></div>
+    <div class="v21-gen-picker"><input id="v21GenMutazioneSearch" type="search" autocomplete="off" placeholder="Cerca o scegli una mutazione" aria-label="Cerca mutazione"><button id="v21GenMutazioneToggle" type="button" aria-label="Apri elenco mutazione" aria-expanded="false">⌄</button><div id="v21GenMutazioneSuggestions" role="listbox" hidden></div></div>
     <select id="v21GenMutazione" style="display:none" aria-hidden="true"></select>
     <div id="v21GenRegolaInfo" class="small" style="margin:8px 0 12px"></div>
     <div class="card" style="margin:10px 0">
@@ -11256,7 +11261,7 @@ function v21SearchChoices(kind,open=false){
   list.replaceChildren();
   if(!opts.length){const msg=document.createElement("div");msg.className="small";msg.textContent="Nessun risultato";list.append(msg);return;}
   opts.forEach(o=>{
-    const btn=document.createElement("button");btn.type="button";btn.className="secondary";
+    const btn=document.createElement("button");btn.type="button";
     btn.textContent=o.textContent;
     btn.addEventListener("click",()=>{
       select.value=o.value;input.value=o.textContent;
