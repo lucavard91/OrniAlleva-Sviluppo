@@ -4286,7 +4286,10 @@ async function mostraApp(){
       }catch(e){}
       await apriPagina("home");
     }else{
-      await ripristinaUltimaSchermata();
+      // Se l'istanza iOS è ancora aperta, non ricreare la pagina:
+      // apriPagina() azzererebbe lo scroll prima del ripristino, causando lo scatto visibile.
+      const paginaCorrente=[...document.querySelectorAll("#app > .container > section")].find(el=>!el.classList.contains("hidden")&&getComputedStyle(el).display!=="none");
+      if(!paginaCorrente)await ripristinaUltimaSchermata();
     }
     if(!window.__obGuestMode){
       obV3415AvviaAggiornamenti();
@@ -11170,7 +11173,7 @@ async function v21LoadCatalogChoices(){
     const sp=document.getElementById("v21GenSpecie");
     if(!sp)return;
     const old=sp.value;
-    const names=[...new Set([...V21_GENETIC_RULES.map(r=>r.species),...v21CatalogTaxa.map(t=>t.common_name||t.scientific_name).filter(Boolean)])].sort((a,b)=>a.localeCompare(b,"it"));
+    const names=[...new Set([...V21_GENETIC_RULES.map(r=>r.species),...v21CatalogTaxa.map(t=>t.common_name||t.scientific_name).filter(Boolean)])].filter(x=>x!=="Canarino").sort((a,b)=>a.localeCompare(b,"it"));
     sp.innerHTML=names.map(x=>'<option value="'+esc(x)+'">'+esc(v222OrnithoName(x))+'</option>').join("");
     if(names.includes(old))sp.value=old;
     v21RefreshGeneticMutation();
