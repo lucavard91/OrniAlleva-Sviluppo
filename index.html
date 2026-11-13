@@ -10632,7 +10632,7 @@ function v3092BreedLabel(b){const H=window.OB_CATALOG_HELPERS;return H?H.breedLa
 function v3092MutationLabel(m){const H=window.OB_CATALOG_HELPERS;return H?H.mutLabel(m):v19Norm(m?.name);}
 function v3092Option(value,label,selected){return '<option value="'+v19Esc(value)+'"'+(selected?' selected':'')+'>'+v19Esc(label)+'</option>';}
 async function v3092Fetch(table,select="*"){try{const q=await sb.from(table).select(select);if(q.error)throw q.error;return Array.isArray(q.data)?q.data:[];}catch(e){console.warn("OrniBreed dynamic judge "+table,e);return [];}}
-async function v3092LoadCatalog(){if(window.OB_CATALOG?.taxa?.length){v19ManualCatalog.taxa=window.OB_CATALOG.taxa;v19ManualCatalog.breeds=window.OB_CATALOG.breeds;v19ManualCatalog.mutations=window.OB_CATALOG.mutations;return;}const [taxa,breeds,mutations]=await Promise.all([v3092Fetch("ob_taxa"),v3092Fetch("ob_breeds"),v3092Fetch("ob_mutations")]);v19ManualCatalog.taxa=taxa.filter(x=>x.active!==false);v19ManualCatalog.breeds=breeds.filter(x=>String(x.status||"").toUpperCase()!=="SUPERSEDED");v19ManualCatalog.mutations=mutations.filter(x=>String(x.status||"").toUpperCase()!=="SUPERSEDED");}
+async function v3092LoadCatalog(){if(window.OB_CATALOG?.taxa?.length){v19ManualCatalog.taxa=window.OB_CATALOG.taxa;v19ManualCatalog.breeds=window.OB_CATALOG.breeds||[];v19ManualCatalog.mutations=window.OB_CATALOG.mutations||[];return;}const [taxa,breeds,mutations]=await Promise.all([v3092Fetch("ob_taxa"),v3092Fetch("ob_breeds"),v3092Fetch("ob_mutations")]);v19ManualCatalog.taxa=taxa.filter(x=>x.active!==false);v19ManualCatalog.breeds=breeds.filter(x=>String(x.status||"").toUpperCase()!=="SUPERSEDED");v19ManualCatalog.mutations=mutations.filter(x=>String(x.status||"").toUpperCase()!=="SUPERSEDED");}
 function v3092FindTaxaBySubject(s){const k=v3092NormKey(s?.specie||s?.species||s?.taxon||s?.nome_specie);if(!k)return [];const H=window.OB_CATALOG_HELPERS;if(H)return v19ManualCatalog.taxa.filter(t=>v3092NormKey(H.taxLabel(t))===k||H.names(t).some(n=>v3092NormKey(n)===k)||(k==="canarino"&&H.isCanary(t)));return v19ManualCatalog.taxa.filter(t=>[t.common_name,t.scientific_name,...(Array.isArray(t.aliases)?t.aliases:[])].map(v3092NormKey).includes(k));}
 function v3092FindBreedAny(name,taxa=[]){const k=v3092NormKey(name);if(!k)return null;const tids=new Set(taxa.map(t=>String(t.id))),H=window.OB_CATALOG_HELPERS;const rows=tids.size?v19ManualCatalog.breeds.filter(b=>tids.has(String(b.taxon_id))):v19ManualCatalog.breeds;return rows.find(b=>v3092NormKey(H?H.breedLabel(b):b.name)===k||[b.name,...(Array.isArray(b.aliases)?b.aliases:[])].map(v3092NormKey).includes(k))||null;}
 function v3092FindBreed(taxonId,name){return v3092FindBreedAny(name,v19ManualCatalog.taxa.filter(t=>String(t.id)===String(taxonId)));}
@@ -10683,7 +10683,23 @@ async function v3092AutoResolve(s){
     if(breedTaxon)taxon=breedTaxon;
   }
   if(!taxon&&taxa.length===1)taxon=taxa[0];
-  if(!taxon&&!breed)return {reason:"TAXON_NOT_RECOGNIZED"};
+  if(!taxon&&!breed){
+    // Se il catalogo condiviso non è ancora pronto, risolvi la specie dal
+    // catalogo originale Supabase prima di dichiararla sconosciuta.
+    const freshTaxa=await v3092Fetch("ob_taxa");
+    if(freshTaxa.length){
+      v19ManualCatalog.taxa=freshTaxa.filter(t=>t.active!==false);
+      taxa=v3092FindTaxaBySubject(s);
+      if(taxa.length===1)taxon=taxa[0];
+      if(razzaText){
+        const freshBreeds=await v3092Fetch("ob_breeds");
+        if(freshBreeds.length)v19ManualCatalog.breeds=freshBreeds.filter(b=>String(b.status||"").toUpperCase()!=="SUPERSEDED");
+        breed=v3092FindBreedAny(razzaText,taxa);
+        if(breed)taxon=v19ManualCatalog.taxa.find(t=>String(t.id)===String(breed.taxon_id))||taxon;
+      }
+    }
+    if(!taxon&&!breed)return {reason:"TAXON_NOT_RECOGNIZED"};
+  }
 
   const savedMutation=s?.mutation_id?v19ManualCatalog.mutations.find(m=>String(m.id)===String(s.mutation_id)):null;
   const mutName=v3092SubjectMutation(s);
