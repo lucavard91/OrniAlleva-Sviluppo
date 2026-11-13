@@ -4641,7 +4641,7 @@ async function obRimuoviFotoSoggetto(id){
     const {error:fotoError}=await sb.from("soggetti_foto").delete()
       .eq("soggetto_id",id).eq("allevamento_id",allevamentoAttivo.id);
     if(fotoError && !/does not exist|relation/i.test(fotoError.message||""))console.warn("Pulizia foto collegate:",fotoError);
-    await aggiornaSoggetti();
+    await obV436ApriSoggetto(id);
     if(window.v248OpHide)window.v248OpHide();
     if(window.v248OpDone)window.v248OpDone("Fotografia rimossa");
     else obAvviso("Fotografia rimossa.");
@@ -4697,7 +4697,7 @@ async function caricaFotoDaScheda(id){
       if(!row?.foto_url)throw new Error("La foto non risulta salvata nel soggetto.");
       modal.remove();
       if(window.v248OpHide)window.v248OpHide();
-      await aggiornaSoggetti();
+      await obV436ApriSoggetto(id);
       if(window.v248OpDone)window.v248OpDone("Foto salvata sul soggetto");
       else obAvviso("Foto salvata sul soggetto.");
     }catch(e){
