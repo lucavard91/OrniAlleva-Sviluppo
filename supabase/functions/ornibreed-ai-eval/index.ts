@@ -4,7 +4,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.95.0";
 
 const BASE="https://generativelanguage.googleapis.com";
-const MODEL="gemini-2.5-flash-lite";
+const MODEL="gemini-3.5-flash-lite";
 const cors={
  "Access-Control-Allow-Origin":"*",
  "Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type",
@@ -91,7 +91,7 @@ async function identifyBird(photo:Blob|null,video:Uploaded|null,mime:string){
    ...(video?[{file_data:{mime_type:mime,file_uri:video.uri}}]:[])
   ]}],generationConfig:{responseMimeType:"application/json",temperature:0.1}})
  });
- if(!r.ok)throw Error("Riconoscimento AI non disponibile ("+r.status+")");
+ if(!r.ok){const detail=await r.json().catch(()=>null);console.error("Gemini recognition failed",r.status,detail?.error?.status||"",detail?.error?.message||"");throw Error("Riconoscimento AI non disponibile ("+r.status+", modello "+MODEL+")");}
  const raw=await r.json();
  const txt=raw.candidates?.[0]?.content?.parts?.find((p:any)=>typeof p.text==="string")?.text;
  if(!txt)throw Error("Riconoscimento AI senza risposta");
@@ -129,7 +129,7 @@ async function aiEvaluate(photo:Blob|null,video:Uploaded|null,mime:string,s:any,
    generationConfig:{responseMimeType:"application/json",temperature:0.1}
   })
  });
- if(!r.ok)throw Error("Servizio AI non disponibile ("+r.status+")");
+ if(!r.ok){const detail=await r.json().catch(()=>null);console.error("Gemini evaluation failed",r.status,detail?.error?.status||"",detail?.error?.message||"");throw Error("Servizio AI non disponibile ("+r.status+", modello "+MODEL+")");}
  const raw=await r.json();
  const txt=raw.candidates?.[0]?.content?.parts?.find((p:any)=>typeof p.text==="string")?.text;
  if(!txt)throw Error("Risposta AI assente");
