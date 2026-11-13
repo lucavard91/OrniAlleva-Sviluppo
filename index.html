@@ -10698,7 +10698,18 @@ async function v3092AutoResolve(s){
         if(breed)taxon=v19ManualCatalog.taxa.find(t=>String(t.id)===String(breed.taxon_id))||taxon;
       }
     }
-    if(!taxon&&!breed)return {reason:"TAXON_NOT_RECOGNIZED"};
+    if(!taxon&&!breed){
+      // Il nome italiano del canarino è un taxon, mentre "Canarino di Colore"
+      // è una categoria espositiva: non richiedere un breed_id inesistente.
+      const key=v3092NormKey(specieText);
+      if(key==="canarino"||key==="canarino domestico"){
+        const canary=v19ManualCatalog.taxa.filter(t=>
+          v3092NormKey(t.common_name)==="canarino"||
+          v3092NormKey(t.scientific_name)==="serinus canaria domestica");
+        if(canary.length===1)taxon=canary[0];
+      }
+      if(!taxon)return {reason:"TAXON_NOT_RECOGNIZED"};
+    }
   }
 
   const savedMutation=s?.mutation_id?v19ManualCatalog.mutations.find(m=>String(m.id)===String(s.mutation_id)):null;
@@ -10767,7 +10778,7 @@ async function v19ApriSchedaGiudizio(id){
     v19JudgingSubject=soggetto;v19JudgingCriteria=[];v19JudgingRoute=null;
     const [auto,history]=await Promise.all([v3092AutoResolve(soggetto),v19CaricaStoricoGiudizi(soggetto.id)]);v19JudgingHistory=history;
     if(auto?.template){v19JudgingRoute=auto;v19JudgingCriteria=auto.criteria||[];v19RenderSchedaGiudizio();}
-    else{const msg=auto?.reason==="TAXON_NOT_RECOGNIZED"?"Specie non riconosciuta automaticamente: selezionala manualmente.":auto?.reason==="AMBIGUOUS"?"La combinazione corrisponde a più schede: specifica manualmente i dati.":"Scheda ufficiale verificata non disponibile per questo soggetto. Puoi cercare manualmente senza usare schede di altre specie o razze.";v19RenderSchedaGiudizio(msg);}
+    else{const msg=auto?.reason==="TAXON_NOT_RECOGNIZED"?"Specie non riconosciuta nel catalogo: verifica la denominazione.":auto?.reason==="AMBIGUOUS"?"La combinazione corrisponde a più schede: specifica manualmente i dati.":"Scheda ufficiale verificata non disponibile per questo soggetto. Puoi cercare manualmente senza usare schede di altre specie o razze.";v19RenderSchedaGiudizio(msg);}
     const modal=$("v19JudgingModal");if(!modal)throw new Error("Modal scheda valutazione FOI non trovato");modal.classList.add("open");modal.style.display="flex";modal.setAttribute("aria-hidden","false");window.__obJudgeScrollY=window.scrollY||0;document.body.style.position="fixed";document.body.style.top=(-window.__obJudgeScrollY)+"px";document.body.style.width="100%";document.body.style.overflow="hidden";try{modal.scrollTop=0;}catch(_){}
   }catch(e){console.error("Apertura scheda valutazione FOI:",e);obAvviso(v19J("cantOpen"));}
 }
