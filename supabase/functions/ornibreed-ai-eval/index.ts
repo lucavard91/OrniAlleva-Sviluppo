@@ -232,7 +232,7 @@ Deno.serve(async(req:Request)=>{
    risultato:result,foto_path:photo,video_path:null,
    standard_status:"INDICATIVA_DA_VALIDARE",model_name:MODEL
   });
-  if(saveError)throw Error("Salvataggio valutazione non riuscito");
+  if(saveError){console.error("AI evaluation save failed",{code:saveError.code,message:saveError.message,details:saveError.details});throw Error("Salvataggio valutazione non riuscito ("+(saveError.code||"DB")+"): "+saveError.message);}
   reserved=false;
   return json({ok:true,risultato:result,remaining:q.remaining});
  }catch(e){
