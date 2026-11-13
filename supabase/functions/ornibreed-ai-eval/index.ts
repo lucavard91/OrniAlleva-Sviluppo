@@ -75,9 +75,9 @@ function photoPath(value:string){
  if(/^https?:\/\//.test(value))return null;
  return value.replace(/^\/+/,"");
 }
-async function identifyBird(photo:Blob,video:Uploaded,mime:string){
+async function identifyBird(photo:Blob|null,video:Uploaded|null,mime:string){
  const prompt=[
-  "Identifica indipendentemente l'uccello nelle immagini e nel video. Non conosci i dati registrati dall'allevatore.",
+  "Identifica indipendentemente l'uccello nei materiali forniti (foto, video o entrambi). Non conosci i dati registrati dall'allevatore.",
   "Indica specie, razza, categoria del piumaggio e mutazione solo se osservabili.",
   "Non dedurre genotipi recessivi o mutazioni invisibili dal solo aspetto; usa null quando non verificabile.",
   "Se compaiono più uccelli o il soggetto non è distinguibile, segnala ambiguita e non attribuire una razza certa.",
@@ -87,8 +87,8 @@ async function identifyBird(photo:Blob,video:Uploaded,mime:string){
   method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":apiKey},
   body:JSON.stringify({contents:[{role:"user",parts:[
    {text:prompt},
-   {inline_data:{mime_type:photo.type,data:await photoBase64(photo)}},
-   {file_data:{mime_type:mime,file_uri:video.uri}}
+   ...(photo?[{inline_data:{mime_type:photo.type,data:await photoBase64(photo)}}]:[]),
+   ...(video?[{file_data:{mime_type:mime,file_uri:video.uri}}]:[])
   ]}],generationConfig:{responseMimeType:"application/json",temperature:0.1}})
  });
  if(!r.ok)throw Error("Riconoscimento AI non disponibile ("+r.status+")");
@@ -99,10 +99,10 @@ async function identifyBird(photo:Blob,video:Uploaded,mime:string){
  if(!identification||typeof identification!=="object"||Array.isArray(identification))throw Error("Riconoscimento AI non valido");
  return identification;
 }
-async function aiEvaluate(photo:Blob,video:Uploaded,mime:string,s:any,rules:any[],identification:any){
+async function aiEvaluate(photo:Blob|null,video:Uploaded|null,mime:string,s:any,rules:any[],identification:any){
  const instructions=[
   "Sei un assistente tecnico ornitologico. NON sei un giudice ufficiale FOI o COM.",
-  "Confronta la foto e il video dello stesso soggetto: piumaggio, postura, proporzioni e visibilità.",
+  "Valuta solo i materiali effettivamente forniti: foto, video o entrambi. Considera piumaggio, postura, proporzioni e visibilità.",
   "Non inventare diagnosi, fenotipi non osservabili, misure né genotipi certi.",
   "I criteri ricevuti sono orientativi e devono essere validati con gli standard ufficiali.",
   "Se un criterio non è giudicabile imposta punteggio:null e spiegalo. Non inventare massimali.",
@@ -123,8 +123,8 @@ async function aiEvaluate(photo:Blob,video:Uploaded,mime:string,s:any,rules:any[
   body:JSON.stringify({
    contents:[{role:"user",parts:[
     {text:prompt},
-    {inline_data:{mime_type:photo.type,data:await photoBase64(photo)}},
-    {file_data:{mime_type:mime,file_uri:video.uri}}
+    ...(photo?[{inline_data:{mime_type:photo.type,data:await photoBase64(photo)}}]:[]),
+    ...(video?[{file_data:{mime_type:mime,file_uri:video.uri}}]:[])
    ]}],
    generationConfig:{responseMimeType:"application/json",temperature:0.1}
   })
@@ -137,7 +137,7 @@ async function aiEvaluate(photo:Blob,video:Uploaded,mime:string,s:any,rules:any[
  if(!Array.isArray(result.criteri))throw Error("Risposta AI non conforme");
  // Nessun punteggio riconosciuto ufficialmente finché non validiamo i criteri server-side.
  result.punteggio=null;
- result.avvertenza="Valutazione indicativa da foto+video, non giudizio ufficiale FOI/COM.";
+ result.avvertenza="Valutazione visiva indicativa, non giudizio ufficiale FOI/COM.";
  return result;
 }
 Deno.serve(async(req:Request)=>{
@@ -158,33 +158,37 @@ Deno.serve(async(req:Request)=>{
   userId=user.id;
   const body=await req.json();
   const id=String(body.soggetto_id||"");
+  const mode=String(body.modalita||"");
+  if(!["foto","video","entrambi"].includes(mode))return json({error:"Modalità di valutazione non valida"},400);
+  const withVideo=mode!=="foto";
+  const withPhoto=mode!=="video";
   const path=String(body.video_path||"");
   const secs=Number(body.durata_secondi);
   if(body.consenso_privacy!==true)return json({error:"Consenso foto e video necessario"},400);
   if(!/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id))
    return json({error:"ID soggetto non valido"},400);
-  if(!path.startsWith(user.id+"/"+id+"/")||path.includes(".."))
+  if(withVideo&&(!path.startsWith(user.id+"/"+id+"/")||path.includes("..")))
    return json({error:"Il video non appartiene al soggetto e account indicati"},403);
-  if(!Number.isFinite(secs)||secs<1||secs>50)
+  if(withVideo&&(!Number.isFinite(secs)||secs<1||secs>50))
    return json({error:"Il video deve durare da 1 a 50 secondi"},400);
   const {data:s,error:se}=await userClient.from("soggetti")
    .select("id,user_id,specie,razza,mutazione,sesso,foto_url,allevamento_id")
    .eq("id",id).eq("user_id",user.id).maybeSingle();
   if(se||!s)return json({error:"Soggetto non accessibile"},403);
-  const {data:video,error:ve}=await userClient.storage.from("ob-ai-media").download(path);
-  if(ve||!video)return json({error:"Video non accessibile"},403);
-  cleanupPath=path;
-  if(video.size>60*1024*1024)return json({error:"Video oltre 60 MB"},413);
-  const mime=video.type==="video/quicktime"?"video/mov":
-   (video.type||(/\.mov$/i.test(path)?"video/mov":"video/mp4"));
-  if(!["video/mp4","video/mov","video/webm"].includes(mime))
+  if(withVideo)cleanupPath=path;
+  const {data:video,error:ve}=withVideo?await userClient.storage.from("ob-ai-media").download(path):{data:null,error:null};
+  if(withVideo&&(ve||!video))return json({error:"Video non accessibile"},403);
+  if(withVideo&&video!.size>60*1024*1024)return json({error:"Video oltre 60 MB"},413);
+  const mime=withVideo?(video!.type==="video/quicktime"?"video/mov":
+   (video!.type||(/\.mov$/i.test(path)?"video/mov":"video/mp4"))):"";
+  if(withVideo&&!["video/mp4","video/mov","video/webm"].includes(mime))
    return json({error:"Formato video non supportato"},400);
   const photo=photoPath(String(s.foto_url||""));
   if(!photo||!s.allevamento_id||
      !photo.startsWith(user.id+"/"+s.allevamento_id+"/"+id+"-"))
    return json({error:"Foto del soggetto mancante o percorso non verificabile"},400);
-  const {data:photoBlob,error:pe}=await userClient.storage.from("myagari-fot").download(photo);
-  if(pe||!photoBlob?.type.startsWith("image/"))
+  const {data:photoBlob,error:pe}=withPhoto?await userClient.storage.from("myagari-fot").download(photo):{data:null,error:null};
+  if(withPhoto&&(pe||!photoBlob?.type.startsWith("image/")))
    return json({error:"Foto non accessibile"},403);
   const rules=Array.isArray(body.criteri_foi)?body.criteri_foi.slice(0,25).map((x:any)=>({
    criterio:String(x?.criterio||x?.nome||"").slice(0,120),
@@ -198,13 +202,13 @@ Deno.serve(async(req:Request)=>{
   if(!q?.allowed)return json({error:"Hai già utilizzato le 5 valutazioni gratuite di oggi",remaining:0},429);
   day=q.usage_day;reserved=true;
 
-  uploaded=await uploadToGemini(video,mime,"ornibreed-"+id);
-  await processed(uploaded);
+  if(withVideo){uploaded=await uploadToGemini(video!,mime,"ornibreed-"+id);await processed(uploaded);}
   const identification=await identifyBird(photoBlob,uploaded,mime);
   const result=await aiEvaluate(photoBlob,uploaded,mime,s,rules,identification);
   result.riconoscimento_ai=identification;
   result.dati_registrati={specie:s.specie,razza:s.razza,mutazione:s.mutazione};
   result.confronto_da_confermare=true;
+  result.modalita=mode;
   const {error:saveError}=await admin.from("ob_ai_evaluations_v2").insert({
    user_id:user.id,soggetto_id:id,punteggio:null,criteri:result.criteri,
    risultato:result,foto_path:photo,video_path:null,
