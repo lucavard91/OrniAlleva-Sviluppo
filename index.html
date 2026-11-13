@@ -4799,11 +4799,11 @@ async function apriValutazioneAI(id){
           <div id="obAiVideoSection">
             <label for="obAiVideoFile"><b>Video temporaneo del soggetto (massimo 50 secondi)</b></label>
             <input id="obAiVideoFile" type="file" accept="video/mp4,video/quicktime,video/webm,.mov,.mp4,.webm">
-            <p class="small">Riprendi il soggetto per intero, con buona luce e senza ostacoli. Massimo 60 MB. Il video viene eliminato dopo l'analisi.</p>
+            <p class="small">Riprendi il soggetto per intero, con buona luce e senza ostacoli. Massimo 50 MB. Il video viene eliminato dopo l'analisi.</p>
           </div>
           <label><input id="obAiPrivacy" type="checkbox"> Autorizzo l'invio al servizio AI dei materiali selezionati per questa valutazione, secondo l'informativa privacy.</label>
-          <p class="small">5 valutazioni gratuite al giorno per account. La formazione coppie è gratuita.</p>
-          <button class="primary ob-action ob-act-ai" id="btnEseguiValutazioneAI">Avvia valutazione AI gratuita</button>
+          <p class="small">5 valutazioni AI disponibili al giorno per account.</p>
+          <button class="primary ob-action ob-act-ai" id="btnEseguiValutazioneAI">Avvia valutazione AI</button>
           <button class="secondary" id="btnIndietroAI">← Torna ai soggetti</button>
         </div>
         <div id="aiResult" style="margin-top:16px"></div>
@@ -4887,7 +4887,7 @@ async function eseguiValutazioneAI(id){
     const withVideo=mode!=="foto";
     const file=withVideo?$("obAiVideoFile")?.files?.[0]:null;
     if(withVideo&&!file)throw new Error("Seleziona un video del soggetto.");
-    if(file&&file.size>60*1024*1024)throw new Error("Video troppo grande: massimo 60 MB.");
+    if(file&&file.size>50*1024*1024)throw new Error("Il video supera il limite di 50 MB di Supabase Test. Riduci leggermente la dimensione del filmato prima di riprovare.");
     const mime=file?(file.type||(/\\.mov$/i.test(file.name)?"video/quicktime":/\\.webm$/i.test(file.name)?"video/webm":"video/mp4")):"";
     if(file&&!["video/mp4","video/quicktime","video/webm"].includes(mime))throw new Error("Formato video non supportato (MP4, MOV o WebM).");
     const durata=file?await new Promise((resolve,reject)=>{
@@ -4911,10 +4911,10 @@ async function eseguiValutazioneAI(id){
     const s=dati.find(x=>String(x.id)===String(id));
     if(!s)throw new Error("Soggetto non trovato.");
     const u=await utenteCorrente();
-    if(!u?.id)throw new Error("Accedi al tuo account per le cinque valutazioni gratuite.");
+    if(!u?.id)throw new Error("Accedi al tuo account per utilizzare la valutazione AI.");
     const fotoUrl=await recuperaFotoAssociataSoggetto(id,s);
     if(!fotoUrl)throw new Error("Prima di valutare il soggetto, carica una foto nella sua scheda.");
-    if(!sb?.functions?.invoke)throw new Error("Motore AI gratuito non configurato nell'ambiente di sviluppo.");
+    if(!sb?.functions?.invoke)throw new Error("Motore AI non configurato nell'ambiente di sviluppo.");
     if(btn)btn.disabled=true;
     if(root)root.textContent=withVideo?"Caricamento video temporaneo e analisi AI in corso…":"Analisi della fotografia in corso…";
     const criteriFOI=await recuperaCriteriFOIPerAI(s);
@@ -4929,7 +4929,7 @@ async function eseguiValutazioneAI(id){
             consenso_privacy:true,criteri_foi:Array.isArray(criteriFOI)?criteriFOI:[]}
     });
     if(call.error){
-      let message=call.error.message||"Il motore AI gratuito non è disponibile.";
+      let message=call.error.message||"Il motore AI non è disponibile.";
       try{const response=call.error.context;const detail=await response?.json?.();if(detail?.error)message=detail.error;}catch(_){}
       throw new Error(message);
     }
@@ -4957,7 +4957,7 @@ async function eseguiValutazioneAI(id){
     }catch(e){console.warn("Cronologia AI precedente non disponibile",e);}
     renderRisultatoAI(id,result);
     if(root&&typeof call.data.remaining==="number"){
-      root.insertAdjacentHTML("beforeend","<p class='small'>Valutazioni gratuite rimaste oggi: "+Number(call.data.remaining)+" su 5.</p>");
+      root.insertAdjacentHTML("beforeend","<p class='small'>Valutazioni AI rimaste oggi: "+Number(call.data.remaining)+" su 5.</p>");
     }
     try{await aggiornaSoggetti();}catch(e){console.warn("Aggiornamento scheda soggetto:",e);}
   }catch(e){
