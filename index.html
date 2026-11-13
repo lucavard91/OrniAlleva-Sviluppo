@@ -4679,10 +4679,13 @@ async function caricaFotoDaScheda(id){
   const save=modal.querySelector("#obFotoSchedaSave");
   input.value="";save.disabled=true;
   preview.textContent="📷 Tocca qui per scegliere una foto";
-  input.onchange=()=>{
-    const file=input.files?.[0];
-    save.disabled=!file;
-    if(file)preview.textContent="📷 "+file.name+" — pronta da salvare";
+  input.onchange=async()=>{
+    save.disabled=true;
+    try{
+      const file=await obPreparaFotoSelezionata(input);
+      save.disabled=!file;
+      preview.textContent=file?"📷 "+file.name+" — pronta da salvare":"📷 Tocca qui per scegliere una foto";
+    }catch(e){input.value="";preview.textContent="📷 Tocca qui per scegliere una foto";errore(e);}
   };
   save.onclick=async()=>{
     const file=input.files?.[0];if(!file){obAvviso("Scegli prima una foto.");return;}
@@ -4703,6 +4706,86 @@ async function caricaFotoDaScheda(id){
     }finally{save.disabled=false;save.textContent="Salva foto";}
   };
 }
+async function obRitagliaFotoSoggetto(file){
+  if(!file?.type?.startsWith("image/"))throw new Error("Seleziona una fotografia valida.");
+  const url=URL.createObjectURL(file);
+  let image;
+  try{
+    image=await new Promise((resolve,reject)=>{
+      const img=new Image();
+      img.onload=()=>resolve(img);
+      img.onerror=()=>reject(new Error("Impossibile aprire questa fotografia."));
+      img.src=url;
+    });
+  }finally{URL.revokeObjectURL(url);}
+  return await new Promise(resolve=>{
+    const overlay=document.createElement("div");
+    overlay.className="ob-pair-modal open";
+    overlay.setAttribute("role","presentation");
+    const dialog=document.createElement("div");
+    dialog.className="ob-pair-dialog";
+    dialog.setAttribute("role","dialog");
+    dialog.setAttribute("aria-modal","true");
+    dialog.setAttribute("aria-label","Ritaglia fotografia del soggetto");
+    dialog.style.maxWidth="480px";
+    const title=document.createElement("h3");title.textContent="✂️ Ritaglia fotografia";
+    const hint=document.createElement("p");hint.className="small";hint.textContent="Sposta il centro e regola larghezza e altezza. Puoi anche mantenere la foto originale.";
+    const canvas=document.createElement("canvas");
+    canvas.style.cssText="display:block;width:100%;max-height:55vh;object-fit:contain;background:#222;border-radius:8px";
+    const controls=document.createElement("div");
+    const sliders={};
+    for(const [key,label,initial] of [["x","Centro orizzontale",50],["y","Centro verticale",50],["w","Larghezza ritaglio",100],["h","Altezza ritaglio",100]]){
+      const wrap=document.createElement("label");wrap.textContent=label;
+      const input=document.createElement("input");input.type="range";input.min=key==="w"||key==="h"?"20":"0";input.max="100";input.value=String(initial);
+      input.style.width="100%";sliders[key]=input;wrap.appendChild(input);controls.appendChild(wrap);
+    }
+    const actions=document.createElement("div");actions.className="actions";
+    const original=document.createElement("button");original.type="button";original.className="secondary";original.textContent="Usa originale";
+    const cancel=document.createElement("button");cancel.type="button";cancel.className="secondary";cancel.textContent="Annulla";
+    const confirm=document.createElement("button");confirm.type="button";confirm.className="success";confirm.textContent="Conferma ritaglio";
+    actions.append(original,cancel,confirm);
+    dialog.append(title,hint,canvas,controls,actions);overlay.appendChild(dialog);document.body.appendChild(overlay);
+    const finish=value=>{overlay.remove();resolve(value);};
+    const rectangle=()=>{
+      const iw=image.naturalWidth,ih=image.naturalHeight;
+      const w=Math.max(1,Math.round(iw*Number(sliders.w.value)/100));
+      const h=Math.max(1,Math.round(ih*Number(sliders.h.value)/100));
+      const x=Math.round((iw-w)*Number(sliders.x.value)/100);
+      const y=Math.round((ih-h)*Number(sliders.y.value)/100);
+      return {x,y,w,h};
+    };
+    const draw=()=>{
+      const {x,y,w,h}=rectangle();
+      const scale=Math.min(1,900/Math.max(w,h));
+      canvas.width=Math.max(1,Math.round(w*scale));
+      canvas.height=Math.max(1,Math.round(h*scale));
+      canvas.getContext("2d").drawImage(image,x,y,w,h,0,0,canvas.width,canvas.height);
+    };
+    Object.values(sliders).forEach(input=>input.addEventListener("input",draw));
+    original.onclick=()=>finish(file);
+    cancel.onclick=()=>finish(null);
+    confirm.onclick=()=>{
+      const {x,y,w,h}=rectangle();
+      const output=document.createElement("canvas");output.width=w;output.height=h;
+      output.getContext("2d").drawImage(image,x,y,w,h,0,0,w,h);
+      output.toBlob(blob=>{
+        if(!blob){obAvviso("Impossibile ritagliare la foto.");return;}
+        const name=file.name.replace(/\\.[^.]+$/,"")+"_ritaglio.jpg";
+        finish(new File([blob],name,{type:"image/jpeg",lastModified:Date.now()}));
+      },"image/jpeg",0.92);
+    };
+    draw();
+  });
+}
+async function obPreparaFotoSelezionata(input){
+  const selected=input.files?.[0];if(!selected)return null;
+  const prepared=await obRitagliaFotoSoggetto(selected);
+  if(!prepared){input.value="";return null;}
+  if(prepared!==selected){
+    const transfer=new DataTransfer();transfer.items.add(prepared);input.files=transfer.files;
+  }
+  return prepared;
+}
 function obFotoEditorInit(){
   const input=document.getElementById("s_foto_file");
   if(!input)return;
@@ -4722,8 +4805,10 @@ function obFotoEditorInit(){
   box.appendChild(caption);
   if(!input.dataset.obFotoPreviewBound){
     input.dataset.obFotoPreviewBound="1";
-    input.addEventListener("change",()=>{
-      const file=input.files?.[0];if(!file)return;
+    input.addEventListener("change",async()=>{
+      let file;
+      try{file=await obPreparaFotoSelezionata(input);}catch(e){input.value="";errore(e);return;}
+      if(!file)return;
       const wrap=document.getElementById("obFotoEditorPick");if(!wrap)return;
       wrap.replaceChildren();
       const img=document.createElement("img");
