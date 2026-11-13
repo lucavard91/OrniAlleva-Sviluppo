@@ -4802,7 +4802,7 @@ async function apriValutazioneAI(id){
             <p class="small">Riprendi il soggetto per intero, con buona luce e senza ostacoli. Massimo 50 MB. Il video viene eliminato dopo l'analisi.</p>
           </div>
           <label><input id="obAiPrivacy" type="checkbox"> Autorizzo l'invio al servizio AI dei materiali selezionati per questa valutazione, secondo l'informativa privacy.</label>
-          <p class="small">5 valutazioni AI disponibili al giorno per account.</p>
+          <p class="small">Valutazioni AI giornaliere: 5 per allevatore, 100 per il proprietario su Sviluppo.</p>
           <button class="secondary" id="btnIndietroAI">← Torna ai soggetti</button>
           <button class="primary" id="btnEseguiValutazioneAI">Valuta con AI</button>
         </div>
@@ -4957,7 +4957,7 @@ async function eseguiValutazioneAI(id){
     }catch(e){console.warn("Cronologia AI precedente non disponibile",e);}
     renderRisultatoAI(id,result);
     if(root&&typeof call.data.remaining==="number"){
-      root.insertAdjacentHTML("beforeend","<p class='small'>Valutazioni AI rimaste oggi: "+Number(call.data.remaining)+" su 5.</p>");
+      root.insertAdjacentHTML("beforeend","<p class='small'>Valutazioni AI rimaste oggi: "+Number(call.data.remaining)+" su "+Number(call.data.daily_limit||5)+".</p>");
     }
     try{await aggiornaSoggetti();}catch(e){console.warn("Aggiornamento scheda soggetto:",e);}
   }catch(e){
