@@ -95,8 +95,15 @@ async function identifyBird(photo:Blob|null,video:Uploaded|null,mime:string){
  const raw=await r.json();
  const txt=raw.candidates?.[0]?.content?.parts?.find((p:any)=>typeof p.text==="string")?.text;
  if(!txt)throw Error("Riconoscimento AI senza risposta");
- const identification=JSON.parse(txt);
- if(!identification||typeof identification!=="object"||Array.isArray(identification))throw Error("Riconoscimento AI non valido: formato inatteso");
+ const parsed=JSON.parse(txt);
+ // Gemini may wrap the single identification in a result object or one-element array.
+ const identification=Array.isArray(parsed)
+  ?(parsed.length===1?parsed[0]:null)
+  :(parsed&&typeof parsed==="object"&&parsed.identificazione&&typeof parsed.identificazione==="object"?parsed.identificazione:parsed);
+ if(!identification||typeof identification!=="object"||Array.isArray(identification)){
+  console.error("Unexpected Gemini identification JSON shape",{kind:parsed===null?"null":Array.isArray(parsed)?"array":typeof parsed,keys:parsed&&typeof parsed==="object"&&!Array.isArray(parsed)?Object.keys(parsed).slice(0,12):[],finishReason:raw.candidates?.[0]?.finishReason});
+  throw Error("Gemini non ha restituito un'identificazione utilizzabile. Riprova con una foto nitida del soggetto.");
+ }
  const str=(v:unknown)=>typeof v==="string"&&v.trim()?v.trim().slice(0,160):null;
  const normalized={
   specie:str(identification.specie),
