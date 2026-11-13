@@ -8638,9 +8638,13 @@ function normalizzaRisultatoAIV17(raw,criteriFOI){
   const tot=tuttiValutati
     ? criteri.reduce((s,c)=>s+(Number(c.punteggio)||0),0)
     : null;
+  const puntiParziali=validi.reduce((sum,c)=>sum+Number(c.punteggio),0);
+  const massimoParziale=validi.reduce((sum,c)=>sum+(Number(c.punteggio_max)||0),0);
   return {
     // V17.7: una risposta incompleta non diventa mai 0/100.
     punteggio:tot,
+    punteggio_parziale:puntiParziali,
+    massimo_parziale:massimoParziale,
     punteggio_massimo:maxTot||100,
     percentuale:(tot!==null&&maxTot)?Math.round(tot/maxTot*1000)/10:null,
     criteri,
@@ -8658,6 +8662,7 @@ function htmlSchedaAIV17(p){
   p=p||{};
   const rows=(p.criteri||[]).map(c=>`<tr><td><strong>${escapeHtmlV17(c.criterio)}</strong></td><td>${c.punteggio==null?"N/V":escapeHtmlV17(c.punteggio)}</td><td>${escapeHtmlV17(c.punteggio_max)}</td><td>${escapeHtmlV17(c.giudizio||(c.valutabile?"":"Non valutabile con sufficiente affidabilità dalla foto disponibile."))}</td></tr>`).join("");
   return `<div class="ai-v17-sheet"><div class="ai-v17-muted">Valutazione AI indicativa — non giudizio ufficiale FOI/COM</div>${p.avvertenza?`<div class="ai-v17-muted">${escapeHtmlV17(p.avvertenza)}</div>`:""}${p.riconoscimento_ai?`<div class="ai-v17-muted">Riconoscimento indipendente: ${escapeHtmlV17([p.riconoscimento_ai.specie,p.riconoscimento_ai.razza,p.riconoscimento_ai.categoria,p.riconoscimento_ai.mutazione].filter(Boolean).join(" · "))}</div>`:""}${p._riutilizzata_per_coerenza?`<div class="ai-v17-consistency">🔒 Stessa foto e stessi criteri FOI: è stata mantenuta la valutazione già salvata per evitare variazioni casuali tra dispositivi.</div>`:""}<div class="ai-v17-score">${p.punteggio==null?"N/V":escapeHtmlV17(p.punteggio)} / ${escapeHtmlV17(p.punteggio_massimo||100)}</div>
+  ${p.punteggio==null&&p.massimo_parziale>0?`<div class="ai-v17-reliability"><strong>Punteggio parziale: ${escapeHtmlV17(p.punteggio_parziale)} / ${escapeHtmlV17(p.massimo_parziale)}</strong><div class="ai-v17-muted">I criteri non osservabili sono esclusi dal conteggio. Questo non è un voto totale su 100.</div></div>`:""}
   ${p.punteggio==null?`<div class="ai-v17-reliability"><strong>⚠️ Valutazione FOI non completata.</strong><div class="ai-v17-muted" style="margin-top:4px">Il punteggio totale non è certificabile senza criteri verificati sul server. Le osservazioni su foto e video restano indicative; non è necessario ripetere la valutazione solo per questo avviso.</div></div>`:""}
   ${rows?`<table class="ai-v17-table"><thead><tr><th>Criterio FOI</th><th>Punti</th><th>Max</th><th>Osservazione</th></tr></thead><tbody>${rows}</tbody></table>`:"<div class='ai-v17-muted'>Nessun criterio FOI disponibile.</div>"}
   <div class="ai-v17-section"><h4>✅ Punti di forza</h4>${listHtmlV17(p.punti_forza)}</div>
