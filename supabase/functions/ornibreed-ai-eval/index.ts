@@ -145,7 +145,7 @@ Deno.serve(async(req:Request)=>{
  if(req.method!=="POST")return json({error:"Metodo non supportato"},405);
  if(!apiKey||!supabaseUrl||!anonKey||!serviceRole||!admin)
   return json({error:"Servizio AI gratuito non ancora configurato"},503);
- let userId:string|null=null,day:string|null=null,reserved=false,uploaded:Uploaded|null=null;
+ let userId:string|null=null,day:string|null=null,reserved=false,uploaded:Uploaded|null=null,cleanupPath:string|null=null;
  try{
   const jwt=(req.headers.get("Authorization")||"").replace(/^Bearer\s+/i,"");
   if(!jwt)return json({error:"Autenticazione richiesta"},401);
@@ -165,14 +165,15 @@ Deno.serve(async(req:Request)=>{
    return json({error:"ID soggetto non valido"},400);
   if(!path.startsWith(user.id+"/"+id+"/")||path.includes(".."))
    return json({error:"Il video non appartiene al soggetto e account indicati"},403);
-  if(!Number.isFinite(secs)||secs<30||secs>50)
-   return json({error:"Il video deve durare 30-50 secondi"},400);
+  if(!Number.isFinite(secs)||secs<1||secs>50)
+   return json({error:"Il video deve durare da 1 a 50 secondi"},400);
   const {data:s,error:se}=await userClient.from("soggetti")
    .select("id,user_id,specie,razza,mutazione,sesso,foto_url,allevamento_id")
    .eq("id",id).eq("user_id",user.id).maybeSingle();
   if(se||!s)return json({error:"Soggetto non accessibile"},403);
   const {data:video,error:ve}=await userClient.storage.from("ob-ai-media").download(path);
   if(ve||!video)return json({error:"Video non accessibile"},403);
+  cleanupPath=path;
   if(video.size>60*1024*1024)return json({error:"Video oltre 60 MB"},413);
   const mime=video.type==="video/quicktime"?"video/mov":
    (video.type||(/\.mov$/i.test(path)?"video/mov":"video/mp4"));
@@ -206,7 +207,7 @@ Deno.serve(async(req:Request)=>{
   result.confronto_da_confermare=true;
   const {error:saveError}=await admin.from("ob_ai_evaluations_v2").insert({
    user_id:user.id,soggetto_id:id,punteggio:null,criteri:result.criteri,
-   risultato:result,foto_path:photo,video_path:path,
+   risultato:result,foto_path:photo,video_path:null,
    standard_status:"INDICATIVA_DA_VALIDARE",model_name:MODEL
   });
   if(saveError)throw Error("Salvataggio valutazione non riuscito");
@@ -218,6 +219,12 @@ Deno.serve(async(req:Request)=>{
   }
   return json({error:e instanceof Error?e.message:"Errore AI"},500);
  }finally{
+  if(cleanupPath&&admin){
+   try{
+    const {error:cleanupError}=await admin.storage.from("ob-ai-media").remove([cleanupPath]);
+    if(cleanupError)console.error("Pulizia video temporaneo non riuscita",cleanupError.message);
+   }catch(e){console.error("Pulizia video temporaneo fallita",e);}
+  }
   if(uploaded&&apiKey){
    try{await fetch(BASE+"/v1beta/"+uploaded.name,{method:"DELETE",headers:{"x-goog-api-key":apiKey}});}catch(_){}
   }
