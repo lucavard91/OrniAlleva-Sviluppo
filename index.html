@@ -4641,7 +4641,12 @@ async function obRimuoviFotoSoggetto(id){
     const {error:fotoError}=await sb.from("soggetti_foto").delete()
       .eq("soggetto_id",id).eq("allevamento_id",allevamentoAttivo.id);
     if(fotoError && !/does not exist|relation/i.test(fotoError.message||""))console.warn("Pulizia foto collegate:",fotoError);
-    await obV436ApriSoggetto(id);
+    const box=document.querySelector('[data-foto-box="'+CSS.escape(String(id))+'"]');
+    if(box)box.innerHTML='<span aria-hidden="true">📷</span><span class="small">Aggiungi una foto</span>';
+    const change=document.querySelector('[data-photo-soggetto="'+CSS.escape(String(id))+'"]');
+    if(change)change.textContent="Carica foto";
+    const remove=document.querySelector('[data-remove-photo-soggetto="'+CSS.escape(String(id))+'"]');
+    if(remove)remove.hidden=true;
     if(window.v248OpHide)window.v248OpHide();
     if(window.v248OpDone)window.v248OpDone("Fotografia rimossa");
     else obAvviso("Fotografia rimossa.");
@@ -4719,7 +4724,7 @@ async function obRitagliaFotoSoggetto(file){
     dialog.setAttribute("role","dialog");dialog.setAttribute("aria-modal","true");
     dialog.setAttribute("aria-label","Ritaglia fotografia");dialog.style.maxWidth="480px";
     const heading=document.createElement("h3");heading.textContent="✂️ Ritaglia fotografia";
-    const hint=document.createElement("p");hint.className="small";hint.textContent="Sposta il riquadro sul canarino. Trascina l'angolo per ingrandire o restringere il ritaglio.";
+    const hint=document.createElement("p");hint.className="small";hint.textContent="Trascina i quattro angoli per ritagliare liberamente; usa due dita per ingrandire.";
     const canvas=document.createElement("canvas");canvas.width=600;canvas.height=600;
     canvas.style.cssText="display:block;width:100%;max-height:57vh;object-fit:contain;background:#202020;border-radius:10px;touch-action:none";
     const toolbar=document.createElement("div");toolbar.className="actions";
@@ -4756,7 +4761,7 @@ async function obRitagliaFotoSoggetto(file){
       ctx.strokeStyle="#fff";ctx.lineWidth=3;ctx.strokeRect(x,y,rw,rh);
       ctx.lineWidth=1;ctx.globalAlpha=.6;
       for(let i=1;i<3;i++){ctx.beginPath();ctx.moveTo(x+rw*i/3,y);ctx.lineTo(x+rw*i/3,y+rh);ctx.moveTo(x,y+rh*i/3);ctx.lineTo(x+rw,y+rh*i/3);ctx.stroke();}
-      ctx.globalAlpha=1;ctx.fillStyle="#fff";ctx.fillRect(x+rw-11,y+rh-11,22,22);
+      ctx.globalAlpha=1;ctx.fillStyle="#fff";for(const [hx,hy] of [[x,y],[x+rw,y],[x,y+rh],[x+rw,y+rh]])ctx.fillRect(hx-10,hy-10,20,20);
     };
     const coords=e=>{const b=canvas.getBoundingClientRect();return {x:(e.clientX-b.left)*600/b.width,y:(e.clientY-b.top)*600/b.height};};
     canvas.addEventListener("pointerdown",e=>{
@@ -4766,7 +4771,9 @@ async function obRitagliaFotoSoggetto(file){
       const {scale,ox,oy}=view;
       const x=ox+rect.x*scale,y=oy+rect.y*scale,w=rect.w*scale,h=rect.h*scale;
       if(p.x<x-12||p.x>x+w+20||p.y<y-12||p.y>y+h+20)return;
-      drag={p,rect:{...rect},resize:Math.abs(p.x-x-w)<38&&Math.abs(p.y-y-h)<38};
+      const corners=[{name:"tl",x,y},{name:"tr",x:x+w,y},{name:"bl",x,y:y+h},{name:"br",x:x+w,y:y+h}];
+      const hit=corners.find(c=>Math.abs(p.x-c.x)<35&&Math.abs(p.y-c.y)<35);
+      drag={p,rect:{...rect},corner:hit?.name||null};
       canvas.setPointerCapture(e.pointerId);
     });
     canvas.addEventListener("pointermove",e=>{
@@ -4782,10 +4789,14 @@ async function obRitagliaFotoSoggetto(file){
       }
       if(!drag)return;
       const dx=(p.x-drag.p.x)/view.scale,dy=(p.y-drag.p.y)/view.scale;
-      if(drag.resize){
-        const min=Math.min(view.w,view.h)*.08;
-        const side=clamp(drag.rect.w+Math.max(dx,dy),min,Math.min(view.w-drag.rect.x,view.h-drag.rect.y));
-        rect={...drag.rect,w:side,h:side};
+      if(drag.corner){
+        const min=Math.min(view.w,view.h)*.08,r=drag.rect;
+        let x1=r.x,y1=r.y,x2=r.x+r.w,y2=r.y+r.h;
+        if(drag.corner.includes("l"))x1=clamp(r.x+dx,0,x2-min);
+        if(drag.corner.includes("r"))x2=clamp(r.x+r.w+dx,x1+min,view.w);
+        if(drag.corner.includes("t"))y1=clamp(r.y+dy,0,y2-min);
+        if(drag.corner.includes("b"))y2=clamp(r.y+r.h+dy,y1+min,view.h);
+        rect={x:x1,y:y1,w:x2-x1,h:y2-y1};
       }else{
         rect={...drag.rect,x:clamp(drag.rect.x+dx,0,view.w-drag.rect.w),y:clamp(drag.rect.y+dy,0,view.h-drag.rect.h)};
       }
@@ -4822,8 +4833,7 @@ async function obRitagliaFotoSoggetto(file){
     const finish=value=>{overlay.remove();resolve(value);};
     original.onclick=()=>finish(file);cancel.onclick=()=>finish(null);
     save.onclick=()=>{
-      const side=Math.round(Math.min(rect.w,rect.h));
-      const output=document.createElement("canvas");output.width=side;output.height=side;
+      const output=document.createElement("canvas");output.width=Math.max(1,Math.round(rect.w));output.height=Math.max(1,Math.round(rect.h));
       const c=output.getContext("2d");
       c.translate(-rect.x,-rect.y);
       const {w,h}=rotated();
