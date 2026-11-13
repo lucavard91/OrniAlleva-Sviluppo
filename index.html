@@ -4710,83 +4710,94 @@ async function obRitagliaFotoSoggetto(file){
   if(!file?.type?.startsWith("image/"))throw new Error("Seleziona una fotografia valida.");
   const url=URL.createObjectURL(file);
   let image;
-  try{
-    image=await new Promise((resolve,reject)=>{
-      const img=new Image();
-      img.onload=()=>resolve(img);
-      img.onerror=()=>reject(new Error("Impossibile aprire questa fotografia."));
-      img.src=url;
-    });
-  }finally{URL.revokeObjectURL(url);}
+  try{image=await new Promise((resolve,reject)=>{
+    const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error("Fotografia non leggibile."));img.src=url;
+  });}finally{URL.revokeObjectURL(url);}
   return new Promise(resolve=>{
     const overlay=document.createElement("div");overlay.className="ob-pair-modal open";
     const dialog=document.createElement("div");dialog.className="ob-pair-dialog";
     dialog.setAttribute("role","dialog");dialog.setAttribute("aria-modal","true");
-    dialog.setAttribute("aria-label","Ritaglia e raddrizza fotografia");
-    dialog.style.maxWidth="480px";
-    const heading=document.createElement("h3");heading.textContent="Ritaglia fotografia";
-    const hint=document.createElement("p");hint.className="small";
-    hint.textContent="Trascina la foto con il dito per centrare il soggetto. Ingrandisci o ruota prima di salvare.";
-    const frame=document.createElement("div");
-    frame.style.cssText="width:100%;max-width:420px;margin:auto;aspect-ratio:1;position:relative;overflow:hidden;background:#171717;touch-action:none;border:2px solid #fff;border-radius:8px";
-    const canvas=document.createElement("canvas");
-    canvas.width=600;canvas.height=600;
-    canvas.style.cssText="display:block;width:100%;height:100%;touch-action:none";
-    frame.appendChild(canvas);
+    dialog.setAttribute("aria-label","Ritaglia fotografia");dialog.style.maxWidth="480px";
+    const heading=document.createElement("h3");heading.textContent="✂️ Ritaglia fotografia";
+    const hint=document.createElement("p");hint.className="small";hint.textContent="Sposta il riquadro sul canarino. Trascina l'angolo per ingrandire o restringere il ritaglio.";
+    const canvas=document.createElement("canvas");canvas.width=600;canvas.height=600;
+    canvas.style.cssText="display:block;width:100%;max-height:57vh;object-fit:contain;background:#202020;border-radius:10px;touch-action:none";
     const toolbar=document.createElement("div");toolbar.className="actions";
-    const left=document.createElement("button");left.type="button";left.className="secondary";left.textContent="↶ 90°";
-    const right=document.createElement("button");right.type="button";right.className="secondary";right.textContent="↷ 90°";
+    const left=document.createElement("button");left.type="button";left.className="secondary";left.textContent="↶ Ruota";
+    const right=document.createElement("button");right.type="button";right.className="secondary";right.textContent="↷ Ruota";
     const reset=document.createElement("button");reset.type="button";reset.className="secondary";reset.textContent="Ripristina";
     toolbar.append(left,right,reset);
-    const zoomLabel=document.createElement("label");zoomLabel.textContent="Ingrandimento";
-    const zoom=document.createElement("input");zoom.type="range";zoom.min="1";zoom.max="4";zoom.step="0.02";zoom.value="1";zoom.style.width="100%";zoomLabel.appendChild(zoom);
-    const tiltLabel=document.createElement("label");tiltLabel.textContent="Raddrizza";
-    const tilt=document.createElement("input");tilt.type="range";tilt.min="-25";tilt.max="25";tilt.step="1";tilt.value="0";tilt.style.width="100%";tiltLabel.appendChild(tilt);
     const actions=document.createElement("div");actions.className="actions";
-    const original=document.createElement("button");original.type="button";original.className="secondary";original.textContent="Usa originale";
+    const original=document.createElement("button");original.type="button";original.className="secondary";original.textContent="Originale";
     const cancel=document.createElement("button");cancel.type="button";cancel.className="secondary";cancel.textContent="Annulla";
     const save=document.createElement("button");save.type="button";save.className="success";save.textContent="Salva ritaglio";
     actions.append(original,cancel,save);
-    dialog.append(heading,hint,frame,toolbar,zoomLabel,tiltLabel,actions);overlay.appendChild(dialog);document.body.appendChild(overlay);
-    let turn=0,dx=0,dy=0,drag=null;
+    dialog.append(heading,hint,canvas,toolbar,actions);overlay.appendChild(dialog);document.body.appendChild(overlay);
     const ctx=canvas.getContext("2d");
-    const render=(target=canvas)=>{
-      const context=target.getContext("2d"),size=target.width;
-      context.clearRect(0,0,target.width,target.height);
-      context.fillStyle="#171717";context.fillRect(0,0,target.width,target.height);
-      const angle=(turn+Number(tilt.value))*Math.PI/180;
-      const cover=Math.max(size/image.naturalWidth,size/image.naturalHeight);
-      const scale=cover*Number(zoom.value);
-      context.save();context.translate(size/2+dx*size/600,size/2+dy*size/600);
-      context.rotate(angle);context.scale(scale,scale);
-      context.drawImage(image,-image.naturalWidth/2,-image.naturalHeight/2);
-      context.restore();
+    let turn=0,rect=null,drag=null,view=null;
+    const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+    const rotated=()=>((turn%180+180)%180===90)?{w:image.naturalHeight,h:image.naturalWidth}:{w:image.naturalWidth,h:image.naturalHeight};
+    const resetRect=()=>{const {w,h}=rotated();const side=Math.min(w,h)*0.7;rect={x:(w-side)/2,y:(h-side)/2,w:side,h:side};};
+    const draw=()=>{
+      const {w,h}=rotated();
+      const scale=Math.min(canvas.width/w,canvas.height/h);
+      const ox=(canvas.width-w*scale)/2,oy=(canvas.height-h*scale)/2;
+      view={scale,ox,oy,w,h};
+      ctx.clearRect(0,0,600,600);ctx.fillStyle="#202020";ctx.fillRect(0,0,600,600);
+      ctx.save();ctx.translate(ox+w*scale/2,oy+h*scale/2);ctx.rotate(turn*Math.PI/180);
+      ctx.drawImage(image,-image.naturalWidth*scale/2,-image.naturalHeight*scale/2,image.naturalWidth*scale,image.naturalHeight*scale);
+      ctx.restore();
+      ctx.fillStyle="rgba(0,0,0,.52)";
+      const x=ox+rect.x*scale,y=oy+rect.y*scale,rw=rect.w*scale,rh=rect.h*scale;
+      ctx.fillRect(ox,oy,w*scale,Math.max(0,y-oy));ctx.fillRect(ox,y,Math.max(0,x-ox),rh);
+      ctx.fillRect(x+rw,y,Math.max(0,ox+w*scale-x-rw),rh);
+      ctx.fillRect(ox,y+rh,w*scale,Math.max(0,oy+h*scale-y-rh));
+      ctx.strokeStyle="#fff";ctx.lineWidth=3;ctx.strokeRect(x,y,rw,rh);
+      ctx.lineWidth=1;ctx.globalAlpha=.6;
+      for(let i=1;i<3;i++){ctx.beginPath();ctx.moveTo(x+rw*i/3,y);ctx.lineTo(x+rw*i/3,y+rh);ctx.moveTo(x,y+rh*i/3);ctx.lineTo(x+rw,y+rh*i/3);ctx.stroke();}
+      ctx.globalAlpha=1;ctx.fillStyle="#fff";ctx.fillRect(x+rw-11,y+rh-11,22,22);
     };
-    const finish=value=>{overlay.remove();resolve(value);};
-    canvas.addEventListener("pointerdown",e=>{drag={x:e.clientX,y:e.clientY,dx,dy};canvas.setPointerCapture(e.pointerId);});
+    const coords=e=>{const b=canvas.getBoundingClientRect();return {x:(e.clientX-b.left)*600/b.width,y:(e.clientY-b.top)*600/b.height};};
+    canvas.addEventListener("pointerdown",e=>{
+      const p=coords(e),{scale,ox,oy}=view;
+      const x=ox+rect.x*scale,y=oy+rect.y*scale,w=rect.w*scale,h=rect.h*scale;
+      if(p.x<x-12||p.x>x+w+20||p.y<y-12||p.y>y+h+20)return;
+      drag={p,rect:{...rect},resize:Math.abs(p.x-x-w)<38&&Math.abs(p.y-y-h)<38};
+      canvas.setPointerCapture(e.pointerId);
+    });
     canvas.addEventListener("pointermove",e=>{
       if(!drag)return;
-      const ratio=600/canvas.getBoundingClientRect().width;
-      dx=drag.dx+(e.clientX-drag.x)*ratio;
-      dy=drag.dy+(e.clientY-drag.y)*ratio;
-      render();
+      const p=coords(e),dx=(p.x-drag.p.x)/view.scale,dy=(p.y-drag.p.y)/view.scale;
+      if(drag.resize){
+        const min=Math.min(view.w,view.h)*.08;
+        const side=clamp(drag.rect.w+Math.max(dx,dy),min,Math.min(view.w-drag.rect.x,view.h-drag.rect.y));
+        rect={...drag.rect,w:side,h:side};
+      }else{
+        rect={...drag.rect,x:clamp(drag.rect.x+dx,0,view.w-drag.rect.w),y:clamp(drag.rect.y+dy,0,view.h-drag.rect.h)};
+      }
+      draw();
     });
     canvas.addEventListener("pointerup",()=>{drag=null;});
     canvas.addEventListener("pointercancel",()=>{drag=null;});
-    left.onclick=()=>{turn-=90;render();};
-    right.onclick=()=>{turn+=90;render();};
-    reset.onclick=()=>{turn=0;dx=0;dy=0;zoom.value="1";tilt.value="0";render();};
-    zoom.oninput=render;tilt.oninput=render;
+    left.onclick=()=>{turn=(turn+270)%360;resetRect();draw();};
+    right.onclick=()=>{turn=(turn+90)%360;resetRect();draw();};
+    reset.onclick=()=>{turn=0;resetRect();draw();};
+    const finish=value=>{overlay.remove();resolve(value);};
     original.onclick=()=>finish(file);cancel.onclick=()=>finish(null);
     save.onclick=()=>{
-      const output=document.createElement("canvas");output.width=1200;output.height=1200;
-      render(output);
+      const side=Math.round(Math.min(rect.w,rect.h));
+      const output=document.createElement("canvas");output.width=side;output.height=side;
+      const c=output.getContext("2d");
+      c.translate(-rect.x,-rect.y);
+      const {w,h}=rotated();
+      c.translate(w/2,h/2);c.rotate(turn*Math.PI/180);
+      c.drawImage(image,-image.naturalWidth/2,-image.naturalHeight/2);
       output.toBlob(blob=>{
         if(!blob){obAvviso("Impossibile salvare il ritaglio.");return;}
         finish(new File([blob],file.name.replace(/\\.[^.]+$/,"")+"_ritaglio.jpg",{type:"image/jpeg",lastModified:Date.now()}));
-      },"image/jpeg",0.94);
+      },"image/jpeg",.94);
     };
-    render();
+    resetRect();draw();
   });
 }
 async function obPreparaFotoSelezionata(input){
@@ -5217,7 +5228,7 @@ async function obV436AggiornaSoggettiCompleto(){
       ${s.portatore_di?`<p><b><img class="ob-record-icon" src="assets_embedded/assets_embedded/ob_asset_075_5f50b38bf6.jpg" alt=""> Portatore di:</b> ${esc(s.portatore_di)} <span class="small">(${esc(s.portatore_origine||"DICHIARATO")})</span></p>`:""}
       <p><b>Gabbia:</b> ${esc(obGabbiaDisplay(s.gabbia||"-"))}</p><p><b>Padre:</b> ${esc(s.padre||"-")} &nbsp; <b>Madre:</b> ${esc(s.madre||"-")}</p>
       <p><b>Stato:</b> ${esc(obV435StatoSoggetto(s.stato))}</p><p><b>Note:</b> ${esc(s.note||"-")}</p>
-      <div class="ob-soggetto-photo-row"><div class="soggetto-foto-box ob-foto-big" data-foto-box="${esc(s.id)}"><img class="ob-record-icon" src="assets_embedded/assets_embedded/ob_asset_004_9a860456d5.jpg" alt=""> Caricamento foto...</div><div class="ob-soggetto-photo-tools"><button type="button" class="secondary ob-photo-change" data-photo-soggetto="${esc(s.id)}">${s.foto_url?"Cambia foto":"Carica foto"}</button><button type="button" class="danger ob-photo-delete" data-remove-photo-soggetto="${esc(s.id)}" ${s.foto_url?"":"hidden"}>Elimina foto</button></div></div>
+      <div class="ob-soggetto-photo-row"><div class="soggetto-foto-box ob-foto-big" data-foto-box="${esc(s.id)}"><span class="small">📷</span></div><div class="ob-soggetto-photo-tools"><button type="button" class="secondary ob-photo-change" data-photo-soggetto="${esc(s.id)}">${s.foto_url?"Cambia foto":"Carica foto"}</button><button type="button" class="danger ob-photo-delete" data-remove-photo-soggetto="${esc(s.id)}" ${s.foto_url?"":"hidden"}>Elimina foto</button></div></div>
       ${(()=>{const av=JSON.parse(localStorage.getItem('myagari_ai_scores')||'{}')[String(s.id)];return av&&Number.isFinite(Number(av.score))?'<p class="ai-punteggio"><img class="ob-action-icon" src="assets_embedded/assets_embedded/ob_asset_005_cc38f88be0.jpg" alt=""> Valutazione AI: '+Number(av.score).toFixed(1)+' / 100</p>':'';})()}
       <div class="actions ob-subject-four-actions" style="display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important">
         <button class="ob-action ob-act-modifica" data-edit-soggetto="${esc(s.id)}">Modifica</button>
@@ -5237,7 +5248,7 @@ async function obV436AggiornaSoggettiCompleto(){
       if(url){
         box.innerHTML='<img src="'+esc(url)+'" alt="Foto soggetto" class="soggetto-thumb" loading="eager">';
         box.querySelector('img')?.addEventListener('error',()=>{box.innerHTML='<img class="ob-record-icon" src="assets_embedded/assets_embedded/ob_asset_004_9a860456d5.jpg" alt=""> Foto non disponibile<br><span class="small">La foto risulta associata ma non è leggibile dal bucket.</span>';});
-      }else box.innerHTML='<img class="ob-record-icon" src="assets_embedded/assets_embedded/ob_asset_004_9a860456d5.jpg" alt=""> Nessuna foto caricata<br><span class="small">Usa il pulsante Carica foto.</span>';
+      }else box.innerHTML='<span style="font-size:2rem" aria-hidden="true">📷</span><span class="small">Aggiungi una foto</span>';
     }));
     bindDeleteButtons();bindEditSoggetti();obV435BindArchiveSoggetti();
   }catch(e){errore(e);}
