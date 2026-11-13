@@ -4993,7 +4993,10 @@ async function eseguiValutazioneAI(id){
 function renderRisultatoAI(id,payload){
   const target=document.getElementById("risultatoAI")||document.getElementById("risultato-ai")||document.getElementById("aiResult");
   if(target){
-    target.innerHTML=htmlSchedaAIV17(payload)+`<div class="ai-v17-actions"><button class="ai-v17-btn secondary" onclick="mostraValutazioneSalvata('${escapeHtmlV17(id)}')">👁️ Osserva valutazione</button><button class="ai-v17-btn primary" onclick="eseguiValutazioneAI('${escapeHtmlV17(id)}')">🔄 Nuova valutazione AI</button></div>`;
+    target.innerHTML=`<div role="status" aria-live="polite" tabindex="-1" class="ai-v17-reliability"><strong>✅ Valutazione completata</strong><div class="ai-v17-muted">Il risultato è disponibile qui sotto.</div></div>`+htmlSchedaAIV17(payload)+`<div class="ai-v17-actions"><button class="ai-v17-btn secondary" onclick="mostraValutazioneSalvata('${escapeHtmlV17(id)}')">👁️ Osserva valutazione</button><button class="ai-v17-btn primary" onclick="eseguiValutazioneAI('${escapeHtmlV17(id)}')">🔄 Nuova valutazione AI</button></div>`;
+    requestAnimationFrame(()=>{
+      target.scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});
+    });
   }
 }
 function obV435StatoSoggetto(v){
