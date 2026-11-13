@@ -4718,63 +4718,75 @@ async function obRitagliaFotoSoggetto(file){
       img.src=url;
     });
   }finally{URL.revokeObjectURL(url);}
-  return await new Promise(resolve=>{
-    const overlay=document.createElement("div");
-    overlay.className="ob-pair-modal open";
-    overlay.setAttribute("role","presentation");
-    const dialog=document.createElement("div");
-    dialog.className="ob-pair-dialog";
-    dialog.setAttribute("role","dialog");
-    dialog.setAttribute("aria-modal","true");
-    dialog.setAttribute("aria-label","Ritaglia fotografia del soggetto");
+  return new Promise(resolve=>{
+    const overlay=document.createElement("div");overlay.className="ob-pair-modal open";
+    const dialog=document.createElement("div");dialog.className="ob-pair-dialog";
+    dialog.setAttribute("role","dialog");dialog.setAttribute("aria-modal","true");
+    dialog.setAttribute("aria-label","Ritaglia e raddrizza fotografia");
     dialog.style.maxWidth="480px";
-    const title=document.createElement("h3");title.textContent="✂️ Ritaglia fotografia";
-    const hint=document.createElement("p");hint.className="small";hint.textContent="Sposta il centro e regola larghezza e altezza. Puoi anche mantenere la foto originale.";
+    const heading=document.createElement("h3");heading.textContent="Ritaglia fotografia";
+    const hint=document.createElement("p");hint.className="small";
+    hint.textContent="Trascina la foto con il dito per centrare il soggetto. Ingrandisci o ruota prima di salvare.";
+    const frame=document.createElement("div");
+    frame.style.cssText="width:100%;max-width:420px;margin:auto;aspect-ratio:1;position:relative;overflow:hidden;background:#171717;touch-action:none;border:2px solid #fff;border-radius:8px";
     const canvas=document.createElement("canvas");
-    canvas.style.cssText="display:block;width:100%;max-height:55vh;object-fit:contain;background:#222;border-radius:8px";
-    const controls=document.createElement("div");
-    const sliders={};
-    for(const [key,label,initial] of [["x","Centro orizzontale",50],["y","Centro verticale",50],["w","Larghezza ritaglio",100],["h","Altezza ritaglio",100]]){
-      const wrap=document.createElement("label");wrap.textContent=label;
-      const input=document.createElement("input");input.type="range";input.min=key==="w"||key==="h"?"20":"0";input.max="100";input.value=String(initial);
-      input.style.width="100%";sliders[key]=input;wrap.appendChild(input);controls.appendChild(wrap);
-    }
+    canvas.width=600;canvas.height=600;
+    canvas.style.cssText="display:block;width:100%;height:100%;touch-action:none";
+    frame.appendChild(canvas);
+    const toolbar=document.createElement("div");toolbar.className="actions";
+    const left=document.createElement("button");left.type="button";left.className="secondary";left.textContent="↶ 90°";
+    const right=document.createElement("button");right.type="button";right.className="secondary";right.textContent="↷ 90°";
+    const reset=document.createElement("button");reset.type="button";reset.className="secondary";reset.textContent="Ripristina";
+    toolbar.append(left,right,reset);
+    const zoomLabel=document.createElement("label");zoomLabel.textContent="Ingrandimento";
+    const zoom=document.createElement("input");zoom.type="range";zoom.min="1";zoom.max="4";zoom.step="0.02";zoom.value="1";zoom.style.width="100%";zoomLabel.appendChild(zoom);
+    const tiltLabel=document.createElement("label");tiltLabel.textContent="Raddrizza";
+    const tilt=document.createElement("input");tilt.type="range";tilt.min="-25";tilt.max="25";tilt.step="1";tilt.value="0";tilt.style.width="100%";tiltLabel.appendChild(tilt);
     const actions=document.createElement("div");actions.className="actions";
     const original=document.createElement("button");original.type="button";original.className="secondary";original.textContent="Usa originale";
     const cancel=document.createElement("button");cancel.type="button";cancel.className="secondary";cancel.textContent="Annulla";
-    const confirm=document.createElement("button");confirm.type="button";confirm.className="success";confirm.textContent="Conferma ritaglio";
-    actions.append(original,cancel,confirm);
-    dialog.append(title,hint,canvas,controls,actions);overlay.appendChild(dialog);document.body.appendChild(overlay);
+    const save=document.createElement("button");save.type="button";save.className="success";save.textContent="Salva ritaglio";
+    actions.append(original,cancel,save);
+    dialog.append(heading,hint,frame,toolbar,zoomLabel,tiltLabel,actions);overlay.appendChild(dialog);document.body.appendChild(overlay);
+    let turn=0,dx=0,dy=0,drag=null;
+    const ctx=canvas.getContext("2d");
+    const render=(target=canvas)=>{
+      const context=target.getContext("2d"),size=target.width;
+      context.clearRect(0,0,target.width,target.height);
+      context.fillStyle="#171717";context.fillRect(0,0,target.width,target.height);
+      const angle=(turn+Number(tilt.value))*Math.PI/180;
+      const cover=Math.max(size/image.naturalWidth,size/image.naturalHeight);
+      const scale=cover*Number(zoom.value);
+      context.save();context.translate(size/2+dx*size/600,size/2+dy*size/600);
+      context.rotate(angle);context.scale(scale,scale);
+      context.drawImage(image,-image.naturalWidth/2,-image.naturalHeight/2);
+      context.restore();
+    };
     const finish=value=>{overlay.remove();resolve(value);};
-    const rectangle=()=>{
-      const iw=image.naturalWidth,ih=image.naturalHeight;
-      const w=Math.max(1,Math.round(iw*Number(sliders.w.value)/100));
-      const h=Math.max(1,Math.round(ih*Number(sliders.h.value)/100));
-      const x=Math.round((iw-w)*Number(sliders.x.value)/100);
-      const y=Math.round((ih-h)*Number(sliders.y.value)/100);
-      return {x,y,w,h};
-    };
-    const draw=()=>{
-      const {x,y,w,h}=rectangle();
-      const scale=Math.min(1,900/Math.max(w,h));
-      canvas.width=Math.max(1,Math.round(w*scale));
-      canvas.height=Math.max(1,Math.round(h*scale));
-      canvas.getContext("2d").drawImage(image,x,y,w,h,0,0,canvas.width,canvas.height);
-    };
-    Object.values(sliders).forEach(input=>input.addEventListener("input",draw));
-    original.onclick=()=>finish(file);
-    cancel.onclick=()=>finish(null);
-    confirm.onclick=()=>{
-      const {x,y,w,h}=rectangle();
-      const output=document.createElement("canvas");output.width=w;output.height=h;
-      output.getContext("2d").drawImage(image,x,y,w,h,0,0,w,h);
+    canvas.addEventListener("pointerdown",e=>{drag={x:e.clientX,y:e.clientY,dx,dy};canvas.setPointerCapture(e.pointerId);});
+    canvas.addEventListener("pointermove",e=>{
+      if(!drag)return;
+      const ratio=600/canvas.getBoundingClientRect().width;
+      dx=drag.dx+(e.clientX-drag.x)*ratio;
+      dy=drag.dy+(e.clientY-drag.y)*ratio;
+      render();
+    });
+    canvas.addEventListener("pointerup",()=>{drag=null;});
+    canvas.addEventListener("pointercancel",()=>{drag=null;});
+    left.onclick=()=>{turn-=90;render();};
+    right.onclick=()=>{turn+=90;render();};
+    reset.onclick=()=>{turn=0;dx=0;dy=0;zoom.value="1";tilt.value="0";render();};
+    zoom.oninput=render;tilt.oninput=render;
+    original.onclick=()=>finish(file);cancel.onclick=()=>finish(null);
+    save.onclick=()=>{
+      const output=document.createElement("canvas");output.width=1200;output.height=1200;
+      render(output);
       output.toBlob(blob=>{
-        if(!blob){obAvviso("Impossibile ritagliare la foto.");return;}
-        const name=file.name.replace(/\\.[^.]+$/,"")+"_ritaglio.jpg";
-        finish(new File([blob],name,{type:"image/jpeg",lastModified:Date.now()}));
-      },"image/jpeg",0.92);
+        if(!blob){obAvviso("Impossibile salvare il ritaglio.");return;}
+        finish(new File([blob],file.name.replace(/\\.[^.]+$/,"")+"_ritaglio.jpg",{type:"image/jpeg",lastModified:Date.now()}));
+      },"image/jpeg",0.94);
     };
-    draw();
+    render();
   });
 }
 async function obPreparaFotoSelezionata(input){
