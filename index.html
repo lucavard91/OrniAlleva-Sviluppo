@@ -10725,7 +10725,18 @@ function v19RenderSchedaGiudizio(reason=""){
   document.querySelectorAll("#v19JudgingRows input[data-score]").forEach(inp=>inp.addEventListener("input",v19TotaleGiudizio));
   if($("v19JudgeSave"))$("v19JudgeSave").onclick=v19SalvaSchedaGiudizio;
   if($("v3092ChangeRoute"))$("v3092ChangeRoute").onclick=()=>{v19JudgingCriteria=[];v19JudgingRoute=null;v19RenderSchedaGiudizio("Selezione manuale richiesta.");};
-  v3092BindManual();v19RenderStorico();
+  v3092BindManual();
+  // Precompila la ricerca manuale con i dati del soggetto già registrato.
+  // Non sostituisce la verifica della disponibilità della scheda FOI.
+  const manualTax=$("v3092ManualTaxonText"),manualBreed=$("v3092ManualBreedText"),manualMutation=$("v3092ManualMutationText"),manualSex=$("v3092ManualSex");
+  if(manualTax){
+    manualTax.value=v19Norm(s.specie)||"";
+    manualTax.dispatchEvent(new Event("input",{bubbles:true}));
+    if(manualBreed){manualBreed.value=v19Norm(s.razza)||"";manualBreed.dispatchEvent(new Event("input",{bubbles:true}));}
+    if(manualMutation)manualMutation.value=v3092SubjectMutation(s)||"";
+    if(manualSex)manualSex.value=v3092SubjectSex(s)||"";
+  }
+  v19RenderStorico();
 }
 async function v19ApriSchedaGiudizio(id){
   try{
