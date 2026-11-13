@@ -4791,6 +4791,28 @@ async function obRitagliaFotoSoggetto(file){
       }
       draw();
     });
+    // iOS Safari/PWA: gestisce direttamente il gesto a due dita, senza dipendere dai PointerEvent.
+    let touchPinch=null;
+    const touchPoint=t=>coords({clientX:t.clientX,clientY:t.clientY});
+    canvas.addEventListener("touchstart",e=>{
+      if(e.touches.length!==2)return;
+      e.preventDefault();drag=null;
+      const a=touchPoint(e.touches[0]),b=touchPoint(e.touches[1]);
+      touchPinch={distance:Math.hypot(a.x-b.x,a.y-b.y),zoom,panX,panY,midX:(a.x+b.x)/2,midY:(a.y+b.y)/2};
+    },{passive:false});
+    canvas.addEventListener("touchmove",e=>{
+      if(e.touches.length!==2||!touchPinch)return;
+      e.preventDefault();
+      const a=touchPoint(e.touches[0]),b=touchPoint(e.touches[1]);
+      const distance=Math.hypot(a.x-b.x,a.y-b.y);
+      const next=clamp(touchPinch.zoom*distance/Math.max(1,touchPinch.distance),1,6);
+      const mx=(a.x+b.x)/2,my=(a.y+b.y)/2,ratio=next/touchPinch.zoom;
+      panX=touchPinch.panX+(mx-touchPinch.midX)+(touchPinch.midX-300-touchPinch.panX)*(1-ratio);
+      panY=touchPinch.panY+(my-touchPinch.midY)+(touchPinch.midY-300-touchPinch.panY)*(1-ratio);
+      zoom=next;draw();
+    },{passive:false});
+    canvas.addEventListener("touchend",e=>{if(e.touches.length<2)touchPinch=null;},{passive:true});
+    canvas.addEventListener("touchcancel",()=>{touchPinch=null;},{passive:true});
     const stopPointer=e=>{touches.delete(e.pointerId);drag=null;if(touches.size<2)pinch=null;};
     canvas.addEventListener("pointerup",stopPointer);
     canvas.addEventListener("pointercancel",stopPointer);
