@@ -4790,10 +4790,18 @@ async function apriValutazioneAI(id){
         <p><b>Sesso:</b> ${esc(s.sesso||"-")} · <b>Razza:</b> ${esc(s.razza||"-")} · <b>Mutazione:</b> ${esc(s.mutazione||"-")}</p>
         ${foto}
         <div style="margin-top:16px">
-          <label for="obAiVideoFile"><b>Video obbligatorio del soggetto (30–50 secondi)</b></label>
-          <input id="obAiVideoFile" type="file" accept="video/mp4,video/quicktime,video/webm,.mov,.mp4,.webm">
-          <p class="small">Riprendi il soggetto per intero, con buona luce e senza ostacoli. Massimo 60 MB.</p>
-          <label><input id="obAiPrivacy" type="checkbox"> Autorizzo l'invio di foto e video al servizio AI per questa valutazione, secondo l'informativa privacy.</label>
+          <label for="obAiMode"><b>Quale materiale vuoi far valutare?</b></label>
+          <select id="obAiMode">
+            <option value="foto">Solo fotografia</option>
+            <option value="video">Solo video</option>
+            <option value="entrambi" selected>Fotografia e video</option>
+          </select>
+          <div id="obAiVideoSection">
+            <label for="obAiVideoFile"><b>Video temporaneo del soggetto (massimo 50 secondi)</b></label>
+            <input id="obAiVideoFile" type="file" accept="video/mp4,video/quicktime,video/webm,.mov,.mp4,.webm">
+            <p class="small">Riprendi il soggetto per intero, con buona luce e senza ostacoli. Massimo 60 MB. Il video viene eliminato dopo l'analisi.</p>
+          </div>
+          <label><input id="obAiPrivacy" type="checkbox"> Autorizzo l'invio al servizio AI dei materiali selezionati per questa valutazione, secondo l'informativa privacy.</label>
           <p class="small">5 valutazioni gratuite al giorno per account. La formazione coppie è gratuita.</p>
           <button class="primary ob-action ob-act-ai" id="btnEseguiValutazioneAI">Avvia valutazione AI gratuita</button>
           <button class="secondary" id="btnIndietroAI">← Torna ai soggetti</button>
@@ -4806,6 +4814,10 @@ async function apriValutazioneAI(id){
       const ph=root.querySelector('.ai-foto-placeholder');
       if(ph) ph.style.display='block';
     });
+    const modeInput=$("obAiMode");
+    const syncAiVideo=()=>{const section=$("obAiVideoSection");if(section)section.hidden=modeInput?.value==="foto";};
+    modeInput?.addEventListener("change",syncAiVideo);
+    syncAiVideo();
     $("btnEseguiValutazioneAI")?.addEventListener('click',()=>eseguiValutazioneAI(id));
     $("btnIndietroAI")?.addEventListener('click',()=>apriPagina('soggetti'));
   }catch(e){
@@ -4870,12 +4882,15 @@ async function eseguiValutazioneAI(id){
   let successful=false;
   if(btn?.disabled)return;
   try{
-    const file=$("obAiVideoFile")?.files?.[0];
-    if(!file)throw new Error("Seleziona un video del soggetto di 30–50 secondi.");
-    if(file.size>60*1024*1024)throw new Error("Video troppo grande: massimo 60 MB.");
-    const mime=file.type||(/\.mov$/i.test(file.name)?"video/quicktime":/\.webm$/i.test(file.name)?"video/webm":"video/mp4");
-    if(!["video/mp4","video/quicktime","video/webm"].includes(mime))throw new Error("Formato video non supportato (MP4, MOV o WebM).");
-    const durata=await new Promise((resolve,reject)=>{
+    const mode=$("obAiMode")?.value||"entrambi";
+    if(!["foto","video","entrambi"].includes(mode))throw new Error("Modalità AI non valida.");
+    const withVideo=mode!=="foto";
+    const file=withVideo?$("obAiVideoFile")?.files?.[0]:null;
+    if(withVideo&&!file)throw new Error("Seleziona un video del soggetto.");
+    if(file&&file.size>60*1024*1024)throw new Error("Video troppo grande: massimo 60 MB.");
+    const mime=file?(file.type||(/\\.mov$/i.test(file.name)?"video/quicktime":/\\.webm$/i.test(file.name)?"video/webm":"video/mp4")):"";
+    if(file&&!["video/mp4","video/quicktime","video/webm"].includes(mime))throw new Error("Formato video non supportato (MP4, MOV o WebM).");
+    const durata=file?await new Promise((resolve,reject)=>{
       const video=document.createElement("video");
       const url=URL.createObjectURL(file);
       let complete=false;
@@ -4889,8 +4904,8 @@ async function eseguiValutazioneAI(id){
       video.onloadedmetadata=()=>finish(null,video.duration);
       video.onerror=()=>finish(new Error("Video illeggibile: registra un nuovo MP4/MOV/WebM."));
       video.src=url;
-    });
-    if(!Number.isFinite(durata)||durata<30||durata>50)throw new Error("Il video deve durare almeno 30 e non più di 50 secondi.");
+    }):null;
+    if(file&&(!Number.isFinite(durata)||durata<1||durata>50))throw new Error("Il video deve durare da 1 a 50 secondi.");
     if(!$("obAiPrivacy")?.checked)throw new Error("Devi accettare l'informativa prima di inviare foto e video.");
     const dati=await leggi("soggetti");
     const s=dati.find(x=>String(x.id)===String(id));
@@ -4901,14 +4916,16 @@ async function eseguiValutazioneAI(id){
     if(!fotoUrl)throw new Error("Prima di valutare il soggetto, carica una foto nella sua scheda.");
     if(!sb?.functions?.invoke)throw new Error("Motore AI gratuito non configurato nell'ambiente di sviluppo.");
     if(btn)btn.disabled=true;
-    if(root)root.textContent="Caricamento video e analisi AI in corso…";
+    if(root)root.textContent=withVideo?"Caricamento video temporaneo e analisi AI in corso…":"Analisi della fotografia in corso…";
     const criteriFOI=await recuperaCriteriFOIPerAI(s);
-    const ext=mime==="video/quicktime"?"mov":mime==="video/webm"?"webm":"mp4";
-    uploadedPath=u.id+"/"+id+"/"+crypto.randomUUID()+"."+ext;
-    const upload=await sb.storage.from("ob-ai-media").upload(uploadedPath,file,{contentType:mime,upsert:false});
-    if(upload.error)throw new Error("Caricamento video non riuscito: "+upload.error.message);
+    if(file){
+      const ext=mime==="video/quicktime"?"mov":mime==="video/webm"?"webm":"mp4";
+      uploadedPath=u.id+"/"+id+"/"+crypto.randomUUID()+"."+ext;
+      const upload=await sb.storage.from("ob-ai-media").upload(uploadedPath,file,{contentType:mime,upsert:false});
+      if(upload.error)throw new Error("Caricamento video non riuscito: "+upload.error.message);
+    }
     const call=await sb.functions.invoke("ornibreed-ai-eval",{
-      body:{soggetto_id:String(id),video_path:uploadedPath,durata_secondi:durata,
+      body:{soggetto_id:String(id),modalita:mode,video_path:uploadedPath,durata_secondi:durata,
             consenso_privacy:true,criteri_foi:Array.isArray(criteriFOI)?criteriFOI:[]}
     });
     if(call.error){
@@ -4925,7 +4942,8 @@ async function eseguiValutazioneAI(id){
     result.punteggio=null;
     result.percentuale=null;
     result.valutazione_completa=false;
-    result.avvertenza="Analisi foto + video indicativa: non sostituisce il giudizio ufficiale FOI/COM.";
+    result.avvertenza="Analisi visiva indicativa: non sostituisce il giudizio ufficiale FOI/COM.";
+    result.modalita=mode;
     if(typeof call.data.remaining==="number")result.valutazioni_gratuite_rimanenti=call.data.remaining;
     // Compatibilità con la cronologia esistente. La fonte primaria rimane ob_ai_evaluations_v2.
     try{
@@ -4945,8 +4963,9 @@ async function eseguiValutazioneAI(id){
   }catch(e){
     console.error("Valutazione AI foto e video:",e);
     if(root)root.textContent="Valutazione non completata: "+(e?.message||e);
-    if(uploadedPath&&!successful){try{await sb.storage.from("ob-ai-media").remove([uploadedPath]);}catch(_){}}
+
   }finally{
+    if(uploadedPath){try{const cleanup=await sb.storage.from("ob-ai-media").remove([uploadedPath]);if(cleanup.error)console.warn("Pulizia video temporaneo:",cleanup.error.message);}catch(e){console.warn("Pulizia video temporaneo:",e);}}
     if(btn)btn.disabled=false;
   }
 }
