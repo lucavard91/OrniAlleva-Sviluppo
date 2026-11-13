@@ -4734,14 +4734,15 @@ async function obRitagliaFotoSoggetto(file){
     actions.append(original,cancel,save);
     dialog.append(heading,hint,canvas,toolbar,actions);overlay.appendChild(dialog);document.body.appendChild(overlay);
     const ctx=canvas.getContext("2d");
-    let turn=0,rect=null,drag=null,view=null;
+    let turn=0,rect=null,drag=null,view=null,zoom=1,panX=0,panY=0,pinch=null;
+    const touches=new Map();
     const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
     const rotated=()=>((turn%180+180)%180===90)?{w:image.naturalHeight,h:image.naturalWidth}:{w:image.naturalWidth,h:image.naturalHeight};
     const resetRect=()=>{const {w,h}=rotated();const side=Math.min(w,h)*0.7;rect={x:(w-side)/2,y:(h-side)/2,w:side,h:side};};
     const draw=()=>{
       const {w,h}=rotated();
-      const scale=Math.min(canvas.width/w,canvas.height/h);
-      const ox=(canvas.width-w*scale)/2,oy=(canvas.height-h*scale)/2;
+      const scale=Math.min(canvas.width/w,canvas.height/h)*zoom;
+      const ox=(canvas.width-w*scale)/2+panX,oy=(canvas.height-h*scale)/2+panY;
       view={scale,ox,oy,w,h};
       ctx.clearRect(0,0,600,600);ctx.fillStyle="#202020";ctx.fillRect(0,0,600,600);
       ctx.save();ctx.translate(ox+w*scale/2,oy+h*scale/2);ctx.rotate(turn*Math.PI/180);
@@ -4759,15 +4760,28 @@ async function obRitagliaFotoSoggetto(file){
     };
     const coords=e=>{const b=canvas.getBoundingClientRect();return {x:(e.clientX-b.left)*600/b.width,y:(e.clientY-b.top)*600/b.height};};
     canvas.addEventListener("pointerdown",e=>{
-      const p=coords(e),{scale,ox,oy}=view;
+      const p=coords(e);touches.set(e.pointerId,p);canvas.setPointerCapture(e.pointerId);
+      if(touches.size===2){const [p1,p2]=[...touches.values()];pinch={distance:Math.hypot(p2.x-p1.x,p2.y-p1.y),zoom,panX,panY,midX:(p1.x+p2.x)/2,midY:(p1.y+p2.y)/2};drag=null;return;}
+      if(touches.size>2)return;
+      const {scale,ox,oy}=view;
       const x=ox+rect.x*scale,y=oy+rect.y*scale,w=rect.w*scale,h=rect.h*scale;
       if(p.x<x-12||p.x>x+w+20||p.y<y-12||p.y>y+h+20)return;
       drag={p,rect:{...rect},resize:Math.abs(p.x-x-w)<38&&Math.abs(p.y-y-h)<38};
       canvas.setPointerCapture(e.pointerId);
     });
     canvas.addEventListener("pointermove",e=>{
+      if(!touches.has(e.pointerId))return;
+      const p=coords(e);touches.set(e.pointerId,p);
+      if(pinch&&touches.size>=2){
+        const [p1,p2]=[...touches.values()];const distance=Math.hypot(p2.x-p1.x,p2.y-p1.y);
+        const next=clamp(pinch.zoom*distance/Math.max(1,pinch.distance),1,6);
+        const midX=(p1.x+p2.x)/2,midY=(p1.y+p2.y)/2,ratio=next/pinch.zoom;
+        panX=pinch.panX+(midX-pinch.midX)+(pinch.midX-300-pinch.panX)*(1-ratio);
+        panY=pinch.panY+(midY-pinch.midY)+(pinch.midY-300-pinch.panY)*(1-ratio);
+        zoom=next;draw();return;
+      }
       if(!drag)return;
-      const p=coords(e),dx=(p.x-drag.p.x)/view.scale,dy=(p.y-drag.p.y)/view.scale;
+      const dx=(p.x-drag.p.x)/view.scale,dy=(p.y-drag.p.y)/view.scale;
       if(drag.resize){
         const min=Math.min(view.w,view.h)*.08;
         const side=clamp(drag.rect.w+Math.max(dx,dy),min,Math.min(view.w-drag.rect.x,view.h-drag.rect.y));
@@ -4777,11 +4791,12 @@ async function obRitagliaFotoSoggetto(file){
       }
       draw();
     });
-    canvas.addEventListener("pointerup",()=>{drag=null;});
-    canvas.addEventListener("pointercancel",()=>{drag=null;});
-    left.onclick=()=>{turn=(turn+270)%360;resetRect();draw();};
-    right.onclick=()=>{turn=(turn+90)%360;resetRect();draw();};
-    reset.onclick=()=>{turn=0;resetRect();draw();};
+    const stopPointer=e=>{touches.delete(e.pointerId);drag=null;if(touches.size<2)pinch=null;};
+    canvas.addEventListener("pointerup",stopPointer);
+    canvas.addEventListener("pointercancel",stopPointer);
+    left.onclick=()=>{turn=(turn+270)%360;zoom=1;panX=0;panY=0;resetRect();draw();};
+    right.onclick=()=>{turn=(turn+90)%360;zoom=1;panX=0;panY=0;resetRect();draw();};
+    reset.onclick=()=>{turn=0;zoom=1;panX=0;panY=0;resetRect();draw();};
     const finish=value=>{overlay.remove();resolve(value);};
     original.onclick=()=>finish(file);cancel.onclick=()=>finish(null);
     save.onclick=()=>{
