@@ -758,6 +758,9 @@ html:has(body.ob-catalog-locked){overflow:hidden!important}body.ob-catalog-locke
 @media(max-width:640px){.v18-profile-row{grid-template-columns:1fr}.v18-avatar{margin:auto}.v18-topbar-title{font-size:14px}}
 @media print{.v18-topbar,#v18Drawer,#v18DrawerBackdrop,.back,.page-title button,.v18-no-print,header{display:none!important}.container{max-width:none!important}.card{box-shadow:none!important;border:1px solid #ddd!important}.v18-print-only{display:block}}
 @keyframes obAiScanTravel{0%{top:0%}50%{top:calc(100% - 4px)}100%{top:0%}}
+.ai-foto-wrap.ob-ai-scanning{position:relative;overflow:hidden}
+.ai-foto-wrap .ob-ai-scan-line{display:none}
+.ai-foto-wrap.ob-ai-scanning .ob-ai-scan-line{display:block}
 .ob-ai-scan-line{position:absolute;left:0;right:0;top:0;height:4px;background:#67ffcf;box-shadow:0 0 12px 4px rgba(45,255,200,.65);animation:obAiScanTravel 3.2s ease-in-out infinite;pointer-events:none}
 @media(prefers-reduced-motion:reduce){.ob-ai-scan-line{animation:none;top:50%}}
 </style>
@@ -4877,17 +4880,20 @@ async function recuperaValutazioneCoerenteSalvata(id,impronta){
   }
   return null;
 }
-function mostraScansioneAI(root,fotoUrl){
-  if(!root)return;
-  root.innerHTML=`<div class="card" role="status" aria-live="polite" style="max-width:620px;margin:auto">
-    <h3>Analisi AI in corso</h3>
-    <div style="position:relative;overflow:hidden;border-radius:14px;background:#063e56;max-height:420px">
-      <img src="${esc(fotoUrl)}" alt="Fotografia in analisi" style="display:block;width:100%;max-height:420px;object-fit:contain">
-      <div class="ob-ai-scan-line" aria-hidden="true"></div>
-    </div>
-    <p style="margin:12px 0 4px">Riconoscimento e valutazione del soggetto in elaborazione…</p>
-    <p class="small">Controllo di testa, becco, corpo, piumaggio, ali, coda, zampe e postura. La scansione è un'animazione di attesa: non indica il completamento delle singole verifiche.</p>
-  </div>`;
+function mostraScansioneAI(){
+  const wrap=document.querySelector("#aiValutazione .ai-foto-wrap");
+  if(!wrap)return;
+  wrap.classList.add("ob-ai-scanning");
+  if(!wrap.querySelector(".ob-ai-scan-line")){
+    const line=document.createElement("div");
+    line.className="ob-ai-scan-line";
+    line.setAttribute("aria-hidden","true");
+    wrap.appendChild(line);
+  }
+}
+function fermaScansioneAI(){
+  const wrap=document.querySelector("#aiValutazione .ai-foto-wrap");
+  if(wrap){wrap.classList.remove("ob-ai-scanning");wrap.querySelector(".ob-ai-scan-line")?.remove();}
 }
 async function eseguiValutazioneAI(id){
   if(window.__obGuestMode){obAvviso("La valutazione AI online non è disponibile nella prova ospite locale.");return;}
@@ -4931,7 +4937,8 @@ async function eseguiValutazioneAI(id){
     if(!fotoUrl)throw new Error("Prima di valutare il soggetto, carica una foto nella sua scheda.");
     if(!sb?.functions?.invoke)throw new Error("Motore AI non configurato nell'ambiente di sviluppo.");
     if(btn)btn.disabled=true;
-    if(root)mostraScansioneAI(root,fotoUrl);
+    if(root)root.textContent="Analisi AI in corso…";
+    mostraScansioneAI();
     const criteriFOI=await recuperaCriteriFOIPerAI(s);
     if(file){
       const ext=mime==="video/quicktime"?"mov":mime==="video/webm"?"webm":"mp4";
@@ -4978,6 +4985,7 @@ async function eseguiValutazioneAI(id){
     if(root)root.textContent="Valutazione non completata: "+(e?.message||e);
 
   }finally{
+    fermaScansioneAI();
     if(uploadedPath){try{const cleanup=await sb.storage.from("ob-ai-media").remove([uploadedPath]);if(cleanup.error)console.warn("Pulizia video temporaneo:",cleanup.error.message);}catch(e){console.warn("Pulizia video temporaneo:",e);}}
     if(btn)btn.disabled=false;
   }
