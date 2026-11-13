@@ -4937,12 +4937,10 @@ async function eseguiValutazioneAI(id){
     if(!call.data?.ok||!call.data?.risultato)throw new Error("Risposta AI non valida: nessuna valutazione è stata salvata.");
     successful=true;
     const result=normalizzaRisultatoAIV17(call.data.risultato,criteriFOI);
-    // Il backend non fornisce ancora criteri validati server-side:
-    // i punteggi per criterio sono indicativi, mai un totale FOI ufficiale.
-    result.punteggio=null;
-    result.percentuale=null;
-    result.valutazione_completa=false;
-    result.avvertenza="Analisi visiva indicativa: non sostituisce il giudizio ufficiale FOI/COM.";
+    // I criteri e i massimali provengono dalla risposta verificata del server.
+    // Il voto resta indicativo e non costituisce un giudizio ufficiale FOI/COM.
+    result.avvertenza=call.data.risultato?.avvertenza||"Valutazione AI indicativa: non sostituisce il giudizio ufficiale FOI/COM.";
+    result.riconoscimento_ai=call.data.risultato?.riconoscimento_ai||null;
     result.modalita=mode;
     if(typeof call.data.remaining==="number")result.valutazioni_gratuite_rimanenti=call.data.remaining;
     // Compatibilità con la cronologia esistente. La fonte primaria rimane ob_ai_evaluations_v2.
@@ -8608,7 +8606,7 @@ function normalizzaRisultatoAIV17(raw,criteriFOI){
     const nome=x?.criterio??x?.nome??x?.nome_criterio??x?.category??"";
     return {x,nomeNorm:normalizzaNomeCriterioV177(nome)};
   });
-  const criteri=(criteriFOI||[]).map(c=>{
+  const criteri=((Array.isArray(raw.criteri)&&raw.criteri.length)?raw.criteri:(criteriFOI||[])).map(c=>{
     const nome=c.criterio??c.nome??c.nome_criterio??c.descrizione??"Criterio";
     const nomeNorm=normalizzaNomeCriterioV177(nome);
     // Prima corrispondenza esatta normalizzata, poi tolleranza per nomi leggermente diversi.
@@ -8659,7 +8657,7 @@ function normalizzaRisultatoAIV17(raw,criteriFOI){
 function htmlSchedaAIV17(p){
   p=p||{};
   const rows=(p.criteri||[]).map(c=>`<tr><td><strong>${escapeHtmlV17(c.criterio)}</strong></td><td>${c.punteggio==null?"N/V":escapeHtmlV17(c.punteggio)}</td><td>${escapeHtmlV17(c.punteggio_max)}</td><td>${escapeHtmlV17(c.giudizio||(c.valutabile?"":"Non valutabile con sufficiente affidabilità dalla foto disponibile."))}</td></tr>`).join("");
-  return `<div class="ai-v17-sheet"><div class="ai-v17-muted">Valutazione indicativa AI su foto + video (criteri da validare)</div>${p._riutilizzata_per_coerenza?`<div class="ai-v17-consistency">🔒 Stessa foto e stessi criteri FOI: è stata mantenuta la valutazione già salvata per evitare variazioni casuali tra dispositivi.</div>`:""}<div class="ai-v17-score">${p.punteggio==null?"N/V":escapeHtmlV17(p.punteggio)} / ${escapeHtmlV17(p.punteggio_massimo||100)}</div>
+  return `<div class="ai-v17-sheet"><div class="ai-v17-muted">Valutazione AI indicativa — non giudizio ufficiale FOI/COM</div>${p.avvertenza?`<div class="ai-v17-muted">${escapeHtmlV17(p.avvertenza)}</div>`:""}${p.riconoscimento_ai?`<div class="ai-v17-muted">Riconoscimento indipendente: ${escapeHtmlV17([p.riconoscimento_ai.specie,p.riconoscimento_ai.razza,p.riconoscimento_ai.categoria,p.riconoscimento_ai.mutazione].filter(Boolean).join(" · "))}</div>`:""}${p._riutilizzata_per_coerenza?`<div class="ai-v17-consistency">🔒 Stessa foto e stessi criteri FOI: è stata mantenuta la valutazione già salvata per evitare variazioni casuali tra dispositivi.</div>`:""}<div class="ai-v17-score">${p.punteggio==null?"N/V":escapeHtmlV17(p.punteggio)} / ${escapeHtmlV17(p.punteggio_massimo||100)}</div>
   ${p.punteggio==null?`<div class="ai-v17-reliability"><strong>⚠️ Valutazione FOI non completata.</strong><div class="ai-v17-muted" style="margin-top:4px">Il punteggio totale non è certificabile senza criteri verificati sul server. Le osservazioni su foto e video restano indicative; non è necessario ripetere la valutazione solo per questo avviso.</div></div>`:""}
   ${rows?`<table class="ai-v17-table"><thead><tr><th>Criterio FOI</th><th>Punti</th><th>Max</th><th>Osservazione</th></tr></thead><tbody>${rows}</tbody></table>`:"<div class='ai-v17-muted'>Nessun criterio FOI disponibile.</div>"}
   <div class="ai-v17-section"><h4>✅ Punti di forza</h4>${listHtmlV17(p.punti_forza)}</div>
