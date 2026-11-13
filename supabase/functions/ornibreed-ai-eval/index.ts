@@ -96,8 +96,19 @@ async function identifyBird(photo:Blob|null,video:Uploaded|null,mime:string){
  const txt=raw.candidates?.[0]?.content?.parts?.find((p:any)=>typeof p.text==="string")?.text;
  if(!txt)throw Error("Riconoscimento AI senza risposta");
  const identification=JSON.parse(txt);
- if(!identification||typeof identification!=="object"||Array.isArray(identification))throw Error("Riconoscimento AI non valido");
- return identification;
+ if(!identification||typeof identification!=="object"||Array.isArray(identification))throw Error("Riconoscimento AI non valido: formato inatteso");
+ const str=(v:unknown)=>typeof v==="string"&&v.trim()?v.trim().slice(0,160):null;
+ const normalized={
+  specie:str(identification.specie),
+  razza:str(identification.razza),
+  categoria:str(identification.categoria),
+  mutazione:str(identification.mutazione),
+  affidabilita:["bassa","media","alta"].includes(identification.affidabilita)?identification.affidabilita:"bassa",
+  ambiguita:identification.ambiguita===true,
+  motivazioni:Array.isArray(identification.motivazioni)?identification.motivazioni.filter((v:unknown)=>typeof v==="string").slice(0,8):[]
+ };
+ if(!normalized.specie)normalized.ambiguita=true;
+ return normalized;
 }
 async function aiEvaluate(photo:Blob|null,video:Uploaded|null,mime:string,s:any,rules:any[],identification:any){
  const instructions=[
