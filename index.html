@@ -8147,7 +8147,12 @@ box.innerHTML = `
     const variants=C.variants.filter(v=>ids.has(String(v.taxon_id))&&
       ["MUTATION_EXPRESSION","COMBINATION","ANCESTRAL","PHENOTYPE"].includes(String(v.variant_type||"").toUpperCase())).map(v=>String(v.name||""));
     const ancestral=ids.size?["Ancestrale"]:[];
-    return uniq([...ancestral,...mutations,...catalog,...phenotypes,...variants,...C.canaryColors]);
+    // Le denominazioni di colore semplici devono essere visibili prima delle
+    // combinazioni genetiche complesse, anche con l'elenco limitato su mobile.
+    // Mantieni tutte le voci originali e i nomi canonici del database.
+    const names=uniq([...ancestral,...mutations,...catalog,...phenotypes,...variants,...C.canaryColors]);
+    const simpleColor=/^(?:giallo|giallo avorio|rosso|rosso avorio|bianco)\\s+(?:intenso|brinato|mosaico|recessivo|dominante)$/i;
+    return names.sort((a,b)=>Number(simpleColor.test(b))-Number(simpleColor.test(a))||a.localeCompare(b,"it"));
   };
   const mutationItems=()=>{
     const s=norm($id("s_specie")?.value||""),ids=taxIds();
