@@ -178,7 +178,7 @@ Deno.serve(async(req:Request)=>{
   if(withVideo)cleanupPath=path;
   const {data:video,error:ve}=withVideo?await userClient.storage.from("ob-ai-media").download(path):{data:null,error:null};
   if(withVideo&&(ve||!video))return json({error:"Video non accessibile"},403);
-  if(withVideo&&video!.size>60*1024*1024)return json({error:"Video oltre 60 MB"},413);
+  if(withVideo&&video!.size>50*1024*1024)return json({error:"Video oltre 50 MB"},413);
   const mime=withVideo?(video!.type==="video/quicktime"?"video/mov":
    (video!.type||(/\.mov$/i.test(path)?"video/mov":"video/mp4"))):"";
   if(withVideo&&!["video/mp4","video/mov","video/webm"].includes(mime))
