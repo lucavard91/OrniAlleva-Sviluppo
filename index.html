@@ -8740,7 +8740,13 @@ async function init(){
   }
  }catch(e){
   const text="Errore di avvio: "+(e?.message||e);
-  const el=$("loginMessage");if(el){el.textContent=text;el.className="error";}
+  // An initialization failure must not leave a blank screen behind the intro.
+  const login=document.getElementById("loginScreen");
+  if(login){login.classList.remove("hidden");login.style.display="block";}
+  const intro=document.getElementById("v255BrandIntro");
+  if(intro){intro.classList.add("v255-hide");intro.style.pointerEvents="none";}
+  const el=document.getElementById("loginMessage");
+  if(el){el.textContent=text;el.className="error";el.style.display="block";}
   console.error(e);
  }
 }
