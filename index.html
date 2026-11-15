@@ -1650,6 +1650,40 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
 <body>
 <div id="obAdminReturnTransition" aria-live="polite" aria-label="OrniAlleva — Caricamento"><div class="ob-return-card"><div class="ob-return-mark" aria-hidden="true"></div><b>OrniAlleva</b><span>Caricamento…</span></div></div>
 <div id="v255BrandIntro" aria-label="OrniAlleva — Smart Aviculture Management"><div class="v261-intro-bg" aria-hidden="true"></div><picture class="v256-intro-picture"><source media="(min-width:701px)" srcset="OrniAlleva_Intro_Desktop.jpg?v=20261104"><img class="v256-intro-image" alt="OrniAlleva — La tua passione. Il tuo allevamento." src="ob_asset_051_3aefa10cbb.jpg?oa=20261028"></picture></div></div>
+<script id="v255-brand-intro-script">
+(function(){
+  var dismissed=false;
+  var obReturnFromAdmin=false;
+  try{obReturnFromAdmin=(new URLSearchParams(window.location.search).get('from')==='admin');}catch(_){}
+  function prepareV264Intro(){
+    var el=document.getElementById('v255BrandIntro');if(!el)return;
+    var img=el.querySelector('.v256-intro-image'),bg=el.querySelector('.v261-intro-bg');
+    if(img&&img.src){
+      if(bg&&window.matchMedia&&window.matchMedia('(max-width:700px)').matches)bg.style.backgroundImage='url("'+img.src+'")';
+      try{document.documentElement.style.setProperty('--v264-auth-bg','url("'+img.src+'")');}catch(_){}
+    }
+  }
+  function dismissV255Intro(){
+    if(dismissed)return;dismissed=true;
+    var el=document.getElementById('v255BrandIntro');if(!el)return;
+    el.classList.add('v255-hide');
+    window.setTimeout(function(){if(el&&el.parentNode)el.parentNode.removeChild(el);},1150);
+  }
+  if(obReturnFromAdmin){
+    var intro=document.getElementById('v255BrandIntro');
+    if(intro&&intro.parentNode)intro.parentNode.removeChild(intro);
+    dismissed=true;
+    try{history.replaceState(null,'',window.location.pathname+window.location.hash);}catch(_){}
+    return;
+  }
+  prepareV264Intro();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',prepareV264Intro,{once:true});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){window.setTimeout(dismissV255Intro,2700);},{once:true});
+  else window.setTimeout(dismissV255Intro,2700);
+  window.setTimeout(dismissV255Intro,4500);
+})();
+</script>
+
 <div id="allevamentoLoading" aria-live="polite" aria-busy="true"><div class="loading-card"><div class="spinner" aria-hidden="true"></div><p id="allevamentoLoadingTitle">Cambio allevamento…</p><div class="small" style="margin-top:6px;">Caricamento dei dati in corso</div></div></div>
 <div id="loginScreen">
   <div class="v264-auth-card">
@@ -12769,39 +12803,7 @@ section:not(#home) > .v254-home-fixed{
   setTimeout(install,1200);
 })();
 </script>
-<script id="v255-brand-intro-script">
-(function(){
-  var dismissed=false;
-  var obReturnFromAdmin=false;
-  try{obReturnFromAdmin=(new URLSearchParams(window.location.search).get('from')==='admin');}catch(_){}
-  function prepareV264Intro(){
-    var el=document.getElementById('v255BrandIntro');if(!el)return;
-    var img=el.querySelector('.v256-intro-image'),bg=el.querySelector('.v261-intro-bg');
-    if(img&&img.src){
-      if(bg&&window.matchMedia&&window.matchMedia('(max-width:700px)').matches)bg.style.backgroundImage='url("'+img.src+'")';
-      try{document.documentElement.style.setProperty('--v264-auth-bg','url("'+img.src+'")');}catch(_){}
-    }
-  }
-  function dismissV255Intro(){
-    if(dismissed)return;dismissed=true;
-    var el=document.getElementById('v255BrandIntro');if(!el)return;
-    el.classList.add('v255-hide');
-    window.setTimeout(function(){if(el&&el.parentNode)el.parentNode.removeChild(el);},1150);
-  }
-  if(obReturnFromAdmin){
-    var intro=document.getElementById('v255BrandIntro');
-    if(intro&&intro.parentNode)intro.parentNode.removeChild(intro);
-    dismissed=true;
-    try{history.replaceState(null,'',window.location.pathname+window.location.hash);}catch(_){}
-    return;
-  }
-  prepareV264Intro();
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',prepareV264Intro,{once:true});
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){window.setTimeout(dismissV255Intro,2700);},{once:true});
-  else window.setTimeout(dismissV255Intro,2700);
-  window.setTimeout(dismissV255Intro,4500);
-})();
-</script>
+
 <script>
 /* ===== OrniAlleva V26.37.43.9.7.2.21 — moduli approvati: una funzione, una sorgente ===== */
 const OB_APPROVED_PRINT_ASSETS={coppie:'Registro_Coppie_Versione_2_Originale.png?v=20261103',soggetti:'Registro_Soggetti_OrniAlleva_Approvato.png?v=20261104',cova:'assets_embedded/assets_embedded/ob_asset_084_435e157910.png'};
