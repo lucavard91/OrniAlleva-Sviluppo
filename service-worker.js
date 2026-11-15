@@ -1,4 +1,4 @@
-const OB_CACHE = "ornialleva-development-20261112-fresh-pages";
+const OB_CACHE = "ornialleva-development-20261115-safe-navigation";
 const OB_STATIC = [
   "./",
   "./manifest.webmanifest",
@@ -18,7 +18,7 @@ const OB_STATIC = [
 ];
 
 self.addEventListener("install", event => {
-  event.waitUntil(caches.open(OB_CACHE).then(cache => cache.addAll(OB_STATIC)).then(()=>self.skipWaiting()));
+  event.waitUntil((async()=>{const cache=await caches.open(OB_CACHE);await Promise.allSettled(OB_STATIC.filter(path=>path!=="./").map(async path=>{const response=await fetch(path,{cache:"no-store"});if(response.ok)await cache.put(path,response);}));await self.skipWaiting();})());
 });
 
 self.addEventListener("activate", event => {
@@ -40,9 +40,10 @@ self.addEventListener("fetch", event => {
   if(req.mode==="navigate"){
     event.respondWith((async()=>{
       try{
-        const fresh=await fetch(req);
+        const fresh=await fetch(req,{cache:"no-store"});
+        if(!fresh.ok)throw new Error("HTTP "+fresh.status);
         const cache=await caches.open(OB_CACHE);
-        if(url.pathname.endsWith("/") || url.pathname.endsWith("/index.html")) cache.put("./",fresh.clone()).catch(()=>{});
+        if(url.pathname.endsWith("/") || url.pathname.endsWith("/index.html")) await cache.put("./",fresh.clone());
         return fresh;
       }catch(e){
         if(url.pathname.endsWith("/") || url.pathname.endsWith("/index.html")) return (await caches.match("./")) || Response.error();
