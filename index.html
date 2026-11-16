@@ -8695,6 +8695,7 @@ async function init(){
  if(window.__MYAGARI_INIT_STARTED)return;
  window.__MYAGARI_INIT_STARTED=true;
  try{
+  toggle("loginScreen",true);
   if(!window.supabase||typeof window.supabase.createClient!=="function")throw new Error("Libreria Supabase non caricata.");
   sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
   void v21LoadCatalogChoices();
