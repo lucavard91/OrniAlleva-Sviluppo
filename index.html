@@ -1650,39 +1650,7 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
 <body>
 <div id="obAdminReturnTransition" aria-live="polite" aria-label="OrniAlleva — Caricamento"><div class="ob-return-card"><div class="ob-return-mark" aria-hidden="true"></div><b>OrniAlleva</b><span>Caricamento…</span></div></div>
 <div id="v255BrandIntro" aria-label="OrniAlleva — Smart Aviculture Management"><div class="v261-intro-bg" aria-hidden="true"></div><picture class="v256-intro-picture"><source media="(min-width:701px)" srcset="OrniAlleva_Intro_Desktop.jpg?v=20261104"><img class="v256-intro-image" alt="OrniAlleva — La tua passione. Il tuo allevamento." src="ob_asset_051_3aefa10cbb.jpg?oa=20261028"></picture></div>
-<script id="v255-brand-intro-script">
-(function(){
-  var dismissed=false;
-  var obReturnFromAdmin=false;
-  try{obReturnFromAdmin=(new URLSearchParams(window.location.search).get('from')==='admin');}catch(_){}
-  function prepareV264Intro(){
-    var el=document.getElementById('v255BrandIntro');if(!el)return;
-    var img=el.querySelector('.v256-intro-image'),bg=el.querySelector('.v261-intro-bg');
-    if(img&&img.src){
-      if(bg&&window.matchMedia&&window.matchMedia('(max-width:700px)').matches)bg.style.backgroundImage='url("'+img.src+'")';
-      try{document.documentElement.style.setProperty('--v264-auth-bg','url("'+img.src+'")');}catch(_){}
-    }
-  }
-  function dismissV255Intro(){
-    if(dismissed)return;dismissed=true;
-    var el=document.getElementById('v255BrandIntro');if(!el)return;
-    el.classList.add('v255-hide');
-    window.setTimeout(function(){if(el&&el.parentNode)el.parentNode.removeChild(el);},1150);
-  }
-  if(obReturnFromAdmin){
-    var intro=document.getElementById('v255BrandIntro');
-    if(intro&&intro.parentNode)intro.parentNode.removeChild(intro);
-    dismissed=true;
-    try{history.replaceState(null,'',window.location.pathname+window.location.hash);}catch(_){}
-    return;
-  }
-  prepareV264Intro();
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',prepareV264Intro,{once:true});
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){window.setTimeout(dismissV255Intro,2700);},{once:true});
-  else window.setTimeout(dismissV255Intro,2700);
-  window.setTimeout(dismissV255Intro,4500);
-})();
-</script>
+
 
 <div id="allevamentoLoading" aria-live="polite" aria-busy="true"><div class="loading-card"><div class="spinner" aria-hidden="true"></div><p id="allevamentoLoadingTitle">Cambio allevamento…</p><div class="small" style="margin-top:6px;">Caricamento dei dati in corso</div></div></div>
 <div id="loginScreen">
@@ -10604,7 +10572,7 @@ async function v186PdfFormato(titolo,html,orientamento="portrait",formato="A4"){
 let v18InstallPrompt=null;
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();v18InstallPrompt=e;$("v18InstallBtn")?.classList.remove("hidden");});
 async function v18Installa(){if(!v18InstallPrompt){obAvviso("Se l'installazione non viene proposta automaticamente, usa il menu del browser e scegli “Aggiungi a schermata Home” / “Installa app”.");return;}v18InstallPrompt.prompt();await v18InstallPrompt.userChoice;v18InstallPrompt=null;$("v18InstallBtn")?.classList.add("hidden");}
-if("serviceWorker" in navigator){const obRegisterWorker=async()=>{try{const reg=await navigator.serviceWorker.register("service-worker.js?v=ornialleva-dev-20261116-startup",{scope:"./",updateViaCache:"none"});reg.update().catch(()=>{});}catch(e){console.warn("Service worker",e);}};if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",obRegisterWorker,{once:true});else obRegisterWorker();}
+if("serviceWorker" in navigator){window.addEventListener("load",async()=>{try{const reg=await navigator.serviceWorker.register("service-worker.js?v=ornialleva-dev-20261110-banner",{scope:"./",updateViaCache:"none"});reg.update().catch(()=>{});}catch(e){console.warn("Service worker",e);}});}
 function v18Init(){
   v1811InitLingua();
   $("v18MenuBtn")?.addEventListener("click",v18ApriDrawer);$("v18DrawerClose")?.addEventListener("click",v18ChiudiDrawer);$("v18DrawerBackdrop")?.addEventListener("click",v18ChiudiDrawer);$("v18PremiumClose")?.addEventListener("click",v18ChiudiPremium);$("v18InstallBtn")?.addEventListener("click",v18Installa);
@@ -12801,6 +12769,39 @@ section:not(#home) > .v254-home-fixed{
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
   setTimeout(install,1200);
+})();
+</script>
+<script id="v255-brand-intro-script">
+(function(){
+  var dismissed=false;
+  var obReturnFromAdmin=false;
+  try{obReturnFromAdmin=(new URLSearchParams(window.location.search).get('from')==='admin');}catch(_){}
+  function prepareV264Intro(){
+    var el=document.getElementById('v255BrandIntro');if(!el)return;
+    var img=el.querySelector('.v256-intro-image'),bg=el.querySelector('.v261-intro-bg');
+    if(img&&img.src){
+      if(bg&&window.matchMedia&&window.matchMedia('(max-width:700px)').matches)bg.style.backgroundImage='url("'+img.src+'")';
+      try{document.documentElement.style.setProperty('--v264-auth-bg','url("'+img.src+'")');}catch(_){}
+    }
+  }
+  function dismissV255Intro(){
+    if(dismissed)return;dismissed=true;
+    var el=document.getElementById('v255BrandIntro');if(!el)return;
+    el.classList.add('v255-hide');
+    window.setTimeout(function(){if(el&&el.parentNode)el.parentNode.removeChild(el);},1150);
+  }
+  if(obReturnFromAdmin){
+    var intro=document.getElementById('v255BrandIntro');
+    if(intro&&intro.parentNode)intro.parentNode.removeChild(intro);
+    dismissed=true;
+    try{history.replaceState(null,'',window.location.pathname+window.location.hash);}catch(_){}
+    return;
+  }
+  prepareV264Intro();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',prepareV264Intro,{once:true});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){window.setTimeout(dismissV255Intro,2700);},{once:true});
+  else window.setTimeout(dismissV255Intro,2700);
+  window.setTimeout(dismissV255Intro,4500);
 })();
 </script>
 
