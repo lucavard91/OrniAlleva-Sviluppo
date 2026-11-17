@@ -1,4 +1,4 @@
-const OB_CACHE = "ornialleva-development-20261112-fresh-pages";
+const OB_CACHE = "ornialleva-development-20261117-update-verification";
 const OB_STATIC = [
   "./",
   "./manifest.webmanifest",
@@ -39,13 +39,27 @@ self.addEventListener("fetch", event => {
 
   if(req.mode==="navigate"){
     event.respondWith((async()=>{
+      const home=url.pathname.endsWith("/") || url.pathname.endsWith("/index.html");
+      const target=url.searchParams.get("ob_release");
+      const refresh=url.searchParams.get("ob_refresh");
+      const approved=home && /^\d+\.\d+\.\d+$/.test(target||"") && /^\d{10,}$/.test(refresh||"");
       try{
-        const fresh=await fetch(req);
-        const cache=await caches.open(OB_CACHE);
-        if(url.pathname.endsWith("/") || url.pathname.endsWith("/index.html")) cache.put("./",fresh.clone()).catch(()=>{});
+        const fresh=await fetch(req,{cache:approved?"no-store":"default"});
+        if(!fresh.ok) throw new Error("HTTP "+fresh.status);
+        if(home){
+          if(approved){
+            const html=await fresh.clone().text();
+            const escaped=target.replace(/\./g,"\\.");
+            const pattern=new RegExp('name="ornibreed-version"\\s+content="V?'+escaped+'"');
+            if(!pattern.test(html)) throw new Error("Version mismatch");
+          }
+          const cache=await caches.open(OB_CACHE);
+          await cache.put("./",fresh.clone());
+        }
         return fresh;
       }catch(e){
-        if(url.pathname.endsWith("/") || url.pathname.endsWith("/index.html")) return (await caches.match("./")) || Response.error();
+        if(approved) return Response.error();
+        if(home) return (await caches.match("./")) || Response.error();
         return Response.error();
       }
     })());
