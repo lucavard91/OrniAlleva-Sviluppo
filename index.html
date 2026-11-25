@@ -5225,6 +5225,18 @@ function obV34ResetDetails(){
   ["s_categoria_specie","s_colore","s_categoria_piumaggio"].forEach(id=>{const el=document.getElementById(id);if(el)el.value=""});
   document.getElementById("obV34FullName")?.replaceChildren();
 }
+function obDomesticCanaryName(value){
+  return ["canarino","canarino domestico","canarino di colore","canary","domestic canary","serinus canaria domestica"].includes(String(value||"").trim().toLowerCase());
+}
+function obSameCatalogSpecies(left,right){
+  const a=v22Norm(left),b=v22Norm(right);
+  if(!a||!b)return false;
+  if(a===b||(obDomesticCanaryName(a)&&obDomesticCanaryName(b)))return true;
+  const catalog=window.OB_CATALOG_HELPERS;
+  if(!catalog)return false;
+  const lhs=catalog.taxaFor(a),rhs=catalog.taxaFor(b);
+  return lhs.length===1&&rhs.length===1&&Boolean(lhs[0].id)&&lhs[0].id===rhs[0].id;
+}
 function obCatalogSelectionForSubject(){
   const H=window.OB_CATALOG_HELPERS,C=window.OB_CATALOG;
   if(!H||!C)return {taxon_id:null,breed_id:null,mutation_id:null};
@@ -8204,7 +8216,7 @@ box.innerHTML = `
   const names=o=>[o?.name,o?.common_name,o?.scientific_name,italian(o),...aliases(o)].filter(Boolean).map(String);
   const italian=o=>String(meta(o).name_it||meta(o).italian_name||meta(o).label_it||meta(o).display_name_it||"").trim();
   const BREED_ALIAS={"gloucester":"Gloster Fancy","gloster":"Gloster Fancy","gloster fancy":"Gloster Fancy","spagnola":"Razza Spagnola","razza spagnola":"Razza Spagnola","münchener":"Munchener","munich":"Munchener","harzer roller":"Harz Roller","harz roller":"Harz Roller"};
-  const isCanary=o=>names(o).some(n=>{const z=norm(n);return z.includes("canar")||z.includes("serinus canaria")});
+  const isCanary=o=>norm(o?.scientific_name)==="serinus canaria domestica"||(!o?.scientific_name&&obDomesticCanaryName(o?.common_name));
   const taxLabel=o=>isCanary(o)?"Canarino":(italian(o)||o?.common_name||o?.name||o?.scientific_name||"");
   const taxScientific=label=>(C.taxa.length?validSpecies():OB_APPROVED_SPECIES_20261102).find(t=>norm(taxLabel(t))===norm(label))?.scientific_name||"";
   const speciesDisplayLabel=label=>{const scientific=taxScientific(label);return scientific&&norm(scientific)!==norm(label)?label+" ("+scientific+")":label};
@@ -8214,7 +8226,7 @@ box.innerHTML = `
     // Sinonimo di presentazione, senza creare una mutazione autonoma o cambiare l'ID Supabase.
     return norm(raw)==="cannella"?"Cinnamon":raw;
   };
-  const taxaFor=value=>{const z=norm(value),rows=C.taxa.length?C.taxa:OB_APPROVED_SPECIES_20261102;if(!z)return rows;if(z==="canarino"||z.includes("canar"))return rows.filter(isCanary);return rows.filter(t=>names(t).some(n=>norm(n)===z)||norm(taxLabel(t))===z)};
+  const taxaFor=value=>{const z=norm(value),rows=C.taxa.length?C.taxa:OB_APPROVED_SPECIES_20261102;if(!z)return rows;if(obDomesticCanaryName(value))return rows.filter(isCanary);return rows.filter(t=>names(t).some(n=>norm(n)===z)||norm(taxLabel(t))===z)};
   const findBreed=(value,taxa=[])=>{const z=norm(BREED_ALIAS[norm(value)]||value);if(!z)return null;const ids=new Set(taxa.map(t=>String(t.id)));let rows=ids.size?C.breeds.filter(b=>ids.has(String(b.taxon_id))):C.breeds;return rows.find(b=>norm(breedLabel(b))===z||[b.name,...aliases(b)].some(x=>norm(x)===z))||null};
   const findMutation=(value,taxonId=null)=>{const z=norm(value);if(!z)return null;let rows=C.mutations;if(taxonId)rows=rows.filter(m=>!m.taxon_id||String(m.taxon_id)===String(taxonId));return rows.find(m=>norm(mutLabel(m))===z||[m.name,...aliases(m)].some(x=>norm(x)===z))||null};
   const selectedTaxa=()=>taxaFor($id("s_specie")?.value||"");
@@ -11747,10 +11759,9 @@ document.addEventListener("DOMContentLoaded",()=>{
         .eq("previsione_autorizzata",true).limit(500);
       if(response.error){deny("Calcolo non disponibile: controllo di sicurezza Supabase non raggiungibile.");return;}
       const normName=x=>String(x||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
-      const speciesKey=normName(r.species);
       const allowed=(response.data||[]).some(x=>{
-        const n=normName(x.specie);const m=normName(x.mutazione);
-        return m===normName(r.mutation) && (n===speciesKey||(n.includes("canarin")&&speciesKey.includes("canarin")));
+        const m=normName(x.mutazione);
+        return m===normName(r.mutation) && obSameCatalogSpecies(x.specie,r.species);
       });
       if(!allowed){deny("Calcolo non autorizzato: mutazione o regola genetica non ancora validata in Supabase. Puoi comunque registrare la coppia.");return;}
       const m=document.getElementById("v21GenMaschio")?.value,f=document.getElementById("v21GenFemmina")?.value;
@@ -11773,8 +11784,7 @@ function v22MutationIs(subject, mutation){return v22Norm(subject?.mutazione)===v
 function v22SpeciesCompatible(subject, rule){
   const a=v22Norm(subject?.specie), b=v22Norm(rule?.species);
   if(!a||!b)return false;
-  if(b==="canarino domestico")return a.includes("canarin");
-  return a.includes(b)||b.includes(a);
+  return obSameCatalogSpecies(a,b);
 }
 function v22KnownGenotype(subject, rule, sex){
   if(!subject||!rule||!v22SpeciesCompatible(subject,rule))return "?";
@@ -11939,8 +11949,7 @@ function v235Precheck(rule){
   if(female && !v22SpeciesCompatible(female,rule))return {ok:false,msg:"La femmina selezionata non è compatibile con la specie della regola genetica scelta."};
   if(male && female){
     const a=v22Norm(male.specie), b=v22Norm(female.specie);
-    const bothCanary=a.includes("canarin")&&b.includes("canarin");
-    if(!bothCanary && a!==b)return {ok:false,msg:"I due soggetti registrati appartengono a specie differenti. Il calcolo automatico viene bloccato."};
+    if(!obSameCatalogSpecies(a,b))return {ok:false,msg:"I due soggetti registrati appartengono a specie differenti. Il calcolo automatico viene bloccato."};
   }
   if(String(rule.status||"").includes("RELAZIONE_ALLELICA")){
     return {ok:true,warn:"⚠️ Questa regola ha una relazione allelica nota. Il calcolo corrente considera soltanto il singolo carattere selezionato e non combina automaticamente alleli differenti."};
