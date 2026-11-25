@@ -11445,7 +11445,7 @@ const V239_COMPLEX_RULES = [
   {species:"Cardellino",mutation:"Mascherato",reason:"Recessiva sesso-legata ma con relazioni alleliche documentate con Agata e Lutino; richiede motore allelico prima dell'attivazione.",engine:"BLOCCATA"},
 ];
 const V21_GENETIC_RULES = [
-  {species:"Canarino domestico", mutation:"Bianco recessivo", inheritance:"AR", source:"FOI - Criteri di Giudizio Canarini di Colore", status:"VERIFICATA"},
+  {species:"Canarino domestico", mutation:"Bianco recessivo", inheritance:"AR", validatedCross:["aa","aa"], source:"FOI - Criteri di Giudizio Canarini di Colore", status:"VERIFICATA"},
   {species:"Canarino domestico", mutation:"Bianco dominante", inheritance:"AD", source:"FOI - Criteri di Giudizio Canarini di Colore", status:"VERIFICATA", note:"Mutazione dominante; la fonte FOI la descrive anche come letale. Il calcolatore non propone automaticamente accoppiamenti omozigoti."},
   {species:"Canarino domestico", mutation:"Avorio", inheritance:"SLR", source:"FOI - Criteri di Giudizio Canarini di Colore", status:"VERIFICATA", note:"Recessiva legata al sesso."},
   {species:"Canarino domestico", mutation:"Bruno", inheritance:"SLR", source:"FOI - Criteri di Giudizio Canarini di Colore", status:"VERIFICATA", note:"Recessiva legata al sesso."},
@@ -11765,7 +11765,12 @@ document.addEventListener("DOMContentLoaded",()=>{
       });
       if(!allowed){deny("Calcolo non autorizzato: mutazione o regola genetica non ancora validata in Supabase. Puoi comunque registrare la coppia.");return;}
       const m=document.getElementById("v21GenMaschio")?.value,f=document.getElementById("v21GenFemmina")?.value;
-      if(!m||!f||m==="?"||f==="?"){deny("Calcolo bloccato: genotipo dei riproduttori non determinato.");return;}
+      const knownParent=(value,sex)=>value!=="?"&&v21Options(r.inheritance,sex).some(option=>option.v===value);
+      if(!knownParent(m,"M")||!knownParent(f,"F")){deny("Calcolo bloccato: genotipo dei riproduttori non determinato.");return;}
+      if(r.validatedCross&&(m!==r.validatedCross[0]||f!==r.validatedCross[1])){
+        deny("Per il Bianco recessivo è validato l’incrocio tra due soggetti mutati. Questo incrocio richiede una verifica separata.");
+        return;
+      }
       const rows=r.inheritance==="SLR"?v21SexLinked(m,f):v21Autosomal(m,f,r.inheritance);
       v21RenderCalc(rows,r);
       if(box){box.setAttribute("tabindex","-1");box.scrollIntoView({behavior:"smooth",block:"start"});box.focus({preventScroll:true});}
