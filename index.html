@@ -11447,6 +11447,13 @@ const V239_COMPLEX_RULES = [
   {species:"Cardellino",mutation:"Mascherato",reason:"Recessiva sesso-legata ma con relazioni alleliche documentate con Agata e Lutino; richiede motore allelico prima dell'attivazione.",engine:"BLOCCATA"},
 ];
 const V21_GENETIC_RULES = [
+{"species": "Organetto", "mutation": "Bruno", "inheritance": "SLR", "status": "VERIFICATA", "source": "NBvV — Europese Cultuurvogels mutatiedeel 2012–2020, pagina 4", "note": "Solo il fattore selezionato con genotipi certi. Nessuna previsione delle combinazioni o deduzione dei portatori da foto."},
+{"species": "Organetto", "mutation": "Pastello", "inheritance": "SLR", "status": "VERIFICATA", "source": "NBvV — Europese Cultuurvogels mutatiedeel 2012–2020, pagina 4", "note": "Solo il fattore selezionato con genotipi certi. Nessuna previsione delle combinazioni o deduzione dei portatori da foto."},
+{"species": "Verdone", "mutation": "Bruno", "inheritance": "SLR", "status": "VERIFICATA", "source": "NBvV — Europese Cultuurvogels mutatiedeel 2012–2020, pagina 4", "note": "Solo il fattore selezionato con genotipi certi. Nessuna previsione delle combinazioni o deduzione dei portatori da foto."},
+{"species": "Verdone", "mutation": "Pastello", "inheritance": "SLR", "status": "VERIFICATA", "source": "NBvV — Europese Cultuurvogels mutatiedeel 2012–2020, pagina 4", "note": "Solo il fattore selezionato con genotipi certi. Nessuna previsione delle combinazioni o deduzione dei portatori da foto."},
+{"species": "Cardinalino del Venezuela", "mutation": "Bruno", "inheritance": "SLR", "status": "VERIFICATA", "source": "FOI — Scheda Cardinalino del Venezuela; DKB — Mutationen der Erlen- und Kapuzenzeisige, 2026", "note": "Solo il fattore selezionato con genotipi certi. Diluito distingue singolo e doppio fattore. Nomenclatura Agata/Isabella non trasferita a questo modello."},
+{"species": "Cardinalino del Venezuela", "mutation": "Diluito", "inheritance": "ID", "status": "VERIFICATA", "source": "FOI — Scheda Cardinalino del Venezuela; DKB — Mutationen der Erlen- und Kapuzenzeisige, 2026", "note": "Solo il fattore selezionato con genotipi certi. Diluito distingue singolo e doppio fattore. Nomenclatura Agata/Isabella non trasferita a questo modello."},
+{"species": "Cardinalino del Venezuela", "mutation": "Topazio", "inheritance": "AR", "status": "VERIFICATA", "source": "FOI — Scheda Cardinalino del Venezuela; DKB — Mutationen der Erlen- und Kapuzenzeisige, 2026", "note": "Solo il fattore selezionato con genotipi certi. Diluito distingue singolo e doppio fattore. Nomenclatura Agata/Isabella non trasferita a questo modello."},
   {species:"Canarino domestico",mutation:"Isabella",aliases:["Isabel"],inheritance:"ZBA",status:"VERIFICATA_AMBITO_LIMITATO",source:"DKB — Vogelarten e Vererbung der Gefiederfarben, Norbert Schramm",note:"Bruno e Agata sono modellati separatamente sul cromosoma Z. Inserire genotipi certi per entrambi i fattori. Maschi doppi eterozigoti bloccati: manca un tasso di ricombinazione validato. Non considera altri fattori o alleli."},
   {"species":"Cardellino","mutation":"Aurora","inheritance":"AR","status":"VERIFICATA_DA_FONTE_TECNICA","source":"Carmelo Montagno, Il Cardellino, pagina PDF 80","note":"Modello autosomico recessivo del solo fattore Aurora con genotipi noti. Identità molecolare e rapporti con altre mutazioni non stabiliti da questa fonte."},
   {"species":"Cardellino","mutation":"Faccia Nera","inheritance":"SLR","status":"VERIFICATA","source":"Carmelo Montagno, incontro giudici EFI-FOI Agrigento 04/09/2022, sezione genetica","note":"Calcolo del solo fattore Faccia Nera con genotipi noti. Combinazioni con Mascherato o altri fattori sesso-legati richiedono fase e ricombinazione, non calcolate qui."},
@@ -12418,6 +12425,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     const box=document.getElementById("v21GenRisultato");if(!box)return;const total=rows.reduce((a,r)=>a+r.p,0)||1;const mut=v222OrnithoName(rule.mutation);
     function pct(n){return v21Pct(n/total);}
     function simpleLabel(r){
+      if(rule.inheritance==="ID")return (r.phenotype+" — "+mut).toUpperCase();
       if(rule.inheritance==="ZBA")return (r.sex+" — "+r.phenotype+(r.carrier!=="No"?" / portatore "+r.carrier:"")).toUpperCase();
       if(rule.inheritance==="AR"){
         if(r.phenotype==="Mutato")return mut.toUpperCase();
@@ -12434,6 +12442,7 @@ document.addEventListener("DOMContentLoaded",()=>{
       return ((r.sex==="Maschio"?t("males"):r.sex==="Femmina"?t("females"):r.sex)+" — "+t("normal")+" "+mut).toUpperCase();
     }
     function desc(r){
+      if(rule.inheritance==="ID")return "Genotipo "+r.genotype+": "+r.phenotype.toLowerCase()+" per "+mut+". Nessuna previsione di altri fattori.";
       if(rule.inheritance==="ZBA")return "Genotipo "+r.genotype+". "+(r.carrier!=="No"?"Portatore di "+r.carrier+".":"Nessun fattore recessivo nascosto tra Bruno e Agata.");
       if(rule.inheritance==="AR"){if(r.phenotype==="Mutato")return t("manifest");if(r.carrier==="Sì")return t("hidden");return t("notCarry");}
       if(rule.inheritance==="AD"){if(r.genotype==="AA"&&rule.mutation==="Bianco dominante")return t("criticalDesc");return r.phenotype==="Mutato"?t("manifest"):t("notCarry");}
