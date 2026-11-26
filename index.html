@@ -2217,7 +2217,7 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
   <div class="card">
     <details>
       <summary style="cursor:pointer;padding:8px 0;font-weight:700;font-size:1.12em">📊 Copertura del motore genetico — tocca per vedere le regole</summary>
-    <p class="small">Mostra quali specie e mutazioni dispongono già di una regola verificata utilizzabile dal calcolatore. Una mutazione assente dal registro non viene calcolata per supposizione.</p><p class="small">Le regole genetiche storiche restano tracciate alla fonte utilizzata; la loro presenza nel motore non equivale automaticamente a una regola espositiva FOI vigente.</p><p class="small"><b>Regole complesse:</b> combinazioni come Isabella (Bruno + Agata) e caratteri con singolo/doppio fattore non vengono ridotti artificialmente a una regola semplice: saranno gestiti solo con un modello genetico adeguato.</p><p class="small"><b>Combinazioni:</b> anche quando due mutazioni sono entrambe verificate (es. Bruno + Pastello nel Ciuffolotto), il motore attuale le calcola singolarmente e non trasforma la combinazione in un falso locus unico.</p>
+    <p class="small">Mostra quali specie e mutazioni dispongono già di una regola verificata utilizzabile dal calcolatore. Una mutazione assente dal registro non viene calcolata per supposizione.</p><p class="small">Le regole genetiche storiche restano tracciate alla fonte utilizzata; la loro presenza nel motore non equivale automaticamente a una regola espositiva FOI vigente.</p><p class="small"><b>Regole complesse:</b> Isabella nel canarino usa un modello Bruno + Agata con genotipi espliciti; i maschi doppi eterozigoti restano bloccati. Ogni modello ha un ambito specifico di validazione.</p><p class="small"><b>Combinazioni:</b> anche quando due mutazioni sono entrambe verificate (es. Bruno + Pastello nel Ciuffolotto), il motore attuale le calcola singolarmente e non trasforma la combinazione in un falso locus unico.</p>
     <div id="v238CoverageSummary" class="small" style="margin:8px 0"></div><div class="small" style="margin:6px 0"><b>Supportata</b> = calcolo disponibile per il singolo carattere. <b>Solo stesso carattere</b> = relazione allelica nota: incroci tra alleli differenti restano esclusi finché non sarà attivo il modello allelico.</div>
     <div id="v238CoverageBox" class="v18-table-wrap"></div>
     <details style="margin-top:12px">
@@ -11438,7 +11438,7 @@ document.addEventListener("DOMContentLoaded",()=>{
 const V239_COMPLEX_RULES = [
   {species:"Fringuello", mutation:"Isabella", reason:"Combinazione Bruno + Agata sesso-legata; richiede modellazione multilocus/crossing-over e non viene trattata come singolo allele semplice.", source:"FOI - articolo/scheda Fringuello", status:"COMPLESSA_PROTETTA"},
   {species:"Cardellino", mutation:"Isabella", reason:"Combinazione Bruno + Agata sesso-legata: richiede modellazione multilocus/collegamento genetico; non trattata come singolo allele semplice.", source:"FOI - Scheda standard Cardellino", status:"COMPLESSA_PROTETTA"},
-  {species:"Canarino domestico",mutation:"Isabella",reason:"Combinazione genetica Bruno + Agata; richiede modello a loci collegati/crossing-over.",engine:"BLOCCATA"},
+  {species:"Canarino domestico",mutation:"Isabella",reason:"Modello Bruno + Agata disponibile per genotipi certi senza dipendenza dalla ricombinazione. Doppi eterozigoti bloccati.",engine:"AMBITO_LIMITATO"},
   {species:"Canarino domestico",mutation:"Jaspe",reason:"Carattere semidominante; il motore AR/AD/SLR non è sufficiente.",engine:"BLOCCATA"},
   {species:"Canarino domestico",mutation:"Intenso",reason:"Dominanza con aspetti di subletalità/omozigosi; richiede gestione dedicata.",engine:"BLOCCATA"},
   {species:"Lucherino",mutation:"Isabella / Pastello-Bruno",reason:"Combinazione di caratteri; non va ridotta a un singolo locus.",engine:"BLOCCATA"},
@@ -11447,6 +11447,7 @@ const V239_COMPLEX_RULES = [
   {species:"Cardellino",mutation:"Mascherato",reason:"Recessiva sesso-legata ma con relazioni alleliche documentate con Agata e Lutino; richiede motore allelico prima dell'attivazione.",engine:"BLOCCATA"},
 ];
 const V21_GENETIC_RULES = [
+  {species:"Canarino domestico",mutation:"Isabella",aliases:["Isabel"],inheritance:"ZBA",status:"VERIFICATA_AMBITO_LIMITATO",source:"DKB — Vogelarten e Vererbung der Gefiederfarben, Norbert Schramm",note:"Bruno e Agata sono modellati separatamente sul cromosoma Z. Inserire genotipi certi per entrambi i fattori. Maschi doppi eterozigoti bloccati: manca un tasso di ricombinazione validato. Non considera altri fattori o alleli."},
   {"species":"Cardellino","mutation":"Aurora","inheritance":"AR","status":"VERIFICATA_DA_FONTE_TECNICA","source":"Carmelo Montagno, Il Cardellino, pagina PDF 80","note":"Modello autosomico recessivo del solo fattore Aurora con genotipi noti. Identità molecolare e rapporti con altre mutazioni non stabiliti da questa fonte."},
   {"species":"Cardellino","mutation":"Faccia Nera","inheritance":"SLR","status":"VERIFICATA","source":"Carmelo Montagno, incontro giudici EFI-FOI Agrigento 04/09/2022, sezione genetica","note":"Calcolo del solo fattore Faccia Nera con genotipi noti. Combinazioni con Mascherato o altri fattori sesso-legati richiedono fase e ricombinazione, non calcolate qui."},
   {"species":"Canarino domestico","mutation":"Perla","aliases":["Nero Perla","Pearl"],"inheritance":"AR","status":"VERIFICATA","source":"FOI — Italia Ornitologica 8/9 2017, pp. 55–57; DKB — Nero Perla 2026","note":"Calcolo del solo fattore Perla con genotipi noti. Portatori possibili in entrambi i sessi. La tonalità e il disegno dipendono anche da fondo melanico, età e ambiente; non sono previsti da questo calcolo."},
@@ -11516,7 +11517,7 @@ function v231CarrierDisplay(raw){
   return arr.length?arr.map(v222OrnithoName).join(" · "):"—";
 }
 function v232InheritanceLabel(code){
-  return ({AR:"Autosomica recessiva",AD:"Autosomica dominante",ADL:"Autosomica dominante con omozigosi letale",ID:"Autosomica a dominanza incompleta",SLR:"Recessiva legata al sesso"})[code]||code||"—";
+  return ({AR:"Autosomica recessiva",AD:"Autosomica dominante",ADL:"Autosomica dominante con omozigosi letale",ID:"Autosomica a dominanza incompleta",SLR:"Recessiva legata al sesso",ZBA:"Bruno + Agata, due fattori legati al sesso"})[code]||code||"—";
 }
 function v232StatusLabel(status){
   const map={
@@ -11643,6 +11644,16 @@ async function v21LoadCatalogChoices(){
 function v21Pct(n){return (Math.round(n*1000)/10).toLocaleString("it-IT")+"%";}
 function v21Options(inh, sex){
   const u={v:"?",t:"Stato genetico non determinabile"};
+  if(inh==="ZBA"){
+    const h=[["BA","Nero"],["bA","Bruno"],["Ba","Agata"],["ba","Isabella"]];
+    if(sex==="F")return [u,...h.map(([v,t])=>({v:v+"/W",t:t+" — genotipo certo "+v+"/W"}))];
+    const result=[u];
+    for(let i=0;i<h.length;i++)for(let j=i;j<h.length;j++){
+      const [a,an]=h[i],[b,bn]=h[j];
+      result.push({v:a+"/"+b,t:a+"/"+b+" — "+(i===j?an+" omozigote":an+" / "+bn)+(a[0]!==b[0]&&a[1]!==b[1]?" (doppio eterozigote: calcolo bloccato)":"")});
+    }
+    return result;
+  }
   if(inh==="ADL") return [u,{v:"aa",t:"Privo del fattore dominante (certo)"},{v:"Aa",t:"Bianco dominante (eterozigote certo)"}];
   if(inh==="ID") return [u,{v:"aa",t:"Privo del fattore (certo)"},{v:"Aa",t:"Singolo fattore (certo)"},{v:"AA",t:"Doppio fattore (certo)"}];
   if(inh==="AR") return [u,{v:"AA",t:"Non mutato / non portatore (certo)"},{v:"Aa",t:"Portatore"},{v:"aa",t:"Mutato"}];
@@ -11694,6 +11705,30 @@ function v21SexLinked(m,f){
     const k=[sex,geno,phen,carrier].join("|"); rows[k]=(rows[k]||0)+pa*pb;
   }
   return Object.entries(rows).map(([k,p])=>{const [sex,genotype,phenotype,carrier]=k.split("|");return {sex,genotype,phenotype,carrier,p};});
+}
+// B/b: Bruno; A/a: Agata. Internal notation, not molecular allele names.
+function v21LinkedBrunoAgata(m,f){
+  const valid=["BA","bA","Ba","ba"];
+  const mh=String(m).split("/"),fh=String(f).split("/");
+  if(mh.length!==2||!mh.every(h=>valid.includes(h))||fh.length!==2||!valid.includes(fh[0])||fh[1]!=="W")return null;
+  // With two heterozygous loci the gametes depend on recombination. Never assume r=0 or r=.5.
+  if(mh[0][0]!==mh[1][0]&&mh[0][1]!==mh[1][1])return null;
+  const rows=new Map();
+  for(const a of mh)for(const b of fh){
+    const female=b==="W";
+    const brown=a[0]==="b"&&(female||b[0]==="b");
+    const agate=a[1]==="a"&&(female||b[1]==="a");
+    const carriers=[];
+    if(!female){
+      if(a[0]!==b[0])carriers.push("Bruno");
+      if(a[1]!==b[1])carriers.push("Agata");
+    }
+    const row={sex:female?"Femmina":"Maschio",genotype:female?a+"/W":[a,b].sort().join("/"),phenotype:brown?(agate?"Isabella":"Bruno"):(agate?"Agata":"Nero"),carrier:carriers.length?carriers.join(" + "):"No"};
+    const key=JSON.stringify(row);
+    if(!rows.has(key))rows.set(key,{...row,p:0});
+    rows.get(key).p+=.25;
+  }
+  return [...rows.values()];
 }
 function v21RenderCalc(rows,rule){
   const box=document.getElementById("v21GenRisultato"); if(!box)return;
@@ -11804,7 +11839,8 @@ document.addEventListener("DOMContentLoaded",()=>{
         deny("Per il Bianco recessivo è validato l’incrocio tra due soggetti mutati. Questo incrocio richiede una verifica separata.");
         return;
       }
-      const rows=r.inheritance==="SLR"?v21SexLinked(m,f):v21Autosomal(m,f,r.inheritance);
+      const rows=r.inheritance==="ZBA"?v21LinkedBrunoAgata(m,f):r.inheritance==="SLR"?v21SexLinked(m,f):v21Autosomal(m,f,r.inheritance);
+      if(!rows){deny("Calcolo bloccato: il doppio eterozigote Bruno/Agata richiede fase e tasso di ricombinazione validati. Nessuna percentuale viene supposta.");return;}
       v21RenderCalc(rows,r);
       if(box){box.setAttribute("tabindex","-1");box.scrollIntoView({behavior:"smooth",block:"start"});box.focus({preventScroll:true});}
       if(window.v248OpDone)v248OpDone("Calcolo completato");
@@ -11825,6 +11861,7 @@ function v22SpeciesCompatible(subject, rule){
   return obSameCatalogSpecies(a,b);
 }
 function v22KnownGenotype(subject, rule, sex){
+  if(rule?.inheritance==="ZBA")return "?"; // Require explicit two-locus genotype; never derive phase from a phenotype name.
   if(!subject||!rule||!v22SpeciesCompatible(subject,rule))return "?";
   const affected=v21MutationMatches(rule,subject.mutazione);
   const origin=String(subject?.portatore_origine||"DICHIARATO").toUpperCase();
@@ -11940,7 +11977,7 @@ function v22ResolveParent(ref,sex){
 function v22RowsFor(rule,mg,fg){
   if(mg==="?"||fg==="?")return null;
   if(!v21Options(rule.inheritance,"M").some(o=>o.v===mg)||!v21Options(rule.inheritance,"F").some(o=>o.v===fg))return null;
-  return rule.inheritance==="SLR"?v21SexLinked(mg,fg):v21Autosomal(mg,fg,rule.inheritance);
+  return rule.inheritance==="ZBA"?v21LinkedBrunoAgata(mg,fg):rule.inheritance==="SLR"?v21SexLinked(mg,fg):v21Autosomal(mg,fg,rule.inheritance);
 }
 function v235SelectedSubject(which){
   const id=document.getElementById(which==="M"?"v22GenMaschioSoggetto":"v22GenFemminaSoggetto")?.value;
@@ -11990,6 +12027,7 @@ function v235Precheck(rule){
     const a=v22Norm(male.specie), b=v22Norm(female.specie);
     if(!obSameCatalogSpecies(a,b))return {ok:false,msg:"I due soggetti registrati appartengono a specie differenti. Il calcolo automatico viene bloccato."};
   }
+  if(rule.inheritance==="ZBA")return {ok:true,warn:"Bruno + Agata: solo genotipi espliciti e incroci indipendenti dal tasso di ricombinazione. Altri fattori esclusi."};
   if(String(rule.status||"").includes("RELAZIONE_ALLELICA")){
     return {ok:true,warn:"⚠️ Questa regola ha una relazione allelica nota. Il calcolo corrente considera soltanto il singolo carattere selezionato e non combina automaticamente alleli differenti."};
   }
@@ -12380,6 +12418,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     const box=document.getElementById("v21GenRisultato");if(!box)return;const total=rows.reduce((a,r)=>a+r.p,0)||1;const mut=v222OrnithoName(rule.mutation);
     function pct(n){return v21Pct(n/total);}
     function simpleLabel(r){
+      if(rule.inheritance==="ZBA")return (r.sex+" — "+r.phenotype+(r.carrier!=="No"?" / portatore "+r.carrier:"")).toUpperCase();
       if(rule.inheritance==="AR"){
         if(r.phenotype==="Mutato")return mut.toUpperCase();
         if(r.carrier==="Sì")return (t("carrier")+" "+mut).toUpperCase();
@@ -12395,6 +12434,7 @@ document.addEventListener("DOMContentLoaded",()=>{
       return ((r.sex==="Maschio"?t("males"):r.sex==="Femmina"?t("females"):r.sex)+" — "+t("normal")+" "+mut).toUpperCase();
     }
     function desc(r){
+      if(rule.inheritance==="ZBA")return "Genotipo "+r.genotype+". "+(r.carrier!=="No"?"Portatore di "+r.carrier+".":"Nessun fattore recessivo nascosto tra Bruno e Agata.");
       if(rule.inheritance==="AR"){if(r.phenotype==="Mutato")return t("manifest");if(r.carrier==="Sì")return t("hidden");return t("notCarry");}
       if(rule.inheritance==="AD"){if(r.genotype==="AA"&&rule.mutation==="Bianco dominante")return t("criticalDesc");return r.phenotype==="Mutato"?t("manifest"):t("notCarry");}
       if(r.carrier==="Sì")return t("hidden");return /Mutat/.test(r.phenotype)?t("manifest"):t("notCarry");
@@ -15426,3 +15466,4 @@ const obV3078ApriPagina=window.apriPagina;window.apriPagina=async function(id,..
 </div>
 </body>
 </html>
+
