@@ -1996,7 +1996,17 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
 <section id="standardFOI" class="hidden">
   <div class="page-title"><h2 class="ob-icon-title"><img class="ob-section-icon" src="assets_embedded/assets_embedded/ob_asset_056_963496f37a.jpg" alt=""> <span>Standard FOI</span></h2></div>
   <div class="card">
-    <h3>📋 Consultazione criteri FOI</h3>
+    <h3>Ricerca standard per specie, razza e varietà</h3>
+    <p>Consulta i documenti disponibili e le loro fonti. Edizione del documento, verifica documentale e vigenza sono informazioni distinte: il catalogo non è ancora completo per tutte le varietà.</p>
+    <label for="obStandardSpecies">Specie (nome italiano o scientifico)</label><input id="obStandardSpecies" type="search" placeholder="Es. Canarino, Cardellino" oninput="obRenderStandardLibrary()">
+    <label for="obStandardBreed">Razza</label><input id="obStandardBreed" type="search" placeholder="Es. Gloster, Razza Spagnola" oninput="obRenderStandardLibrary()">
+    <label for="obStandardMutation">Mutazione / varietà</label><input id="obStandardMutation" type="search" placeholder="Cerca riferimenti specifici alla varietà" oninput="obRenderStandardLibrary()">
+    <button type="button" class="secondary" onclick="obStandardLibrary=null;obLoadStandardLibrary()">Ricarica catalogo</button>
+    <div id="obStandardResults" aria-live="polite"></div>
+    <article id="obStandardDetail" aria-live="polite"></article>
+  </div>
+  <div class="card">
+    <h3>Consultazione e registrazione manuale dei criteri FOI</h3>
     <p class="small">Seleziona prima la <b>specie</b>, poi la <b>mutazione / varietà</b>. La categoria FOI viene individuata automaticamente. La valutazione del singolo soggetto viene avviata dalla scheda del soggetto tramite <b>🤖 Valuta con AI</b>.</p>
     <label>Specie</label>
     <div class="autocomplete"><input id="foiSpecie" type="text" placeholder="Scrivi o seleziona la specie..." autocomplete="off"><div id="foiSuggerimentiSpecie" class="suggerimenti"></div></div>
@@ -2012,7 +2022,7 @@ html.ob-return-from-admin #obAdminReturnTransition,#obAdminReturnTransition.ob-t
     <p class="small">La specie viene utilizzata per cercare i criteri FOI presenti nel database; la mutazione / varietà serve a identificare correttamente il soggetto e la categoria di appartenenza.</p>
     <div class="card" style="margin-top:12px;">
       <h3>📚 Standard ufficiali FOI</h3>
-      <p class="small">Ultimo elenco verificato sul sito ufficiale FOI.</p>
+      <p class="small">Pagine di riferimento FOI: consulta la fonte per eventuali aggiornamenti.</p>
       <ul style="padding-left:20px;">
         <li><a href="https://www.foi.it/mostre-ornitologiche-giudici/standard/criteri-di-giudizio-canarini-da-canto-malinois-2022.html" target="_blank" rel="noopener">Canarini da Canto Malinois — 2022 / edizione 2023</a></li>
         <li><a href="https://www.foi.it/mostre-ornitologiche-giudici/standard/standard-canarini-di-forma-e-posizione-lisci-edizione-2020.html" target="_blank" rel="noopener">Canarini F.P. Lisci — edizione 2020, aggiornamenti 2023</a></li>
@@ -4556,7 +4566,74 @@ async function salvaValutazioneFOI(criteri,nomeRazza,versioni){
   }catch(e){console.error(e);if(msgBox)msgBox.textContent="❌ Errore salvataggio: "+(e?.message||e);}
   finally{if(btn)btn.disabled=false;}
 }
+// Catalogo documentale: consultazione indipendente dalla valutazione AI.
+let obStandardLibrary=null;
+let obStandardRequest=0;
+function obStandardNorm(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();}
+async function obStandardRows(table,columns){
+ const rows=[];
+ for(let start=0;;start+=500){const r=await sb.from(table).select(columns).order('id').range(start,start+499);if(r.error)throw r.error;rows.push(...(r.data||[]));if((r.data||[]).length<500)return rows;}
+}
+async function obLoadStandardLibrary(){
+ const root=$('obStandardResults');if(!root)return;
+ root.textContent='Caricamento del catalogo documentale…';
+ try{
+ if(!obStandardLibrary){
+ const [versions,taxa,breeds,mutations,sources]=await Promise.all([
+ obStandardRows('ob_standard_versions','id,title,taxon_id,breed_id,mutation_id,status,is_current,version_label,source_id,metadata'),
+ obStandardRows('ob_taxa','id,common_name,scientific_name,aliases'),
+ obStandardRows('ob_breeds','id,name,aliases'),obStandardRows('ob_mutations','id,name,aliases'),
+ obStandardRows('ob_sources','id,title,url,status,version_label')]);
+ const map=a=>new Map(a.map(x=>[x.id,x]));
+ obStandardLibrary={versions:versions.filter(x=>x.status!=='SUPERSEDED'),taxa:map(taxa),breeds:map(breeds),mutations:map(mutations),sources:map(sources)};
+ }
+ obRenderStandardLibrary();
+ }catch(e){obStandardLibrary=null;root.textContent='Catalogo non disponibile. Riprova; nessun dato è stato modificato.';console.warn('Standard documentali',e);}
+}
+function obStandardMatches(v,filters){
+ const c=obStandardLibrary,t=c.taxa.get(v.taxon_id)||{},b=c.breeds.get(v.breed_id)||{},m=c.mutations.get(v.mutation_id)||{};
+ const names=x=>[x.name,x.common_name,x.scientific_name,...(x.aliases||[])].filter(Boolean).join(' ');
+ // Una corrispondenza nel titolo trova documenti esplicitamente dedicati alla varietà;
+ // uno standard generico non viene presentato come standard di una mutazione.
+ return (!filters.species||obStandardNorm(names(t)).includes(filters.species))&&(!filters.breed||obStandardNorm(names(b)+' '+v.title).includes(filters.breed))&&(!filters.mutation||obStandardNorm(names(m)+' '+v.title).includes(filters.mutation));
+}
+function obRenderStandardLibrary(){
+ if(!obStandardLibrary)return;
+ const root=$('obStandardResults');++obStandardRequest;
+ const filters={species:obStandardNorm($('obStandardSpecies').value),breed:obStandardNorm($('obStandardBreed').value),mutation:obStandardNorm($('obStandardMutation').value)};
+ const rows=obStandardLibrary.versions.filter(v=>obStandardMatches(v,filters)).sort((a,b)=>a.title.localeCompare(b.title,'it'));
+ root.replaceChildren();const count=document.createElement('p');count.textContent=rows.length+' documenti trovati. Seleziona uno standard per leggere criteri e fonti.';root.append(count);
+ if(!rows.length){const p=document.createElement('p');p.textContent='Nessuno standard specifico corrispondente nel catalogo. Non significa che la varietà sia priva di uno standard ufficiale. Prova a cercare la sola specie o razza per consultare i riferimenti generali.';root.append(p);}
+ for(const v of rows){const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent=v.title+' — '+(v.version_label||'Edizione non indicata')+' — '+(v.status==='VERIFIED'?'Documentazione verificata':'Documentazione da completare');b.onclick=()=>obOpenStandard(v.id);const p=document.createElement('p');p.append(b);root.append(p);}
+ $('obStandardDetail').replaceChildren();
+}
+async function obOpenStandard(id){
+ const request=++obStandardRequest,root=$('obStandardDetail'),v=obStandardLibrary.versions.find(x=>x.id===id);if(!v)return;
+ root.textContent='Caricamento dello standard…';
+ try{
+ const [cr,tr]=await Promise.all([sb.from('ob_standard_criteria').select('*').eq('standard_version_id',id).order('sort_order'),sb.from('ob_judging_sheet_templates').select('id,title,status,source_id,metadata').eq('standard_version_id',id)]);
+ if(cr.error||tr.error)throw cr.error||tr.error;
+ const templates=(tr.data||[]).filter(x=>x.status!=='SUPERSEDED');let fields=[];
+ if(templates.length){const r=await sb.from('ob_judging_sheet_fields').select('*').in('template_id',templates.map(x=>x.id)).order('sort_order');if(r.error)throw r.error;fields=r.data||[];}
+ if(request!==obStandardRequest)return;root.replaceChildren();
+ const add=(tag,text)=>{const e=document.createElement(tag);e.textContent=text;root.append(e);return e;};
+ add('h3',v.title);add('p','Edizione: '+(v.version_label||'non indicata')+'. Stato documentale: '+(v.status==='VERIFIED'?'verificato':'incompleto / da verificare')+'.');
+ add('p','La presenza nel catalogo e lo stato VERIFIED non certificano da soli la vigenza nel 2026 o la completezza per tutte le mutazioni.');
+ if(!v.is_current)add('p','Documento non attivo come riferimento corrente nell’app; consultazione documentale.');
+ const sourceIds=new Set([v.source_id,...templates.map(t=>t.source_id)].filter(Boolean));let linked=false;
+ for(const sid of sourceIds){const s=obStandardLibrary.sources.get(sid);if(!s)continue;add('p','Fonte: '+(s.title||sid));try{const u=new URL(s.url);if(u.protocol==='https:'){const a=add('a','Apri il documento o la pagina della fonte');a.href=u.href;a.target='_blank';a.rel='noopener noreferrer';linked=true;}}catch(_){}}
+ if(!linked)add('p','Collegamento alla fonte non disponibile in questa scheda.');
+ const criteria=cr.data||[];if(!criteria.length)add('p','Descrizioni analitiche non ancora disponibili.');
+ for(const c of criteria){add('h4',c.criterion_name+(c.official_max!=null?' — massimo documentato '+c.official_max+' punti':''));add('p','Ideale: '+(c.ideal||'Da completare.'));add('p','Difetti: '+(c.defects||'Da completare.'));if(c.exclusions)add('p','Esclusioni: '+c.exclusions);
+ const evidence=c.metadata?.cfpl_documentary_validation_20261127||c.metadata||{};
+ if(evidence.document)add('p','Riferimento: '+evidence.document+(evidence.pages?' — pagine '+evidence.pages.join(', '):evidence.pdf_page?' — pagina '+evidence.pdf_page:''));
+ if(evidence.verified_on||evidence.validated_on)add('p','Verifica documentale registrata: '+(evidence.verified_on||evidence.validated_on));}
+ for(const t of templates){const fs=fields.filter(f=>f.template_id===t.id);if(!fs.length)continue;add('h4','Griglia: '+t.title);for(const f of fs)add('p',f.criterion_name+' — '+(f.official_max==null?'massimo non verificato':f.official_max+' punti'));if(t.metadata?.scale_conflict)add('p','Attenzione: conflitto documentato nei massimi. Griglia da verificare; non utilizzare per calcolare un voto.');}
+ }catch(e){if(request===obStandardRequest)root.textContent='Impossibile leggere questo standard. Riprova.';console.warn('Lettura standard',e);}
+}
+
 async function inizializzaStandardFOI(){
+  await obLoadStandardLibrary();
   const specieInput=$("foiSpecie"),mutInput=$("foiMutazione");
   if(!specieInput||specieInput.dataset.initialized==="1")return;
   specieInput.dataset.initialized="1";
